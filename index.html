@@ -3,52 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SUBLISPORT GARCIA | Ropa Deportiva</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>SUBLISPORT GARCIA | Diseñador Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-gray-900 text-white font-sans">
+<body>
 
     <!-- Navegación -->
-    <nav class="p-5 flex justify-between items-center bg-black sticky top-0 z-50">
-        <h1 class="text-2xl font-bold text-yellow-500">SUBLISPORT GARCIA</h1>
-        <div class="hidden md:block space-x-6">
-            <a href="#inicio" class="hover:text-yellow-500">Inicio</a>
-            <a href="#galeria" class="hover:text-yellow-500">Catálogo</a>
-            <a href="#contacto" class="hover:text-yellow-500">Contacto</a>
-        </div>
+    <nav class="navbar">
+        <div class="logo">SUBLISPORT <span>GARCIA</span></div>
+        <ul class="nav-links">
+            <li><a href="#inicio">Inicio</a></li>
+            <li><a href="#simulador">Diseñador Virtual</a></li>
+            <li><a href="#galeria">Catálogo</a></li>
+            <li><a href="#contacto" class="btn-contacto">Contacto</a></li>
+        </ul>
     </nav>
 
-    <!-- Video de Presentación -->
-    <section id="inicio" class="relative h-[70vh] flex items-center justify-center overflow-hidden">
-        <video autoplay loop muted playsinline class="absolute w-full h-full object-cover opacity-40">
+    <!-- Hero -->
+    <section id="inicio" class="hero">
+        <video autoplay loop muted playsinline class="video-bg">
             <source src="assets/video/presentacion.mp4" type="video/mp4">
         </video>
-        <div class="relative z-10 text-center">
-            <h2 class="text-5xl font-extrabold mb-4">CONFECCIÓN DEPORTIVA</h2>
-            <p class="text-xl mb-6">Diseños únicos y sublimados personalizados</p>
-            <a href="https://wa.me/TUNUMERO" class="bg-yellow-500 text-black px-8 py-3 rounded-full font-bold">WhatsApp</a>
+        <div class="hero-content" data-aos="fade-up">
+            <h1>DISEÑA TU <span>EQUIPACIÓN</span></h1>
+            <p>Personaliza colores y estilos antes de pedir.</p>
         </div>
     </section>
 
-    <!-- Galería Simple -->
-    <section id="galeria" class="py-20 px-10">
-        <h3 class="text-3xl font-bold text-center mb-10">NUESTRO TRABAJO</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <img src="https://via.placeholder.com/400" class="rounded-lg">
-            <img src="https://via.placeholder.com/400" class="rounded-lg">
-            <img src="https://via.placeholder.com/400" class="rounded-lg">
+    <!-- SIMULADOR DE COLORES -->
+    <section id="simulador" class="simulator-section py-20">
+        <div class="container">
+            <h2 class="section-title text-center" data-aos="fade-up">Simulador de <span>Uniformes</span></h2>
+            <div class="simulator-container">
+                
+                <!-- Visualizador del Maniquí (SVG) -->
+                <div class="preview-box" data-aos="fade-right">
+                    <svg id="kit-svg" viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Polo -->
+                        <path id="svg-polo" d="M50,50 L150,50 L160,120 L130,120 L130,200 L70,200 L70,120 L40,120 Z" fill="#f39c12" stroke="#fff" stroke-width="2"/>
+                        <!-- Short -->
+                        <path id="svg-short" d="M70,205 L130,205 L140,260 L105,260 L100,230 L95,260 L60,260 Z" fill="#222" stroke="#fff" stroke-width="2"/>
+                        <!-- Medias -->
+                        <rect id="svg-medias" x="65" y="265" width="25" height="30" fill="#f39c12" stroke="#fff" />
+                        <rect id="svg-medias-r" x="110" y="265" width="25" height="30" fill="#f39c12" stroke="#fff" />
+                    </svg>
+                    <p class="text-center mt-4 text-gray-400">Vista previa de tu diseño</p>
+                </div>
+
+                <!-- Controles -->
+                <div class="controls-box" data-aos="fade-left">
+                    <div class="control-group">
+                        <label>Color del Polo</label>
+                        <input type="color" id="color-polo" value="#f39c12">
+                    </div>
+                    <div class="control-group">
+                        <label>Color del Short</label>
+                        <input type="color" id="color-short" value="#222222">
+                    </div>
+                    <div class="control-group">
+                        <label>Color de Medias</label>
+                        <input type="color" id="color-medias" value="#f39c12">
+                    </div>
+                    <button id="btn-pedir" class="btn-primary w-full mt-6">Enviar diseño por WhatsApp</button>
+                </div>
+
+            </div>
         </div>
     </section>
 
-    <!-- Redes Sociales -->
-    <footer id="contacto" class="bg-black py-10 text-center">
-        <div class="flex justify-center space-x-8 text-3xl mb-4">
-            <a href="#"><i class="fab fa-facebook text-blue-600"></i></a>
-            <a href="#"><i class="fab fa-instagram text-pink-500"></i></a>
+    <!-- Redes Sociales y Footer -->
+    <footer id="contacto">
+        <div class="footer-content">
+            <h3>SÍGUENOS EN REDES</h3>
+            <div class="social-links">
+                <!-- Reemplaza con tus links reales -->
+                <a href="https://facebook.com/TU_PERFIL" target="_blank" title="Facebook"><i class="fab fa-facebook"></i></a>
+                <a href="https://instagram.com/TU_PERFIL" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="https://tiktok.com/@TU_PERFIL" target="_blank" title="TikTok"><i class="fab fa-tiktok"></i></a>
+            </div>
+            <p class="mt-10">&copy; 2024 SUBLISPORT GARCIA - Expertos en Sublimación</p>
         </div>
-        <p>SUBLISPORT GARCIA &copy; 2024</p>
     </footer>
 
+    <!-- Botón Flotante WhatsApp -->
+    <a href="https://wa.me/519XXXXXXXX" id="whatsapp-btn" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="js/script.js"></script>
 </body>
 </html>
