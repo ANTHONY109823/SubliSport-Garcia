@@ -3,161 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SUBLISPORT GARCIA | Personalizador Pro</title>
+    <title>SUBLISPORT GARCIA | Confección Deportiva de Élite</title>
     
-    <!-- Google Fonts e Iconos -->
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Fonts e Iconos -->
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Animaciones AOS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
     <style>
         :root {
-            --primary: #f39c12;
+            --primary: #f39c12; /* Color Oro/Amarillo */
             --dark: #0a0a0a;
             --gray: #1a1a1a;
             --light: #ffffff;
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
+
         body {
             background-color: var(--dark);
             color: var(--light);
             font-family: 'Roboto', sans-serif;
-            margin: 0;
-            overflow-x: hidden;
         }
 
-        /* Navegación */
+        span { color: var(--primary); }
+
+        /* --- NAVEGACIÓN --- */
         .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 8%;
-            background: #000;
-            border-bottom: 2px solid var(--primary);
-            position: sticky;
-            top: 0;
+            padding: 20px 8%;
+            background: rgba(0,0,0,0.9);
+            position: fixed;
+            width: 100%;
             z-index: 1000;
+            border-bottom: 1px solid #333;
         }
 
         .logo { font-family: 'Oswald'; font-size: 1.8rem; font-weight: bold; }
-        .logo span { color: var(--primary); }
+        .nav-links { display: flex; list-style: none; gap: 25px; }
+        .nav-links a { color: white; text-decoration: none; font-weight: bold; font-size: 0.9rem; transition: 0.3s; }
+        .nav-links a:hover { color: var(--primary); }
 
-        /* Sección Diseñador */
-        .designer-section { padding: 40px 8%; }
-        .designer-title { text-align: center; font-family: 'Oswald'; font-size: 2.5rem; margin-bottom: 40px; }
-        .designer-title span { color: var(--primary); }
-
-        .designer-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            background: var(--gray);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        /* Lado Izquierdo: El Maniquí */
-        .preview-container {
-            position: relative;
-            background: #222;
-            border-radius: 15px;
+        /* --- HERO SECTION (VIDEO) --- */
+        .hero {
+            height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            min-height: 500px;
-            overflow: hidden;
-        }
-
-        .jersey-img {
-            max-width: 100%;
-            height: auto;
-            z-index: 1;
-        }
-
-        /* Capas de Texto sobre el Polo */
-        .text-overlay-name {
-            position: absolute;
-            top: 25%;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 2;
-            font-family: 'Oswald';
-            font-size: 1.8rem;
-            color: white;
-            text-transform: uppercase;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            width: 100%;
+            justify-content: center;
             text-align: center;
-            pointer-events: none;
-        }
-
-        .text-overlay-number {
-            position: absolute;
-            top: 35%;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 2;
-            font-family: 'Oswald';
-            font-size: 6rem;
-            color: white;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
-            pointer-events: none;
-        }
-
-        /* Lado Derecho: Controles */
-        .controls-container { display: flex; flex-direction: column; gap: 25px; }
-
-        .control-group label { display: block; margin-bottom: 10px; font-weight: bold; color: var(--primary); }
-        .control-group input {
-            width: 100%;
-            padding: 12px;
-            background: #333;
-            border: 1px solid #444;
-            color: white;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        /* Galería de Selección */
-        .design-selector {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-
-        .design-option {
-            border: 2px solid transparent;
-            border-radius: 8px;
-            cursor: pointer;
+            position: relative;
             overflow: hidden;
-            transition: 0.3s;
-            background: #000;
         }
 
-        .design-option:hover { border-color: var(--primary); }
-        .design-option.active { border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
-        .design-option img { width: 100%; height: 80px; object-fit: contain; }
-
-        .btn-order {
-            background: #25d366;
-            color: black;
-            padding: 18px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            cursor: pointer;
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+        .video-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: -1;
+            opacity: 0.5;
         }
 
-        footer { padding: 40px; text-align: center; background: #000; margin-top: 50px; }
-        .social-links a { color: white; font-size: 2rem; margin: 0 15px; }
+        .hero-content h1 { font-family: 'Oswald'; font-size: 4.5rem; line-height: 1; margin-bottom: 20px; }
+        .hero-content p { font-size: 1.2rem; margin-bottom: 30px; color: #ccc; }
+        .btn-main {
+            background: var(--primary); color: black;
+            padding: 15px 30px; text-decoration: none; font-weight: bold;
+            border-radius: 5px; margin: 10px; display: inline-block; transition: 0.3s;
+        }
+        .btn-outline {
+            border: 2px solid white; color: white;
+            padding: 13px 30px; text-decoration: none; font-weight: bold;
+            border-radius: 5px; margin: 10px; display: inline-block; transition: 0.3s;
+        }
+        .btn-main:hover { transform: scale(1.05); background: white; }
+
+        /* --- SECCIÓN CATÁLOGO --- */
+        .section-padding { padding: 100px 8%; }
+        .title-center { text-align: center; font-family: 'Oswald'; font-size: 3rem; margin-bottom: 50px; }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .gallery-item {
+            position: relative; overflow: hidden; border-radius: 10px; height: 350px;
+            background: var(--gray);
+        }
+
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .gallery-item:hover img { transform: scale(1.1); filter: brightness(0.7); }
+        .gallery-item .info {
+            position: absolute; bottom: -50px; left: 20px; transition: 0.5s; opacity: 0;
+        }
+        .gallery-item:hover .info { bottom: 20px; opacity: 1; }
+
+        /* --- PERSONALIZADOR --- */
+        .customizer-bg { background: var(--gray); border-radius: 30px; padding: 40px; }
+        .designer-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+
+        .preview-box {
+            position: relative; background: #000; border-radius: 20px;
+            display: flex; justify-content: center; align-items: center; min-height: 500px;
+        }
+
+        .text-overlay-name {
+            position: absolute; top: 22%; font-family: 'Oswald'; font-size: 2rem;
+            color: white; text-transform: uppercase; text-shadow: 2px 2px 4px #000;
+        }
+        .text-overlay-number {
+            position: absolute; top: 32%; font-family: 'Oswald'; font-size: 7rem;
+            color: white; text-shadow: 3px 3px 6px #000;
+        }
+
+        .design-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .design-opt { cursor: pointer; border: 2px solid transparent; border-radius: 5px; overflow: hidden; }
+        .design-opt.active { border-color: var(--primary); }
+        .design-opt img { width: 100%; height: 60px; object-fit: cover; }
+
+        .form-input {
+            width: 100%; padding: 12px; background: #222; border: 1px solid #444;
+            color: white; margin-bottom: 15px; border-radius: 5px;
+        }
+
+        /* --- FOOTER --- */
+        footer { background: #000; padding: 60px 8%; text-align: center; border-top: 1px solid #222; }
+        .social-links a { color: white; font-size: 2.5rem; margin: 0 15px; transition: 0.3s; }
+        .social-links a:hover { color: var(--primary); transform: translateY(-5px); }
 
         @media (max-width: 768px) {
+            .hero-content h1 { font-size: 2.5rem; }
             .designer-container { grid-template-columns: 1fr; }
         }
     </style>
@@ -166,100 +145,120 @@
 
     <nav class="navbar">
         <div class="logo">SUBLISPORT <span>GARCIA</span></div>
+        <ul class="nav-links">
+            <li><a href="#inicio">Inicio</a></li>
+            <li><a href="#catalogo">Catálogo</a></li>
+            <li><a href="#personalizar">Personalizar</a></li>
+            <li><a href="#contacto">Contacto</a></li>
+        </ul>
     </nav>
 
-    <section class="designer-section">
-        <h2 class="designer-title">Personaliza tu <span>Uniforme</span></h2>
-        
-        <div class="designer-container">
-            <!-- Izquierda: Visualización -->
-            <div class="preview-container" id="capture-area">
-                <img src="https://via.placeholder.com/400x500/333/fff?text=Diseño+1" id="main-jersey" class="jersey-img">
-                <div class="text-overlay-name" id="preview-name">TU NOMBRE</div>
-                <div class="text-overlay-number" id="preview-number">10</div>
+    <!-- 1. PRESENTACIÓN / HERO -->
+    <section id="inicio" class="hero">
+        <video autoplay loop muted playsinline class="video-bg">
+            <source src="assets/video/presentacion.mp4" type="video/mp4">
+        </video>
+        <div class="hero-content" data-aos="zoom-in">
+            <h1>CONFECCIÓN DE <span>ALTO NIVEL</span></h1>
+            <p>Diseños únicos, sublimación premium y uniformes que marcan la diferencia.</p>
+            <a href="#personalizar" class="btn-main">DISEÑA TU KIT</a>
+            <a href="#catalogo" class="btn-outline">VER TRABAJOS</a>
+        </div>
+    </section>
+
+    <!-- 2. CATÁLOGO / PORTAFOLIO -->
+    <section id="catalogo" class="section-padding">
+        <h2 class="title-center" data-aos="fade-up">Nuestros <span>Trabajos</span></h2>
+        <div class="gallery-grid">
+            <!-- Imagen 1 -->
+            <div class="gallery-item" data-aos="fade-up">
+                <img src="https://via.placeholder.com/400x600/111/fff?text=Fútbol+Pro" alt="Trabajo 1">
+                <div class="info"><h3>Equipación Fútbol</h3><p>Sublimado Full Color</p></div>
             </div>
-
-            <!-- Derecha: Opciones -->
-            <div class="controls-container">
-                
-                <div class="control-group">
-                    <label>1. ELIGE TU DISEÑO</label>
-                    <div class="design-selector">
-                        <div class="design-option active" onclick="changeDesign('https://via.placeholder.com/400x500/004400/fff?text=Diseño+Fútbol+1', this)">
-                            <img src="https://via.placeholder.com/100x100/004400/fff?text=D1">
-                        </div>
-                        <div class="design-option" onclick="changeDesign('https://via.placeholder.com/400x500/440000/fff?text=Diseño+Fútbol+2', this)">
-                            <img src="https://via.placeholder.com/100x100/440000/fff?text=D2">
-                        </div>
-                        <div class="design-option" onclick="changeDesign('https://via.placeholder.com/400x500/000044/fff?text=Diseño+Fútbol+3', this)">
-                            <img src="https://via.placeholder.com/100x100/000044/fff?text=D3">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <label>2. NOMBRE EN LA ESPALDA</label>
-                    <input type="text" id="input-name" placeholder="Ej: GARCIA" maxlength="12">
-                </div>
-
-                <div class="control-group">
-                    <label>3. NÚMERO</label>
-                    <input type="number" id="input-number" placeholder="Ej: 10" min="0" max="99">
-                </div>
-
-                <button class="btn-order" onclick="sendToWhatsApp()">
-                    PEDIR ESTE DISEÑO <i class="fab fa-whatsapp"></i>
-                </button>
+            <!-- Imagen 2 -->
+            <div class="gallery-item" data-aos="fade-up" data-aos-delay="100">
+                <img src="https://via.placeholder.com/400x600/222/fff?text=Diseño+Único" alt="Trabajo 2">
+                <div class="info"><h3>Diseños Especiales</h3><p>Creatividad sin límites</p></div>
+            </div>
+            <!-- Imagen 3 -->
+            <div class="gallery-item" data-aos="fade-up" data-aos-delay="200">
+                <img src="https://via.placeholder.com/400x600/333/fff?text=Sublimación" alt="Trabajo 3">
+                <div class="info"><h3>Telas Pro</h3><p>Rendimiento máximo</p></div>
             </div>
         </div>
     </section>
 
-    <footer>
-        <div class="social-links">
-            <a href="#"><i class="fab fa-facebook"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-            <a href="#"><i class="fab fa-tiktok"></i></a>
+    <!-- 3. PERSONALIZADOR (SEGUNDO ATRACTIVO) -->
+    <section id="personalizar" class="section-padding">
+        <div class="customizer-bg" data-aos="fade-right">
+            <h2 class="title-center" style="font-size: 2rem;">LABORATORIO DE <span>DISEÑO</span></h2>
+            <div class="designer-container">
+                <div class="preview-box">
+                    <img src="https://via.placeholder.com/400x500/222/fff?text=Selecciona+un+modelo" id="main-jersey" style="max-width: 100%;">
+                    <div class="text-overlay-name" id="preview-name">NOMBRE</div>
+                    <div class="text-overlay-number" id="preview-number">10</div>
+                </div>
+
+                <div class="controls">
+                    <label style="color:var(--primary); font-weight:bold;">ELIGE EL MODELO BASE:</label>
+                    <div class="design-selector">
+                        <div class="design-opt active" onclick="updateDesign('https://via.placeholder.com/400x500/003300/fff?text=Modelo+A', this)">
+                            <img src="https://via.placeholder.com/100x100/003300/fff?text=A">
+                        </div>
+                        <div class="design-opt" onclick="updateDesign('https://via.placeholder.com/400x500/330000/fff?text=Modelo+B', this)">
+                            <img src="https://via.placeholder.com/100x100/330000/fff?text=B">
+                        </div>
+                        <div class="design-opt" onclick="updateDesign('https://via.placeholder.com/400x500/000033/fff?text=Modelo+C', this)">
+                            <img src="https://via.placeholder.com/100x100/000033/fff?text=C">
+                        </div>
+                    </div>
+
+                    <label style="color:var(--primary); font-weight:bold;">PERSONALIZA EL DORSAL:</label>
+                    <input type="text" id="in-name" class="form-input" placeholder="Nombre en espalda" maxlength="12">
+                    <input type="number" id="in-number" class="form-input" placeholder="Número" max="99">
+                    
+                    <button onclick="orderWA()" class="btn-main" style="width:100%; margin:0; cursor:pointer;">
+                        PEDIR COTIZACIÓN <i class="fab fa-whatsapp"></i>
+                    </button>
+                </div>
+            </div>
         </div>
-        <p>&copy; 2024 SUBLISPORT GARCIA</p>
+    </section>
+
+    <!-- 4. FOOTER / REDES -->
+    <footer id="contacto">
+        <h2 class="title-center" style="font-size: 1.5rem;">SÍGUENOS EN NUESTRAS REDES</h2>
+        <div class="social-links">
+            <a href="https://facebook.com/TU_PAGINA" target="_blank"><i class="fab fa-facebook"></i></a>
+            <a href="https://instagram.com/TU_PAGINA" target="_blank"><i class="fab fa-instagram"></i></a>
+            <a href="https://tiktok.com/@TU_PAGINA" target="_blank"><i class="fab fa-tiktok"></i></a>
+        </div>
+        <p style="margin-top: 40px; color: #555;">&copy; 2024 SUBLISPORT GARCIA | Calidad Deportiva</p>
     </footer>
 
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        // Cambiar el diseño del maniquí
-        function changeDesign(imgUrl, element) {
-            document.getElementById('main-jersey').src = imgUrl;
-            
-            // Cambiar clase activa
-            document.querySelectorAll('.design-option').forEach(opt => opt.classList.remove('active'));
-            element.classList.add('active');
+        AOS.init({ duration: 1000 });
+
+        function updateDesign(url, el) {
+            document.getElementById('main-jersey').src = url;
+            document.querySelectorAll('.design-opt').forEach(d => d.classList.remove('active'));
+            el.classList.add('active');
         }
 
-        // Actualizar texto en tiempo real
-        const inputName = document.getElementById('input-name');
-        const inputNumber = document.getElementById('input-number');
-        const previewName = document.getElementById('preview-name');
-        const previewNumber = document.getElementById('preview-number');
+        const inName = document.getElementById('in-name');
+        const inNum = document.getElementById('in-number');
+        const preName = document.getElementById('preview-name');
+        const preNum = document.getElementById('preview-number');
 
-        inputName.addEventListener('input', () => {
-            previewName.innerText = inputName.value || "TU NOMBRE";
-        });
+        inName.addEventListener('input', () => preName.innerText = inName.value || "NOMBRE");
+        inNum.addEventListener('input', () => preNum.innerText = inNum.value || "10");
 
-        inputNumber.addEventListener('input', () => {
-            previewNumber.innerText = inputNumber.value || "00";
-        });
-
-        // Enviar pedido a WhatsApp
-        function sendToWhatsApp() {
-            const name = inputName.value || "Sin nombre";
-            const number = inputNumber.value || "Sin número";
-            const design = document.getElementById('main-jersey').src;
-            const phoneNumber = "519XXXXXXXX"; // CAMBIA TU NÚMERO AQUÍ
-
-            const message = `¡Hola SubliSport Garcia! Quiero una cotización:%0A%0A` +
-                            `*Nombre:* ${name}%0A` +
-                            `*Número:* ${number}%0A` +
-                            `*Diseño seleccionado:* ${design}`;
-
-            window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+        function orderWA() {
+            const phoneNumber = "519XXXXXXXX"; // REEMPLAZA CON TU NÚMERO
+            const msg = `Hola Sublisport Garcia! Quiero cotizar este uniforme:%0A- Nombre: ${inName.value}%0A- Numero: ${inNum.value}%0A- Diseño: ${document.getElementById('main-jersey').src}`;
+            window.open(`https://wa.me/${phoneNumber}?text=${msg}`, '_blank');
         }
     </script>
 </body>
