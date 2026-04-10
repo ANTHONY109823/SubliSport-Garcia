@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUBLISPORT GARCIA | Ropa Deportiva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-white font-sans">
+
+    <!-- Navegación -->
+    <nav class="p-5 flex justify-between items-center bg-black sticky top-0 z-50">
+        <h1 class="text-2xl font-bold text-yellow-500">SUBLISPORT GARCIA</h1>
+        <div class="hidden md:block space-x-6">
+            <a href="#inicio" class="hover:text-yellow-500">Inicio</a>
+            <a href="#galeria" class="hover:text-yellow-500">Catálogo</a>
+            <a href="#contacto" class="hover:text-yellow-500">Contacto</a>
+        </div>
+    </nav>
+
+    <!-- Video de Presentación -->
+    <section id="inicio" class="relative h-[70vh] flex items-center justify-center overflow-hidden">
+        <video autoplay loop muted playsinline class="absolute w-full h-full object-cover opacity-40">
+            <source src="assets/video/presentacion.mp4" type="video/mp4">
+        </video>
+        <div class="relative z-10 text-center">
+            <h2 class="text-5xl font-extrabold mb-4">CONFECCIÓN DEPORTIVA</h2>
+            <p class="text-xl mb-6">Diseños únicos y sublimados personalizados</p>
+            <a href="https://wa.me/TUNUMERO" class="bg-yellow-500 text-black px-8 py-3 rounded-full font-bold">WhatsApp</a>
+        </div>
+    </section>
+
+    <!-- Galería Simple -->
+    <section id="galeria" class="py-20 px-10">
+        <h3 class="text-3xl font-bold text-center mb-10">NUESTRO TRABAJO</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <img src="https://via.placeholder.com/400" class="rounded-lg">
+            <img src="https://via.placeholder.com/400" class="rounded-lg">
+            <img src="https://via.placeholder.com/400" class="rounded-lg">
+        </div>
+    </section>
+
+    <!-- Redes Sociales -->
+    <footer id="contacto" class="bg-black py-10 text-center">
+        <div class="flex justify-center space-x-8 text-3xl mb-4">
+            <a href="#"><i class="fab fa-facebook text-blue-600"></i></a>
+            <a href="#"><i class="fab fa-instagram text-pink-500"></i></a>
+        </div>
+        <p>SUBLISPORT GARCIA &copy; 2024</p>
+    </footer>
+
+</body>
+</html>
