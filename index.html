@@ -20,15 +20,15 @@
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior: smooth; }
 body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; overflow-x: hidden; }
- 
+
 body { cursor: none; }
 .cursor { width:12px; height:12px; background:var(--gold); border-radius:50%; position:fixed; top:0; left:0; pointer-events:none; z-index:99999; transition:transform 0.1s; mix-blend-mode:difference; }
 .cursor-ring { width:36px; height:36px; border:1.5px solid var(--gold); border-radius:50%; position:fixed; top:0; left:0; pointer-events:none; z-index:99998; transition:all 0.15s ease; opacity:0.6; }
- 
+
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--black); }
 ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
- 
+
 /* NAVBAR */
 .navbar { display:flex; justify-content:space-between; align-items:center; padding:0 6%; height:70px; background:rgba(6,6,6,0.96); backdrop-filter:blur(12px); position:fixed; width:100%; z-index:1000; border-bottom:1px solid var(--border); transition:0.3s; }
 .navbar.scrolled { box-shadow: 0 4px 40px rgba(240,165,0,0.08); }
@@ -44,7 +44,7 @@ body { cursor: none; }
 .nav-cta:hover { background:var(--gold-light)!important; }
 .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; }
 .hamburger span { width:24px; height:2px; background:var(--white); transition:0.3s; display:block; }
- 
+
 /* HERO */
 .hero { height:100vh; display:flex; align-items:center; justify-content:center; text-align:center; position:relative; overflow:hidden; }
 .hero-bg { position:absolute; inset:0; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(240,165,0,0.13) 0%, transparent 60%), linear-gradient(180deg,#060606 0%,#0a0a0a 100%); }
@@ -66,14 +66,14 @@ body { cursor: none; }
 .scroll-indicator { position:absolute; bottom:30px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:8px; animation:fadeUp 1s 1.2s both; }
 .scroll-line { width:1px; height:50px; background:linear-gradient(to bottom,var(--gold),transparent); animation:scrollPulse 2s infinite; }
 .scroll-text { font-family:'Barlow Condensed'; font-size:0.68rem; letter-spacing:3px; color:var(--gray); text-transform:uppercase; }
- 
+
 /* SECCIONES */
 .section { padding:90px 6%; }
 .section-tag { font-family:'Barlow Condensed'; font-size:0.78rem; letter-spacing:4px; color:var(--gold); text-transform:uppercase; display:flex; align-items:center; gap:12px; margin-bottom:14px; }
 .section-tag::before { content:''; width:28px; height:1.5px; background:var(--gold); }
 .section-title { font-family:'Bebas Neue'; font-size:clamp(2rem,4vw,3.5rem); letter-spacing:3px; line-height:1; margin-bottom:50px; }
 .section-title span { color:var(--gold); }
- 
+
 /* SERVICIOS */
 .services-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px; }
 .service-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:34px 28px; position:relative; overflow:hidden; transition:all 0.4s; }
@@ -84,8 +84,8 @@ body { cursor: none; }
 .service-card:hover .service-icon { background:rgba(240,165,0,0.15); transform:scale(1.08); }
 .service-card h3 { font-family:'Barlow Condensed'; font-size:1.2rem; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px; }
 .service-card p { color:var(--gray); font-size:0.9rem; line-height:1.7; }
- 
-/* CATÁLOGO / GALERÍA DE IMÁGENES */
+
+/* SLIDER */
 .catalog-intro { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:40px; flex-wrap:wrap; gap:16px; }
 .jerseys-slider-wrap { overflow:hidden; position:relative; }
 .jerseys-slider-wrap::before, .jerseys-slider-wrap::after { content:''; position:absolute; top:0; bottom:0; width:80px; z-index:2; pointer-events:none; }
@@ -95,25 +95,13 @@ body { cursor: none; }
 .jerseys-track:hover { animation-play-state:paused; }
 .jersey-card { width:200px; flex-shrink:0; background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; transition:all 0.35s; cursor:pointer; }
 .jersey-card:hover { border-color:rgba(240,165,0,0.45); transform:translateY(-6px); box-shadow:0 16px 40px rgba(0,0,0,0.5); }
-.jersey-card img { width:100%; height:200px; object-fit:cover; display:block; transition:transform 0.4s; }
+/* FIX: altura fija para imagen y object-fit contain para no cortar */
+.jersey-card img { width:100%; height:220px; object-fit:contain; object-position:center; display:block; background:#1a1a1a; transition:transform 0.4s; }
 .jersey-card:hover img { transform:scale(1.05); }
 .jersey-card-info { padding:14px 16px; }
 .jersey-card-info h4 { font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:1px; text-transform:uppercase; margin-bottom:3px; }
 .jersey-card-info p { font-size:0.78rem; color:var(--gold); letter-spacing:1px; }
- 
-/* GALERÍA GRID MANUAL */
-.gallery-grid { display:grid; grid-template-columns:2fr 1fr 1fr; grid-template-rows:260px 260px; gap:14px; }
-.gallery-item { position:relative; overflow:hidden; border-radius:12px; background:var(--card); border:1px solid var(--border); }
-.gallery-item.big { grid-row:span 2; }
-.gallery-placeholder { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; background:linear-gradient(135deg,#141414 0%,#1c1c1c 100%); transition:all 0.5s; }
-.gallery-item:hover .gallery-placeholder { filter:brightness(1.1); }
-.gallery-img-icon { font-size:2.2rem; color:rgba(240,165,0,0.25); }
-.gallery-img-icon.big-icon { font-size:3.5rem; }
-.gallery-label { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top,rgba(0,0,0,0.95) 0%,transparent 100%); padding:36px 20px 18px; transform:translateY(60%); transition:transform 0.45s cubic-bezier(0.25,0.8,0.25,1); }
-.gallery-item:hover .gallery-label { transform:translateY(0); }
-.gallery-label h3 { font-family:'Barlow Condensed'; font-size:1.05rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--white); margin-bottom:3px; }
-.gallery-label p { font-size:0.8rem; color:var(--gold); letter-spacing:1px; }
- 
+
 /* COTIZACIÓN */
 .quote-wrap { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:48px; max-width:680px; margin:0 auto; }
 .quote-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
@@ -121,21 +109,17 @@ body { cursor: none; }
 .form-field:focus { border-color:var(--gold); }
 .form-field::placeholder { color:rgba(255,255,255,0.25); }
 .control-label { font-family:'Barlow Condensed'; font-size:0.76rem; letter-spacing:2.5px; text-transform:uppercase; color:var(--gray); margin-bottom:10px; display:block; margin-top:14px; }
- 
-/* Tipo de prenda */
 .prenda-opts { display:flex; gap:10px; margin-bottom:0; }
 .prenda-opt { flex:1; padding:14px 10px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:8px; text-align:center; cursor:pointer; transition:all 0.25s; }
 .prenda-opt.active, .prenda-opt:hover { background:rgba(240,165,0,0.1); border-color:var(--gold); color:var(--gold); }
 .prenda-opt i { display:block; font-size:1.4rem; margin-bottom:6px; color:var(--gold); }
 .prenda-opt span { font-family:'Barlow Condensed'; font-size:0.82rem; letter-spacing:1.5px; text-transform:uppercase; }
- 
 .sport-tabs { display:flex; gap:8px; flex-wrap:wrap; }
 .sport-tab { padding:7px 16px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:6px; font-family:'Barlow Condensed'; font-size:0.8rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); cursor:pointer; transition:all 0.25s; }
 .sport-tab.active, .sport-tab:hover { background:rgba(240,165,0,0.1); border-color:var(--gold); color:var(--gold); }
- 
 .btn-whatsapp { width:100%; background:#25D366; color:white; padding:15px 32px; border:none; border-radius:10px; cursor:pointer; font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:2px; text-transform:uppercase; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; transition:all 0.3s; margin-top:20px; }
 .btn-whatsapp:hover { background:#1ab555; transform:translateY(-2px); box-shadow:0 8px 30px rgba(37,211,102,0.3); }
- 
+
 /* PROCESO */
 .process-section { padding:90px 6%; background:var(--dark); }
 .steps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:0; position:relative; }
@@ -145,7 +129,7 @@ body { cursor: none; }
 .step:hover .step-num { background:rgba(240,165,0,0.1); border-color:var(--gold); box-shadow:0 0 24px rgba(240,165,0,0.2); }
 .step h3 { font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; }
 .step p { color:var(--gray); font-size:0.86rem; line-height:1.6; }
- 
+
 /* TESTIMONIOS */
 .testimonials-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
 .testimonial-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:28px; transition:border-color 0.3s; }
@@ -156,7 +140,7 @@ body { cursor: none; }
 .author-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,var(--gold),#8B5E00); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue'; font-size:1rem; color:var(--black); }
 .author-name { font-family:'Barlow Condensed'; font-size:0.95rem; letter-spacing:1px; text-transform:uppercase; }
 .author-role { font-size:0.76rem; color:var(--gray); }
- 
+
 /* FOOTER */
 footer { background:var(--dark); border-top:1px solid var(--border); padding:50px 6% 28px; }
 .footer-top { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:44px; margin-bottom:44px; }
@@ -173,7 +157,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
 .footer-bottom { display:flex; justify-content:space-between; align-items:center; padding-top:26px; border-top:1px solid var(--border); flex-wrap:wrap; gap:14px; }
 .footer-bottom p { color:var(--gray); font-size:0.8rem; }
 .footer-bottom a { color:var(--gold); text-decoration:none; }
- 
+
 /* ANIMACIONES */
 @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
 @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
@@ -185,11 +169,9 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
 .reveal-delay-2 { transition-delay:0.2s; }
 .reveal-delay-3 { transition-delay:0.3s; }
 .reveal-delay-4 { transition-delay:0.4s; }
- 
+
 /* RESPONSIVE */
 @media(max-width:1024px){
-  .gallery-grid{grid-template-columns:1fr 1fr;grid-template-rows:auto;}
-  .gallery-item.big{grid-row:span 1;}
   .steps-grid{grid-template-columns:repeat(2,1fr);gap:36px;}
   .steps-grid::before{display:none;}
   .footer-top{grid-template-columns:1fr 1fr;}
@@ -203,7 +185,6 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
   .hamburger{display:flex;}
   .hero-stats{gap:24px;}
   .stat-num{font-size:2rem;}
-  .gallery-grid{grid-template-columns:1fr;}
   .quote-wrap{padding:28px 20px;}
   .quote-grid{grid-template-columns:1fr;}
   .steps-grid{grid-template-columns:1fr 1fr;}
@@ -219,10 +200,10 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
 </style>
 </head>
 <body>
- 
+
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
- 
+
 <!-- NAVBAR -->
 <nav class="navbar" id="navbar">
   <div class="logo">SUBLISPORT <span>GARCIA</span></div>
@@ -238,7 +219,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     <span></span><span></span><span></span>
   </button>
 </nav>
- 
+
 <!-- HERO -->
 <section id="inicio" class="hero">
   <div class="hero-bg"></div>
@@ -262,7 +243,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     <div class="scroll-line"></div>
   </div>
 </section>
- 
+
 <!-- SERVICIOS -->
 <section id="servicios" class="section">
   <div class="section-tag reveal">Qué ofrecemos</div>
@@ -290,8 +271,8 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     </div>
   </div>
 </section>
- 
-<!-- CATÁLOGO - SLIDER DE CAMISETAS REALES -->
+
+<!-- CATÁLOGO -->
 <section id="catalogo" class="section" style="padding-top:0;">
   <div class="catalog-intro">
     <div>
@@ -300,11 +281,9 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     </div>
     <a href="#cotizar" class="btn-outline reveal">Pedir el tuyo <i class="fas fa-arrow-right"></i></a>
   </div>
- 
-  <!-- SLIDER AUTOMÁTICO -->
+
   <div class="jerseys-slider-wrap reveal" style="margin-bottom:40px;">
-    <div class="jerseys-track" id="jerseyTrack">
-      <!-- Europa -->
+    <div class="jerseys-track">
       <div class="jersey-card">
         <img src="https://i.pinimg.com/736x/bf/c5/89/bfc589c46649a1c6978872470d1a8850.jpg" alt="Real Madrid">
         <div class="jersey-card-info"><h4>Real Madrid</h4><p>La Liga · España</p></div>
@@ -314,11 +293,11 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
         <div class="jersey-card-info"><h4>FC Barcelona</h4><p>La Liga · España</p></div>
       </div>
       <div class="jersey-card">
-        <img src="https://i.pinimg.com/736x/82/20/a4/8220a40857ff8088154d5a3c87ff5c51.jpg" alt="Camiseta Azul">
+        <img src="https://i.pinimg.com/736x/82/20/a4/8220a40857ff8088154d5a3c87ff5c51.jpg" alt="Estilo Europeo">
         <div class="jersey-card-info"><h4>Estilo Europeo</h4><p>Sublimado Premium</p></div>
       </div>
       <div class="jersey-card">
-        <img src="https://i1-c.pinimg.com/736x/ff/eb/1d/ffeb1db96f8bb8dc3728543407c493a5.jpg" alt="Camiseta Roja">
+        <img src="https://i1-c.pinimg.com/736x/ff/eb/1d/ffeb1db96f8bb8dc3728543407c493a5.jpg" alt="Diseño Especial">
         <div class="jersey-card-info"><h4>Diseño Especial</h4><p>Full Color</p></div>
       </div>
       <div class="jersey-card">
@@ -337,7 +316,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
         <img src="https://i1-c.pinimg.com/1200x/fa/48/1a/fa481a192b539477798fc8614ca4a23b.jpg" alt="Selección Perú">
         <div class="jersey-card-info"><h4>Selección Perú</h4><p>Blanquirroja</p></div>
       </div>
-      <!-- Duplicado para loop -->
+      <!-- DUPLICADO PARA LOOP INFINITO -->
       <div class="jersey-card">
         <img src="https://i.pinimg.com/736x/bf/c5/89/bfc589c46649a1c6978872470d1a8850.jpg" alt="Real Madrid">
         <div class="jersey-card-info"><h4>Real Madrid</h4><p>La Liga · España</p></div>
@@ -347,11 +326,11 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
         <div class="jersey-card-info"><h4>FC Barcelona</h4><p>La Liga · España</p></div>
       </div>
       <div class="jersey-card">
-        <img src="https://i.pinimg.com/736x/82/20/a4/8220a40857ff8088154d5a3c87ff5c51.jpg" alt="Camiseta Azul">
+        <img src="https://i.pinimg.com/736x/82/20/a4/8220a40857ff8088154d5a3c87ff5c51.jpg" alt="Estilo Europeo">
         <div class="jersey-card-info"><h4>Estilo Europeo</h4><p>Sublimado Premium</p></div>
       </div>
       <div class="jersey-card">
-        <img src="https://i1-c.pinimg.com/736x/ff/eb/1d/ffeb1db96f8bb8dc3728543407c493a5.jpg" alt="Camiseta Roja">
+        <img src="https://i1-c.pinimg.com/736x/ff/eb/1d/ffeb1db96f8bb8dc3728543407c493a5.jpg" alt="Diseño Especial">
         <div class="jersey-card-info"><h4>Diseño Especial</h4><p>Full Color</p></div>
       </div>
       <div class="jersey-card">
@@ -370,13 +349,15 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
         <img src="https://i1-c.pinimg.com/1200x/fa/48/1a/fa481a192b539477798fc8614ca4a23b.jpg" alt="Selección Perú">
         <div class="jersey-card-info"><h4>Selección Perú</h4><p>Blanquirroja</p></div>
       </div>
- 
-<!-- COTIZACIÓN WHATSAPP -->
+    </div><!-- FIN jerseys-track -->
+  </div><!-- FIN jerseys-slider-wrap -->
+</section><!-- FIN catalogo -->
+
+<!-- COTIZACIÓN -->
 <section id="cotizar" class="section" style="padding-top:0;">
   <div class="section-tag reveal">Contáctanos</div>
   <h2 class="section-title reveal reveal-delay-1">SOLICITA TU <span>COTIZACIÓN</span></h2>
   <div class="quote-wrap reveal">
- 
     <span class="control-label">Tipo de prenda</span>
     <div class="prenda-opts">
       <div class="prenda-opt active" onclick="setPrenda(this,'Conjunto completo (camiseta + short + medias)')">
@@ -389,7 +370,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
         <i class="fas fa-person-running"></i><span>Solo Short</span>
       </div>
     </div>
- 
+
     <span class="control-label">Deporte</span>
     <div class="sport-tabs">
       <div class="sport-tab active" onclick="setSport(this,'Fútbol')">⚽ Fútbol</div>
@@ -398,7 +379,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
       <div class="sport-tab" onclick="setSport(this,'Ciclismo')">🚴 Ciclismo</div>
       <div class="sport-tab" onclick="setSport(this,'Otro')">🏅 Otro</div>
     </div>
- 
+
     <span class="control-label">Datos del pedido</span>
     <div class="quote-grid">
       <input type="number" id="quantity" class="form-field" placeholder="Cantidad de prendas" min="1">
@@ -410,21 +391,21 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
         <option value="Tallas mixtas" style="background:#111">Tallas mixtas</option>
       </select>
     </div>
- 
+
     <span class="control-label">Tu nombre y mensaje (opcional)</span>
     <input type="text" id="clientName" class="form-field" placeholder="Tu nombre o club">
     <textarea id="extraMsg" class="form-field" rows="2" style="margin-top:12px;resize:none;" placeholder="Colores, diseño, fecha de entrega, escudo..."></textarea>
- 
+
     <button class="btn-whatsapp" onclick="sendToWhatsApp()">
       <i class="fab fa-whatsapp" style="font-size:1.3rem;"></i>
       ENVIAR COTIZACIÓN POR WHATSAPP
     </button>
     <p style="text-align:center;color:var(--gray);font-size:0.78rem;margin-top:10px;letter-spacing:1px;">
-      <i class="fas fa-clock" style="color:var(--gold)"></i> Respuesta en menos de 2 horas · Callao Perú
+      <i class="fas fa-clock" style="color:var(--gold)"></i> Respuesta en menos de 2 horas · La Victoria, Lima
     </p>
   </div>
 </section>
- 
+
 <!-- PROCESO -->
 <section id="proceso" class="process-section">
   <div style="padding:0 0 70px;">
@@ -454,7 +435,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     </div>
   </div>
 </section>
- 
+
 <!-- TESTIMONIOS -->
 <section class="section" style="padding-top:0;">
   <div class="section-tag reveal">Lo que dicen</div>
@@ -486,7 +467,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     </div>
   </div>
 </section>
- 
+
 <!-- FOOTER -->
 <footer>
   <div class="footer-top">
@@ -524,7 +505,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
       <ul>
         <li><a href="https://wa.me/51960840874">📱 960 840 874</a></li>
         <li><a href="https://www.facebook.com/wilber.garcia.902">📘 Facebook</a></li>
-        <li><a href="https://www.tiktok.com/@cayarino.sport">🎵 TikTok</a></li>
+        <li><a href="https://www.tiktok.com/@cayarino.sport"><i class="fab fa-tiktok"></i> TikTok</a></li>
         <li><a href="#" style="color:var(--gray);pointer-events:none;">📍 Av. Aviación 697, Galería Llancama Int. 311 y 320, La Victoria</a></li>
       </ul>
     </div>
@@ -534,9 +515,8 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     <p>Hecho con ❤️ en <a href="#">La Victoria, Lima</a></p>
   </div>
 </footer>
- 
+
 <script>
-// CURSOR
 const cursor = document.getElementById('cursor');
 const ring = document.getElementById('cursorRing');
 document.addEventListener('mousemove', e => {
@@ -547,27 +527,15 @@ document.querySelectorAll('a,button,.prenda-opt,.sport-tab,.jersey-card').forEac
   el.addEventListener('mouseenter',()=>{cursor.style.transform='scale(2)';ring.style.transform='scale(1.4)';ring.style.opacity='1';});
   el.addEventListener('mouseleave',()=>{cursor.style.transform='scale(1)';ring.style.transform='scale(1)';ring.style.opacity='0.6';});
 });
- 
-// NAVBAR
 window.addEventListener('scroll',()=>{ document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>20); });
- 
-// MENU
 function toggleMenu(){ document.getElementById('navLinks').classList.toggle('open'); }
 document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')));
- 
-// REVEAL
 const obs = new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.1});
 document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
- 
-// PRENDA
 let selectedPrenda = 'Conjunto completo (camiseta + short + medias)';
 function setPrenda(el,p){ document.querySelectorAll('.prenda-opt').forEach(d=>d.classList.remove('active')); el.classList.add('active'); selectedPrenda=p; }
- 
-// DEPORTE
 let selectedSport = 'Fútbol';
 function setSport(el,s){ document.querySelectorAll('.sport-tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); selectedSport=s; }
- 
-// WHATSAPP
 function sendToWhatsApp(){
   const phone = '51960840874';
   const qty = document.getElementById('quantity').value;
