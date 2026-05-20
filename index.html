@@ -17,724 +17,244 @@
   --white: #FFFFFF;
   --gray: #888;
 }
-
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-
 html { scroll-behavior: smooth; }
-
-body {
-  background: var(--black);
-  color: var(--white);
-  font-family: 'Barlow', sans-serif;
-  overflow-x: hidden;
-}
-
-/* ─── CURSOR PERSONALIZADO ─── */
+body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; overflow-x: hidden; }
+ 
 body { cursor: none; }
-.cursor {
-  width: 12px; height: 12px;
-  background: var(--gold);
-  border-radius: 50%;
-  position: fixed; top:0; left:0;
-  pointer-events: none; z-index: 99999;
-  transition: transform 0.1s;
-  mix-blend-mode: difference;
-}
-.cursor-ring {
-  width: 36px; height: 36px;
-  border: 1.5px solid var(--gold);
-  border-radius: 50%;
-  position: fixed; top:0; left:0;
-  pointer-events: none; z-index: 99998;
-  transition: all 0.15s ease;
-  opacity: 0.6;
-}
-
-/* ─── SCROLLBAR ─── */
+.cursor { width:12px; height:12px; background:var(--gold); border-radius:50%; position:fixed; top:0; left:0; pointer-events:none; z-index:99999; transition:transform 0.1s; mix-blend-mode:difference; }
+.cursor-ring { width:36px; height:36px; border:1.5px solid var(--gold); border-radius:50%; position:fixed; top:0; left:0; pointer-events:none; z-index:99998; transition:all 0.15s ease; opacity:0.6; }
+ 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--black); }
 ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
-
-/* ─── NAVBAR ─── */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 7%;
-  height: 72px;
-  background: rgba(6,6,6,0.95);
-  backdrop-filter: blur(12px);
-  position: fixed; width: 100%; z-index: 1000;
-  border-bottom: 1px solid var(--border);
-  transition: 0.3s;
-}
-.navbar.scrolled {
-  box-shadow: 0 4px 40px rgba(240,165,0,0.08);
-}
-.logo {
-  font-family: 'Bebas Neue'; font-size: 1.6rem;
-  letter-spacing: 3px;
-  color: var(--white);
-}
-.logo span { color: var(--gold); }
-
-.nav-links { display: flex; list-style: none; gap: 32px; align-items: center; }
-.nav-links a {
-  color: rgba(255,255,255,0.7);
-  text-decoration: none;
-  font-family: 'Barlow Condensed';
-  font-size: 0.95rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  transition: color 0.25s;
-  position: relative;
-  padding-bottom: 4px;
-}
-.nav-links a::after {
-  content: '';
-  position: absolute; bottom: 0; left: 0;
-  width: 0; height: 1.5px;
-  background: var(--gold);
-  transition: width 0.3s;
-}
-.nav-links a:hover { color: var(--white); }
-.nav-links a:hover::after { width: 100%; }
-
-.nav-cta {
-  background: var(--gold) !important;
-  color: var(--black) !important;
-  padding: 8px 22px !important;
-  border-radius: 4px;
-  font-weight: 700 !important;
-  letter-spacing: 1.5px !important;
-}
-.nav-cta::after { display: none !important; }
-.nav-cta:hover { background: var(--gold-light) !important; }
-
-.hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
-.hamburger span { width: 24px; height: 2px; background: var(--white); transition: 0.3s; }
-
-/* ─── HERO ─── */
-.hero {
-  height: 100vh;
-  display: flex; align-items: center; justify-content: center;
-  text-align: center;
-  position: relative; overflow: hidden;
-}
-.hero-bg {
-  position: absolute; inset: 0;
-  background: 
-    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(240,165,0,0.12) 0%, transparent 60%),
-    linear-gradient(180deg, #060606 0%, #0a0a0a 100%);
-}
-
-/* Campo de fútbol animado */
-.field-lines {
-  position: absolute; inset: 0;
-  opacity: 0.04;
-  background-image: 
-    linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px),
-    linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px);
-  background-size: 80px 80px;
-}
-
-.hero-badge {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(240,165,0,0.1);
-  border: 1px solid rgba(240,165,0,0.3);
-  border-radius: 30px;
-  padding: 6px 18px;
-  font-family: 'Barlow Condensed';
-  font-size: 0.82rem;
-  letter-spacing: 2px;
-  color: var(--gold);
-  text-transform: uppercase;
-  margin-bottom: 28px;
-  animation: fadeDown 1s 0.2s both;
-}
-
-.hero-content { position: relative; z-index: 2; max-width: 820px; padding: 0 20px; }
-
-.hero-content h1 {
-  font-family: 'Bebas Neue';
-  font-size: clamp(3.8rem, 8vw, 7.5rem);
-  line-height: 0.9;
-  letter-spacing: 4px;
-  margin-bottom: 24px;
-  animation: fadeUp 1s 0.4s both;
-}
-.hero-content h1 em {
-  font-style: normal;
-  -webkit-text-stroke: 1.5px var(--gold);
-  color: transparent;
-}
-
-.hero-content p {
-  font-size: 1.1rem;
-  color: rgba(255,255,255,0.6);
-  max-width: 480px; margin: 0 auto 40px;
-  line-height: 1.7;
-  font-weight: 300;
-  animation: fadeUp 1s 0.6s both;
-}
-
-.hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; animation: fadeUp 1s 0.8s both; }
-.btn-main {
-  background: var(--gold); color: var(--black);
-  padding: 14px 36px; text-decoration: none;
-  font-family: 'Barlow Condensed';
-  font-size: 0.95rem; font-weight: 700;
-  letter-spacing: 2.5px; text-transform: uppercase;
-  border-radius: 4px; transition: all 0.3s;
-  border: 2px solid var(--gold);
-  display: inline-flex; align-items: center; gap: 10px;
-}
-.btn-main:hover { background: transparent; color: var(--gold); transform: translateY(-2px); }
-.btn-outline {
-  border: 2px solid rgba(255,255,255,0.25); color: var(--white);
-  padding: 14px 36px; text-decoration: none;
-  font-family: 'Barlow Condensed';
-  font-size: 0.95rem; font-weight: 700;
-  letter-spacing: 2.5px; text-transform: uppercase;
-  border-radius: 4px; transition: all 0.3s;
-  display: inline-flex; align-items: center; gap: 10px;
-}
-.btn-outline:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-2px); }
-
-.hero-stats {
-  display: flex; gap: 50px; justify-content: center;
-  margin-top: 70px;
-  animation: fadeUp 1s 1s both;
-}
-.stat { text-align: center; }
-.stat-num {
-  font-family: 'Bebas Neue'; font-size: 2.6rem;
-  color: var(--gold); line-height: 1;
-  display: block;
-}
-.stat-label {
-  font-family: 'Barlow Condensed';
-  font-size: 0.75rem; letter-spacing: 2px;
-  text-transform: uppercase; color: var(--gray);
-}
-
-.scroll-indicator {
-  position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  animation: fadeUp 1s 1.2s both;
-}
-.scroll-line {
-  width: 1px; height: 60px;
-  background: linear-gradient(to bottom, var(--gold), transparent);
-  animation: scrollPulse 2s infinite;
-}
-.scroll-text {
-  font-family: 'Barlow Condensed'; font-size: 0.7rem;
-  letter-spacing: 3px; color: var(--gray); text-transform: uppercase;
-}
-
-/* ─── SECCIÓN SERVICIOS ─── */
-.section { padding: 110px 7%; }
-.section-tag {
-  font-family: 'Barlow Condensed'; font-size: 0.78rem;
-  letter-spacing: 4px; color: var(--gold); text-transform: uppercase;
-  display: flex; align-items: center; gap: 12px;
-  margin-bottom: 16px;
-}
-.section-tag::before {
-  content: ''; width: 30px; height: 1.5px; background: var(--gold);
-}
-.section-title {
-  font-family: 'Bebas Neue'; font-size: clamp(2.2rem, 4vw, 3.8rem);
-  letter-spacing: 3px; line-height: 1;
-  margin-bottom: 60px;
-}
-.section-title span { color: var(--gold); }
-
-.services-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
-}
-.service-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 40px 32px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.4s;
-  group: true;
-}
-.service-card::before {
-  content: '';
-  position: absolute; top: 0; left: 0;
-  width: 100%; height: 3px;
-  background: linear-gradient(90deg, var(--gold), var(--gold-light));
-  transform: scaleX(0); transform-origin: left;
-  transition: transform 0.4s;
-}
-.service-card:hover { border-color: rgba(240,165,0,0.35); transform: translateY(-6px); }
-.service-card:hover::before { transform: scaleX(1); }
-
-.service-icon {
-  width: 56px; height: 56px;
-  background: rgba(240,165,0,0.08);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.5rem; color: var(--gold);
-  margin-bottom: 24px;
-  transition: all 0.3s;
-}
-.service-card:hover .service-icon {
-  background: rgba(240,165,0,0.15);
-  transform: scale(1.08);
-}
-.service-card h3 {
-  font-family: 'Barlow Condensed'; font-size: 1.3rem;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  margin-bottom: 12px;
-}
-.service-card p { color: var(--gray); font-size: 0.92rem; line-height: 1.7; }
-
-/* ─── CATÁLOGO ─── */
-.catalog-intro { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 50px; flex-wrap: wrap; gap: 20px; }
-
-.gallery-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  grid-template-rows: 280px 280px;
-  gap: 16px;
-}
-.gallery-item {
-  position: relative; overflow: hidden; border-radius: 12px;
-  background: var(--card);
-  border: 1px solid var(--border);
-}
-.gallery-item.big { grid-row: span 2; }
-
-.gallery-placeholder {
-  width: 100%; height: 100%;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 12px;
-  background: linear-gradient(135deg, #141414 0%, #1e1e1e 100%);
-  transition: all 0.5s;
-}
-.gallery-item:hover .gallery-placeholder { filter: brightness(1.1); }
-
-.gallery-img-icon { font-size: 2.5rem; color: rgba(240,165,0,0.3); }
-.gallery-img-icon.big-icon { font-size: 4rem; }
-
-.gallery-label {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%);
-  padding: 40px 24px 20px;
-  transform: translateY(60%);
-  transition: transform 0.45s cubic-bezier(0.25,0.8,0.25,1);
-}
-.gallery-item:hover .gallery-label { transform: translateY(0); }
-.gallery-label h3 {
-  font-family: 'Barlow Condensed'; font-size: 1.1rem;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--white); margin-bottom: 4px;
-}
-.gallery-label p { font-size: 0.82rem; color: var(--gold); letter-spacing: 1px; }
-
-.gallery-number {
-  position: absolute; top: 16px; right: 16px;
-  font-family: 'Bebas Neue'; font-size: 5rem;
-  color: rgba(255,255,255,0.04); line-height: 1;
-  pointer-events: none;
-}
-
-/* ─── PERSONALIZADOR ─── */
-.customizer-wrap {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 60px;
-  overflow: hidden;
-  position: relative;
-}
-.customizer-wrap::before {
-  content: 'DISEÑO';
-  position: absolute; right: -30px; top: 20px;
-  font-family: 'Bebas Neue'; font-size: 12rem;
-  color: rgba(240,165,0,0.03);
-  pointer-events: none; letter-spacing: 10px;
-}
-.customizer-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 60px; align-items: start; }
-
-.preview-area {
-  position: relative;
-  background: linear-gradient(135deg, #0a0a0a 0%, #111 100%);
-  border-radius: 16px; border: 1px solid var(--border);
-  min-height: 520px;
-  display: flex; align-items: center; justify-content: center;
-  overflow: hidden;
-}
-.preview-area::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse at center, rgba(240,165,0,0.06) 0%, transparent 70%);
-}
-
-/* Jersey SVG preview */
-.jersey-preview {
-  position: relative; width: 240px; z-index: 2;
-}
-.jersey-svg {
-  width: 100%;
-  filter: drop-shadow(0 20px 60px rgba(0,0,0,0.6));
-  transition: all 0.5s;
-}
-.jersey-number-overlay {
-  position: absolute;
-  top: 42%; left: 50%; transform: translate(-50%, -50%);
-  font-family: 'Bebas Neue'; font-size: 5rem;
-  color: white; text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  letter-spacing: 2px; line-height: 1;
-  pointer-events: none;
-  transition: all 0.3s;
-}
-.jersey-name-overlay {
-  position: absolute;
-  top: 28%; left: 50%; transform: translateX(-50%);
-  font-family: 'Bebas Neue'; font-size: 1.3rem;
-  color: white; text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-  letter-spacing: 4px; white-space: nowrap;
-  pointer-events: none;
-  transition: all 0.3s;
-}
-
-.color-panel-label {
-  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-  font-family: 'Barlow Condensed'; font-size: 0.75rem;
-  letter-spacing: 2px; color: var(--gray); text-transform: uppercase;
-}
-
-.controls-title {
-  font-family: 'Bebas Neue'; font-size: 1.8rem; letter-spacing: 2px;
-  margin-bottom: 28px; color: var(--gold);
-}
-.control-group { margin-bottom: 28px; }
-.control-label {
-  font-family: 'Barlow Condensed';
-  font-size: 0.78rem; letter-spacing: 2.5px;
-  text-transform: uppercase; color: var(--gray);
-  margin-bottom: 12px; display: block;
-}
-
-/* Color selector */
-.color-options { display: flex; gap: 10px; flex-wrap: wrap; }
-.color-dot {
-  width: 36px; height: 36px; border-radius: 50%;
-  cursor: pointer; border: 2px solid transparent;
-  transition: all 0.25s; position: relative;
-}
-.color-dot.active {
-  border-color: var(--gold);
-  transform: scale(1.15);
-  box-shadow: 0 0 12px rgba(240,165,0,0.4);
-}
-.color-dot::after {
-  content: '✓';
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.85rem; color: white;
-  opacity: 0; transition: 0.2s;
-}
-.color-dot.active::after { opacity: 1; }
-
-/* Sport selector */
-.sport-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0; }
-.sport-tab {
-  padding: 8px 18px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-family: 'Barlow Condensed'; font-size: 0.82rem;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--gray); cursor: pointer;
-  transition: all 0.25s;
-}
-.sport-tab.active, .sport-tab:hover {
-  background: rgba(240,165,0,0.1);
-  border-color: var(--gold); color: var(--gold);
-}
-
-.form-field {
-  width: 100%;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
-  color: var(--white);
-  padding: 13px 18px;
-  border-radius: 8px;
-  font-family: 'Barlow'; font-size: 0.95rem;
-  transition: border 0.25s;
-  outline: none;
-  margin-bottom: 12px;
-}
-.form-field:focus { border-color: var(--gold); }
-.form-field::placeholder { color: rgba(255,255,255,0.25); }
-
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-.btn-whatsapp {
-  width: 100%;
-  background: #25D366; color: white;
-  padding: 16px 32px; border: none;
-  border-radius: 10px; cursor: pointer;
-  font-family: 'Barlow Condensed'; font-size: 1rem;
-  letter-spacing: 2px; text-transform: uppercase;
-  font-weight: 700;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  transition: all 0.3s; margin-top: 8px;
-}
-.btn-whatsapp:hover { background: #1ab555; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(37,211,102,0.3); }
-
-/* ─── PROCESO ─── */
-.process-section { padding: 110px 7%; background: var(--dark); }
-.steps-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0;
-  position: relative;
-}
-.steps-grid::before {
-  content: '';
-  position: absolute; top: 36px; left: 10%; right: 10%;
-  height: 1px; background: linear-gradient(90deg, transparent, var(--border), var(--border), var(--border), transparent);
-}
-.step {
-  text-align: center; padding: 0 20px;
-  position: relative;
-}
-.step-num {
-  width: 72px; height: 72px; border-radius: 50%;
-  background: var(--card); border: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Bebas Neue'; font-size: 1.8rem; color: var(--gold);
-  margin: 0 auto 24px;
-  position: relative; z-index: 1;
-  transition: all 0.3s;
-}
-.step:hover .step-num {
-  background: rgba(240,165,0,0.1);
-  border-color: var(--gold);
-  box-shadow: 0 0 24px rgba(240,165,0,0.2);
-}
-.step h3 {
-  font-family: 'Barlow Condensed'; font-size: 1.05rem;
-  letter-spacing: 1.5px; text-transform: uppercase;
-  margin-bottom: 8px;
-}
-.step p { color: var(--gray); font-size: 0.88rem; line-height: 1.6; }
-
-/* ─── TESTIMONIOS ─── */
-.testimonials-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
-}
-.testimonial-card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 12px; padding: 32px;
-  transition: border-color 0.3s;
-}
-.testimonial-card:hover { border-color: rgba(240,165,0,0.3); }
-.stars { color: var(--gold); font-size: 0.85rem; margin-bottom: 16px; letter-spacing: 2px; }
-.testimonial-text {
-  color: rgba(255,255,255,0.75); font-size: 0.93rem;
-  line-height: 1.7; margin-bottom: 20px; font-style: italic;
-}
-.testimonial-author { display: flex; align-items: center; gap: 12px; }
-.author-avatar {
-  width: 42px; height: 42px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--gold), #8B5E00);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Bebas Neue'; font-size: 1.1rem; color: var(--black);
-}
-.author-name {
-  font-family: 'Barlow Condensed'; font-size: 1rem;
-  letter-spacing: 1px; text-transform: uppercase;
-}
-.author-role { font-size: 0.78rem; color: var(--gray); }
-
-/* ─── CTA BANNER ─── */
-.cta-banner {
-  margin: 0 7% 110px;
-  background: linear-gradient(135deg, rgba(240,165,0,0.12) 0%, rgba(240,165,0,0.04) 100%);
-  border: 1px solid rgba(240,165,0,0.25);
-  border-radius: 20px; padding: 70px;
-  text-align: center; position: relative; overflow: hidden;
-}
-.cta-banner::before {
-  content: 'CONTACTO';
-  position: absolute; right: -20px; top: 50%; transform: translateY(-50%);
-  font-family: 'Bebas Neue'; font-size: 10rem;
-  color: rgba(240,165,0,0.04); letter-spacing: 8px; pointer-events: none;
-}
-.cta-banner h2 {
-  font-family: 'Bebas Neue'; font-size: clamp(2rem, 4vw, 3.5rem);
-  letter-spacing: 4px; margin-bottom: 16px;
-}
-.cta-banner h2 span { color: var(--gold); }
-.cta-banner p { color: var(--gray); margin-bottom: 36px; font-size: 1rem; }
-.cta-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-
-/* ─── FOOTER ─── */
-footer {
-  background: var(--dark);
-  border-top: 1px solid var(--border);
-  padding: 60px 7% 30px;
-}
-.footer-top {
-  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 50px; margin-bottom: 50px;
-}
-.footer-brand .logo { font-size: 1.4rem; margin-bottom: 16px; display: block; }
-.footer-brand p { color: var(--gray); font-size: 0.9rem; line-height: 1.7; max-width: 280px; margin-bottom: 24px; }
-.social-links { display: flex; gap: 12px; }
-.social-link {
-  width: 40px; height: 40px;
-  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--gray); font-size: 1rem; text-decoration: none;
-  transition: all 0.3s;
-}
-.social-link:hover { background: rgba(240,165,0,0.1); border-color: var(--gold); color: var(--gold); }
-
-.footer-col h4 {
-  font-family: 'Barlow Condensed'; font-size: 0.82rem;
-  letter-spacing: 3px; text-transform: uppercase;
-  color: var(--gold); margin-bottom: 20px;
-}
-.footer-col ul { list-style: none; }
-.footer-col ul li { margin-bottom: 10px; }
-.footer-col ul a {
-  color: var(--gray); text-decoration: none; font-size: 0.9rem;
-  transition: color 0.25s;
-}
-.footer-col ul a:hover { color: var(--white); }
-
-.footer-bottom {
-  display: flex; justify-content: space-between; align-items: center;
-  padding-top: 30px; border-top: 1px solid var(--border);
-  flex-wrap: wrap; gap: 16px;
-}
-.footer-bottom p { color: var(--gray); font-size: 0.82rem; }
-.footer-bottom a { color: var(--gold); text-decoration: none; }
-
-/* ─── ANIMACIONES ─── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes scrollPulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
-}
-
-.reveal {
-  opacity: 0; transform: translateY(40px);
-  transition: opacity 0.7s, transform 0.7s;
-}
-.reveal.visible { opacity: 1; transform: translateY(0); }
-.reveal-delay-1 { transition-delay: 0.1s; }
-.reveal-delay-2 { transition-delay: 0.2s; }
-.reveal-delay-3 { transition-delay: 0.3s; }
-.reveal-delay-4 { transition-delay: 0.4s; }
-
-/* ─── RESPONSIVE ─── */
-@media (max-width: 1024px) {
-  .gallery-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
-  .gallery-item.big { grid-row: span 1; }
-  .steps-grid { grid-template-columns: repeat(2, 1fr); gap: 40px; }
-  .steps-grid::before { display: none; }
-  .footer-top { grid-template-columns: 1fr 1fr; }
-  .testimonials-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 768px) {
-  body { cursor: auto; }
-  .cursor, .cursor-ring { display: none; }
-  .nav-links { display: none; flex-direction: column; position: fixed; top: 72px; left: 0; right: 0; background: rgba(6,6,6,0.98); padding: 30px 7%; gap: 24px; border-bottom: 1px solid var(--border); }
-  .nav-links.open { display: flex; }
-  .hamburger { display: flex; }
-  .hero-stats { gap: 30px; }
-  .stat-num { font-size: 2rem; }
-  .gallery-grid { grid-template-columns: 1fr; }
-  .customizer-grid { grid-template-columns: 1fr; }
-  .customizer-wrap { padding: 30px 24px; }
-  .steps-grid { grid-template-columns: 1fr 1fr; }
-  .cta-banner { padding: 40px 24px; margin: 0 4% 80px; }
-  .footer-top { grid-template-columns: 1fr; gap: 32px; }
-  .section { padding: 80px 4%; }
-}
-
-@media (max-width: 480px) {
-  .steps-grid { grid-template-columns: 1fr; }
-  .form-row { grid-template-columns: 1fr; }
-  .hero-btns { flex-direction: column; align-items: center; }
+ 
+/* NAVBAR */
+.navbar { display:flex; justify-content:space-between; align-items:center; padding:0 6%; height:70px; background:rgba(6,6,6,0.96); backdrop-filter:blur(12px); position:fixed; width:100%; z-index:1000; border-bottom:1px solid var(--border); transition:0.3s; }
+.navbar.scrolled { box-shadow: 0 4px 40px rgba(240,165,0,0.08); }
+.logo { font-family:'Bebas Neue'; font-size:1.7rem; letter-spacing:3px; color:var(--white); }
+.logo span { color:var(--gold); }
+.nav-links { display:flex; list-style:none; gap:28px; align-items:center; }
+.nav-links a { color:rgba(255,255,255,0.7); text-decoration:none; font-family:'Barlow Condensed'; font-size:0.9rem; letter-spacing:2px; text-transform:uppercase; transition:color 0.25s; position:relative; padding-bottom:4px; }
+.nav-links a::after { content:''; position:absolute; bottom:0; left:0; width:0; height:1.5px; background:var(--gold); transition:width 0.3s; }
+.nav-links a:hover { color:var(--white); }
+.nav-links a:hover::after { width:100%; }
+.nav-cta { background:var(--gold)!important; color:var(--black)!important; padding:7px 20px!important; border-radius:4px; font-weight:700!important; letter-spacing:1.5px!important; }
+.nav-cta::after { display:none!important; }
+.nav-cta:hover { background:var(--gold-light)!important; }
+.hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; }
+.hamburger span { width:24px; height:2px; background:var(--white); transition:0.3s; display:block; }
+ 
+/* HERO */
+.hero { height:100vh; display:flex; align-items:center; justify-content:center; text-align:center; position:relative; overflow:hidden; }
+.hero-bg { position:absolute; inset:0; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(240,165,0,0.13) 0%, transparent 60%), linear-gradient(180deg,#060606 0%,#0a0a0a 100%); }
+.field-lines { position:absolute; inset:0; opacity:0.04; background-image: linear-gradient(90deg,rgba(255,255,255,0.8) 1px,transparent 1px), linear-gradient(rgba(255,255,255,0.8) 1px,transparent 1px); background-size:80px 80px; }
+.hero-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(240,165,0,0.1); border:1px solid rgba(240,165,0,0.3); border-radius:30px; padding:6px 18px; font-family:'Barlow Condensed'; font-size:0.82rem; letter-spacing:2px; color:var(--gold); text-transform:uppercase; margin-bottom:24px; animation:fadeDown 1s 0.2s both; }
+.hero-content { position:relative; z-index:2; max-width:900px; padding:0 20px; }
+.hero-content h1 { font-family:'Bebas Neue'; font-size:clamp(5rem,11vw,10rem); line-height:0.88; letter-spacing:6px; margin-bottom:22px; animation:fadeUp 1s 0.4s both; }
+.hero-content h1 em { font-style:normal; -webkit-text-stroke:2px var(--gold); color:transparent; }
+.hero-content p { font-size:1.05rem; color:rgba(255,255,255,0.6); max-width:460px; margin:0 auto 36px; line-height:1.7; font-weight:300; animation:fadeUp 1s 0.6s both; }
+.hero-btns { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; animation:fadeUp 1s 0.8s both; }
+.btn-main { background:var(--gold); color:var(--black); padding:13px 32px; text-decoration:none; font-family:'Barlow Condensed'; font-size:0.95rem; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; border-radius:4px; transition:all 0.3s; border:2px solid var(--gold); display:inline-flex; align-items:center; gap:8px; cursor:pointer; }
+.btn-main:hover { background:transparent; color:var(--gold); transform:translateY(-2px); }
+.btn-outline { border:2px solid rgba(255,255,255,0.25); color:var(--white); padding:13px 32px; text-decoration:none; font-family:'Barlow Condensed'; font-size:0.95rem; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; border-radius:4px; transition:all 0.3s; display:inline-flex; align-items:center; gap:8px; }
+.btn-outline:hover { border-color:var(--gold); color:var(--gold); transform:translateY(-2px); }
+.hero-stats { display:flex; gap:44px; justify-content:center; margin-top:60px; animation:fadeUp 1s 1s both; }
+.stat { text-align:center; }
+.stat-num { font-family:'Bebas Neue'; font-size:2.5rem; color:var(--gold); line-height:1; display:block; }
+.stat-label { font-family:'Barlow Condensed'; font-size:0.72rem; letter-spacing:2px; text-transform:uppercase; color:var(--gray); }
+.scroll-indicator { position:absolute; bottom:30px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:8px; animation:fadeUp 1s 1.2s both; }
+.scroll-line { width:1px; height:50px; background:linear-gradient(to bottom,var(--gold),transparent); animation:scrollPulse 2s infinite; }
+.scroll-text { font-family:'Barlow Condensed'; font-size:0.68rem; letter-spacing:3px; color:var(--gray); text-transform:uppercase; }
+ 
+/* SECCIONES */
+.section { padding:90px 6%; }
+.section-tag { font-family:'Barlow Condensed'; font-size:0.78rem; letter-spacing:4px; color:var(--gold); text-transform:uppercase; display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.section-tag::before { content:''; width:28px; height:1.5px; background:var(--gold); }
+.section-title { font-family:'Bebas Neue'; font-size:clamp(2rem,4vw,3.5rem); letter-spacing:3px; line-height:1; margin-bottom:50px; }
+.section-title span { color:var(--gold); }
+ 
+/* SERVICIOS */
+.services-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px; }
+.service-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:34px 28px; position:relative; overflow:hidden; transition:all 0.4s; }
+.service-card::before { content:''; position:absolute; top:0; left:0; width:100%; height:3px; background:linear-gradient(90deg,var(--gold),var(--gold-light)); transform:scaleX(0); transform-origin:left; transition:transform 0.4s; }
+.service-card:hover { border-color:rgba(240,165,0,0.35); transform:translateY(-5px); }
+.service-card:hover::before { transform:scaleX(1); }
+.service-icon { width:52px; height:52px; background:rgba(240,165,0,0.08); border:1px solid var(--border); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; color:var(--gold); margin-bottom:20px; transition:all 0.3s; }
+.service-card:hover .service-icon { background:rgba(240,165,0,0.15); transform:scale(1.08); }
+.service-card h3 { font-family:'Barlow Condensed'; font-size:1.2rem; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px; }
+.service-card p { color:var(--gray); font-size:0.9rem; line-height:1.7; }
+ 
+/* CATÁLOGO / GALERÍA DE IMÁGENES */
+.catalog-intro { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:40px; flex-wrap:wrap; gap:16px; }
+.jerseys-slider-wrap { overflow:hidden; position:relative; }
+.jerseys-slider-wrap::before, .jerseys-slider-wrap::after { content:''; position:absolute; top:0; bottom:0; width:80px; z-index:2; pointer-events:none; }
+.jerseys-slider-wrap::before { left:0; background:linear-gradient(to right,var(--black),transparent); }
+.jerseys-slider-wrap::after { right:0; background:linear-gradient(to left,var(--black),transparent); }
+.jerseys-track { display:flex; gap:16px; animation:slideLoop 30s linear infinite; width:max-content; }
+.jerseys-track:hover { animation-play-state:paused; }
+.jersey-card { width:200px; flex-shrink:0; background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; transition:all 0.35s; cursor:pointer; }
+.jersey-card:hover { border-color:rgba(240,165,0,0.45); transform:translateY(-6px); box-shadow:0 16px 40px rgba(0,0,0,0.5); }
+.jersey-card img { width:100%; height:200px; object-fit:cover; display:block; transition:transform 0.4s; }
+.jersey-card:hover img { transform:scale(1.05); }
+.jersey-card-info { padding:14px 16px; }
+.jersey-card-info h4 { font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:1px; text-transform:uppercase; margin-bottom:3px; }
+.jersey-card-info p { font-size:0.78rem; color:var(--gold); letter-spacing:1px; }
+ 
+/* GALERÍA GRID MANUAL */
+.gallery-grid { display:grid; grid-template-columns:2fr 1fr 1fr; grid-template-rows:260px 260px; gap:14px; }
+.gallery-item { position:relative; overflow:hidden; border-radius:12px; background:var(--card); border:1px solid var(--border); }
+.gallery-item.big { grid-row:span 2; }
+.gallery-placeholder { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; background:linear-gradient(135deg,#141414 0%,#1c1c1c 100%); transition:all 0.5s; }
+.gallery-item:hover .gallery-placeholder { filter:brightness(1.1); }
+.gallery-img-icon { font-size:2.2rem; color:rgba(240,165,0,0.25); }
+.gallery-img-icon.big-icon { font-size:3.5rem; }
+.gallery-label { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top,rgba(0,0,0,0.95) 0%,transparent 100%); padding:36px 20px 18px; transform:translateY(60%); transition:transform 0.45s cubic-bezier(0.25,0.8,0.25,1); }
+.gallery-item:hover .gallery-label { transform:translateY(0); }
+.gallery-label h3 { font-family:'Barlow Condensed'; font-size:1.05rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--white); margin-bottom:3px; }
+.gallery-label p { font-size:0.8rem; color:var(--gold); letter-spacing:1px; }
+ 
+/* COTIZACIÓN */
+.quote-wrap { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:48px; max-width:680px; margin:0 auto; }
+.quote-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-field { width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--white); padding:13px 16px; border-radius:8px; font-family:'Barlow'; font-size:0.93rem; transition:border 0.25s; outline:none; }
+.form-field:focus { border-color:var(--gold); }
+.form-field::placeholder { color:rgba(255,255,255,0.25); }
+.control-label { font-family:'Barlow Condensed'; font-size:0.76rem; letter-spacing:2.5px; text-transform:uppercase; color:var(--gray); margin-bottom:10px; display:block; margin-top:14px; }
+ 
+/* Tipo de prenda */
+.prenda-opts { display:flex; gap:10px; margin-bottom:0; }
+.prenda-opt { flex:1; padding:14px 10px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:8px; text-align:center; cursor:pointer; transition:all 0.25s; }
+.prenda-opt.active, .prenda-opt:hover { background:rgba(240,165,0,0.1); border-color:var(--gold); color:var(--gold); }
+.prenda-opt i { display:block; font-size:1.4rem; margin-bottom:6px; color:var(--gold); }
+.prenda-opt span { font-family:'Barlow Condensed'; font-size:0.82rem; letter-spacing:1.5px; text-transform:uppercase; }
+ 
+.sport-tabs { display:flex; gap:8px; flex-wrap:wrap; }
+.sport-tab { padding:7px 16px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:6px; font-family:'Barlow Condensed'; font-size:0.8rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); cursor:pointer; transition:all 0.25s; }
+.sport-tab.active, .sport-tab:hover { background:rgba(240,165,0,0.1); border-color:var(--gold); color:var(--gold); }
+ 
+.btn-whatsapp { width:100%; background:#25D366; color:white; padding:15px 32px; border:none; border-radius:10px; cursor:pointer; font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:2px; text-transform:uppercase; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; transition:all 0.3s; margin-top:20px; }
+.btn-whatsapp:hover { background:#1ab555; transform:translateY(-2px); box-shadow:0 8px 30px rgba(37,211,102,0.3); }
+ 
+/* PROCESO */
+.process-section { padding:90px 6%; background:var(--dark); }
+.steps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:0; position:relative; }
+.steps-grid::before { content:''; position:absolute; top:34px; left:10%; right:10%; height:1px; background:linear-gradient(90deg,transparent,var(--border),var(--border),var(--border),transparent); }
+.step { text-align:center; padding:0 16px; }
+.step-num { width:68px; height:68px; border-radius:50%; background:var(--card); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue'; font-size:1.7rem; color:var(--gold); margin:0 auto 20px; position:relative; z-index:1; transition:all 0.3s; }
+.step:hover .step-num { background:rgba(240,165,0,0.1); border-color:var(--gold); box-shadow:0 0 24px rgba(240,165,0,0.2); }
+.step h3 { font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; }
+.step p { color:var(--gray); font-size:0.86rem; line-height:1.6; }
+ 
+/* TESTIMONIOS */
+.testimonials-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.testimonial-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:28px; transition:border-color 0.3s; }
+.testimonial-card:hover { border-color:rgba(240,165,0,0.3); }
+.stars { color:var(--gold); font-size:0.85rem; margin-bottom:14px; letter-spacing:2px; }
+.testimonial-text { color:rgba(255,255,255,0.75); font-size:0.9rem; line-height:1.7; margin-bottom:18px; font-style:italic; }
+.testimonial-author { display:flex; align-items:center; gap:12px; }
+.author-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,var(--gold),#8B5E00); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue'; font-size:1rem; color:var(--black); }
+.author-name { font-family:'Barlow Condensed'; font-size:0.95rem; letter-spacing:1px; text-transform:uppercase; }
+.author-role { font-size:0.76rem; color:var(--gray); }
+ 
+/* FOOTER */
+footer { background:var(--dark); border-top:1px solid var(--border); padding:50px 6% 28px; }
+.footer-top { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:44px; margin-bottom:44px; }
+.footer-brand .logo { font-size:1.4rem; margin-bottom:14px; display:block; }
+.footer-brand p { color:var(--gray); font-size:0.88rem; line-height:1.7; max-width:270px; margin-bottom:20px; }
+.social-links { display:flex; gap:10px; }
+.social-link { width:38px; height:38px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--gray); font-size:0.95rem; text-decoration:none; transition:all 0.3s; }
+.social-link:hover { background:rgba(240,165,0,0.1); border-color:var(--gold); color:var(--gold); }
+.footer-col h4 { font-family:'Barlow Condensed'; font-size:0.8rem; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:18px; }
+.footer-col ul { list-style:none; }
+.footer-col ul li { margin-bottom:9px; }
+.footer-col ul a { color:var(--gray); text-decoration:none; font-size:0.88rem; transition:color 0.25s; }
+.footer-col ul a:hover { color:var(--white); }
+.footer-bottom { display:flex; justify-content:space-between; align-items:center; padding-top:26px; border-top:1px solid var(--border); flex-wrap:wrap; gap:14px; }
+.footer-bottom p { color:var(--gray); font-size:0.8rem; }
+.footer-bottom a { color:var(--gold); text-decoration:none; }
+ 
+/* ANIMACIONES */
+@keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes scrollPulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+@keyframes slideLoop { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+.reveal { opacity:0; transform:translateY(36px); transition:opacity 0.7s,transform 0.7s; }
+.reveal.visible { opacity:1; transform:translateY(0); }
+.reveal-delay-1 { transition-delay:0.1s; }
+.reveal-delay-2 { transition-delay:0.2s; }
+.reveal-delay-3 { transition-delay:0.3s; }
+.reveal-delay-4 { transition-delay:0.4s; }
+ 
+/* RESPONSIVE */
+@media(max-width:1024px){
+  .gallery-grid{grid-template-columns:1fr 1fr;grid-template-rows:auto;}
+  .gallery-item.big{grid-row:span 1;}
+  .steps-grid{grid-template-columns:repeat(2,1fr);gap:36px;}
+  .steps-grid::before{display:none;}
+  .footer-top{grid-template-columns:1fr 1fr;}
+  .testimonials-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:768px){
+  body{cursor:auto;}
+  .cursor,.cursor-ring{display:none;}
+  .nav-links{display:none;flex-direction:column;position:fixed;top:70px;left:0;right:0;background:rgba(6,6,6,0.99);padding:28px 6%;gap:22px;border-bottom:1px solid var(--border);}
+  .nav-links.open{display:flex;}
+  .hamburger{display:flex;}
+  .hero-stats{gap:24px;}
+  .stat-num{font-size:2rem;}
+  .gallery-grid{grid-template-columns:1fr;}
+  .quote-wrap{padding:28px 20px;}
+  .quote-grid{grid-template-columns:1fr;}
+  .steps-grid{grid-template-columns:1fr 1fr;}
+  .footer-top{grid-template-columns:1fr;gap:28px;}
+  .testimonials-grid{grid-template-columns:1fr;}
+  .prenda-opts{flex-wrap:wrap;}
+}
+@media(max-width:480px){
+  .steps-grid{grid-template-columns:1fr;}
+  .hero-btns{flex-direction:column;align-items:center;}
+  .hero-content h1{font-size:4.2rem;}
 }
 </style>
 </head>
 <body>
-
-<!-- CURSOR -->
+ 
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
-
-<!-- ─── NAVBAR ─── -->
+ 
+<!-- NAVBAR -->
 <nav class="navbar" id="navbar">
   <div class="logo">SUBLISPORT <span>GARCIA</span></div>
   <ul class="nav-links" id="navLinks">
     <li><a href="#inicio">Inicio</a></li>
     <li><a href="#servicios">Servicios</a></li>
     <li><a href="#catalogo">Catálogo</a></li>
-    <li><a href="#personalizar">Diseñar</a></li>
+    <li><a href="#cotizar">Cotizar</a></li>
     <li><a href="#proceso">Proceso</a></li>
-    <li><a href="#contacto" class="nav-cta">Cotizar</a></li>
+    <li><a href="#cotizar" class="nav-cta">📲 WhatsApp</a></li>
   </ul>
-  <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+  <button class="hamburger" id="hamburger" onclick="toggleMenu()">
     <span></span><span></span><span></span>
-  </div>
+  </button>
 </nav>
-
-<!-- ─── HERO ─── -->
+ 
+<!-- HERO -->
 <section id="inicio" class="hero">
   <div class="hero-bg"></div>
   <div class="field-lines"></div>
   <div class="hero-content">
-    <div class="hero-badge">
-      <i class="fas fa-star"></i>
-      Sublimación Premium · Callao, Perú
-    </div>
-    <h1>CONFECCIÓN<br>DE <em>ALTO NIVEL</em></h1>
-    <p>Diseños únicos, sublimación premium y uniformes deportivos que marcan la diferencia en cada partido.</p>
+    <div class="hero-badge"><i class="fas fa-star"></i> Sublimación Premium · La Victoria, Lima</div>
+    <h1>SUBLISPORT<br><em>GARCIA</em></h1>
+    <p>Diseños únicos, sublimación premium y uniformes deportivos que marcan la diferencia.</p>
     <div class="hero-btns">
-      <a href="#personalizar" class="btn-main"><i class="fas fa-palette"></i> DISEÑA TU KIT</a>
+      <a href="#cotizar" class="btn-main"><i class="fab fa-whatsapp"></i> PEDIR COTIZACIÓN</a>
       <a href="#catalogo" class="btn-outline"><i class="fas fa-images"></i> VER TRABAJOS</a>
     </div>
     <div class="hero-stats">
-      <div class="stat">
-        <span class="stat-num">500+</span>
-        <span class="stat-label">Kits Entregados</span>
-      </div>
-      <div class="stat">
-        <span class="stat-num">8</span>
-        <span class="stat-label">Años de Experiencia</span>
-      </div>
-      <div class="stat">
-        <span class="stat-num">100%</span>
-        <span class="stat-label">Satisfacción</span>
-      </div>
+      <div class="stat"><span class="stat-num">500+</span><span class="stat-label">Kits Entregados</span></div>
+      <div class="stat"><span class="stat-num">8</span><span class="stat-label">Años de Exp.</span></div>
+      <div class="stat"><span class="stat-num">100%</span><span class="stat-label">Satisfacción</span></div>
     </div>
   </div>
   <div class="scroll-indicator">
@@ -742,8 +262,8 @@ footer {
     <div class="scroll-line"></div>
   </div>
 </section>
-
-<!-- ─── SERVICIOS ─── -->
+ 
+<!-- SERVICIOS -->
 <section id="servicios" class="section">
   <div class="section-tag reveal">Qué ofrecemos</div>
   <h2 class="section-title reveal reveal-delay-1">NUESTROS <span>SERVICIOS</span></h2>
@@ -751,209 +271,163 @@ footer {
     <div class="service-card reveal reveal-delay-1">
       <div class="service-icon"><i class="fas fa-tshirt"></i></div>
       <h3>Uniformes de Fútbol</h3>
-      <p>Camisetas, shorts y medias sublimadas con diseño personalizado, resistentes al sudor y al uso intensivo.</p>
+      <p>Camisetas, shorts y medias sublimadas con diseño personalizado para tu equipo o club.</p>
     </div>
     <div class="service-card reveal reveal-delay-2">
       <div class="service-icon"><i class="fas fa-volleyball-ball"></i></div>
       <h3>Multideportes</h3>
-      <p>Vóley, basket, ciclismo, atletismo y más. Confeccionamos para cualquier disciplina deportiva.</p>
+      <p>Vóley, básquet, ciclismo, atletismo y más. Para cualquier disciplina deportiva.</p>
     </div>
     <div class="service-card reveal reveal-delay-3">
       <div class="service-icon"><i class="fas fa-paint-brush"></i></div>
       <h3>Diseño Gráfico</h3>
-      <p>Creamos el diseño desde cero o trabajamos con tu arte. Servicio completo de arte digital profesional.</p>
+      <p>Creamos el diseño desde cero o trabajamos con tu arte. Arte digital profesional incluido.</p>
     </div>
     <div class="service-card reveal reveal-delay-4">
       <div class="service-icon"><i class="fas fa-users"></i></div>
       <h3>Equipos Completos</h3>
-      <p>Pedidos desde 1 hasta cientos de uniformes. Precios especiales para equipos, ligas y clubes.</p>
+      <p>Desde 1 hasta cientos de uniformes. Precios especiales para equipos, ligas y clubes.</p>
     </div>
   </div>
 </section>
-
-<!-- ─── CATÁLOGO ─── -->
-<section id="catalogo" class="section" style="padding-top: 0;">
+ 
+<!-- CATÁLOGO - SLIDER DE CAMISETAS REALES -->
+<section id="catalogo" class="section" style="padding-top:0;">
   <div class="catalog-intro">
     <div>
       <div class="section-tag reveal">Portafolio</div>
-      <h2 class="section-title reveal reveal-delay-1" style="margin-bottom: 0;">NUESTROS <span>TRABAJOS</span></h2>
+      <h2 class="section-title reveal reveal-delay-1" style="margin-bottom:0;">MODELOS <span>DE REFERENCIA</span></h2>
     </div>
-    <a href="#personalizar" class="btn-outline reveal" style="height: fit-content;">Ver Todo <i class="fas fa-arrow-right"></i></a>
+    <a href="#cotizar" class="btn-outline reveal">Pedir el tuyo <i class="fas fa-arrow-right"></i></a>
   </div>
-  <div class="gallery-grid">
-    <div class="gallery-item big reveal">
-      <div class="gallery-placeholder">
-        <i class="fas fa-futbol gallery-img-icon big-icon"></i>
-        <span style="color: var(--gray); font-size:0.85rem; letter-spacing:2px;">EQUIPACIÓN PRINCIPAL</span>
+ 
+  <!-- SLIDER AUTOMÁTICO -->
+  <div class="jerseys-slider-wrap reveal" style="margin-bottom:40px;">
+    <div class="jerseys-track" id="jerseyTrack">
+      <!-- Europa -->
+      <div class="jersey-card">
+        <img src="https://i.pinimg.com/736x/bf/c5/89/bfc589c46649a1c6978872470d1a8850.jpg" alt="Real Madrid">
+        <div class="jersey-card-info"><h4>Real Madrid</h4><p>La Liga · España</p></div>
       </div>
-      <div class="gallery-number">1</div>
-      <div class="gallery-label">
-        <h3>Kit Fútbol Completo</h3>
-        <p>Sublimado Full Color · 2024</p>
+      <div class="jersey-card">
+        <img src="https://i1-c.pinimg.com/1200x/8f/32/5a/8f325a52478201b47be4a79bbf12db1d.jpg" alt="Barcelona">
+        <div class="jersey-card-info"><h4>FC Barcelona</h4><p>La Liga · España</p></div>
       </div>
-    </div>
-    <div class="gallery-item reveal reveal-delay-1">
-      <div class="gallery-placeholder">
-        <i class="fas fa-trophy gallery-img-icon"></i>
-        <span style="color: var(--gray); font-size:0.8rem; letter-spacing:1.5px;">DISEÑO ESPECIAL</span>
+      <div class="jersey-card">
+        <img src="https://i.pinimg.com/736x/82/20/a4/8220a40857ff8088154d5a3c87ff5c51.jpg" alt="Camiseta Azul">
+        <div class="jersey-card-info"><h4>Estilo Europeo</h4><p>Sublimado Premium</p></div>
       </div>
-      <div class="gallery-number">2</div>
-      <div class="gallery-label">
-        <h3>Diseños Especiales</h3>
-        <p>Creatividad sin límites</p>
+      <div class="jersey-card">
+        <img src="https://i1-c.pinimg.com/736x/ff/eb/1d/ffeb1db96f8bb8dc3728543407c493a5.jpg" alt="Camiseta Roja">
+        <div class="jersey-card-info"><h4>Diseño Especial</h4><p>Full Color</p></div>
       </div>
-    </div>
-    <div class="gallery-item reveal reveal-delay-2">
-      <div class="gallery-placeholder">
-        <i class="fas fa-dumbbell gallery-img-icon"></i>
-        <span style="color: var(--gray); font-size:0.8rem; letter-spacing:1.5px;">TELA PRO</span>
+      <div class="jersey-card">
+        <img src="https://i.pinimg.com/originals/cb/56/71/cb5671893cf9c11517b2f14441822d0d.png" alt="Alianza Lima">
+        <div class="jersey-card-info"><h4>Alianza Lima</h4><p>Liga 1 · Perú</p></div>
       </div>
-      <div class="gallery-number">3</div>
-      <div class="gallery-label">
-        <h3>Tela Deportiva Pro</h3>
-        <p>Máximo rendimiento</p>
+      <div class="jersey-card">
+        <img src="https://i.pinimg.com/736x/ec/97/d9/ec97d997bd4a823f6076ad7cd5f6e2c2.jpg" alt="Universitario">
+        <div class="jersey-card-info"><h4>Universitario</h4><p>Liga 1 · Perú</p></div>
       </div>
-    </div>
-    <div class="gallery-item reveal reveal-delay-3">
-      <div class="gallery-placeholder">
-        <i class="fas fa-volleyball-ball gallery-img-icon"></i>
-        <span style="color: var(--gray); font-size:0.8rem; letter-spacing:1.5px;">VÓLEY</span>
+      <div class="jersey-card">
+        <img src="https://i1-c.pinimg.com/1200x/e9/59/34/e9593407ed67eef379b5153c46f02cbc.jpg" alt="Sporting Cristal">
+        <div class="jersey-card-info"><h4>Sporting Cristal</h4><p>Liga 1 · Perú</p></div>
       </div>
-      <div class="gallery-number">4</div>
-      <div class="gallery-label">
-        <h3>Uniforme de Vóley</h3>
-        <p>Modelo exclusivo 2024</p>
+      <div class="jersey-card">
+        <img src="https://i1-c.pinimg.com/1200x/fa/48/1a/fa481a192b539477798fc8614ca4a23b.jpg" alt="Selección Perú">
+        <div class="jersey-card-info"><h4>Selección Perú</h4><p>Blanquirroja</p></div>
       </div>
-    </div>
-    <div class="gallery-item reveal reveal-delay-4">
-      <div class="gallery-placeholder">
-        <i class="fas fa-basketball-ball gallery-img-icon"></i>
-        <span style="color: var(--gray); font-size:0.8rem; letter-spacing:1.5px;">BÁSQUET</span>
+      <!-- Duplicado para loop -->
+      <div class="jersey-card">
+        <img src="https://i.pinimg.com/736x/bf/c5/89/bfc589c46649a1c6978872470d1a8850.jpg" alt="Real Madrid">
+        <div class="jersey-card-info"><h4>Real Madrid</h4><p>La Liga · España</p></div>
       </div>
-      <div class="gallery-number">5</div>
-      <div class="gallery-label">
-        <h3>Kit de Básquet</h3>
-        <p>Sublimado premium</p>
+      <div class="jersey-card">
+        <img src="https://i1-c.pinimg.com/1200x/8f/32/5a/8f325a52478201b47be4a79bbf12db1d.jpg" alt="Barcelona">
+        <div class="jersey-card-info"><h4>FC Barcelona</h4><p>La Liga · España</p></div>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- ─── PERSONALIZADOR ─── -->
-<section id="personalizar" class="section" style="padding-top: 0;">
-  <div class="section-tag reveal">Herramienta interactiva</div>
-  <h2 class="section-title reveal reveal-delay-1">LABORATORIO DE <span>DISEÑO</span></h2>
-  <div class="customizer-wrap reveal">
-    <div class="customizer-grid">
-      <!-- Preview -->
-      <div class="preview-area" id="previewArea">
-        <div class="jersey-preview">
-          <svg class="jersey-svg" id="jerseySvg" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
-            <!-- Cuerpo de la camiseta -->
-            <path d="M 60,30 L 20,60 L 30,85 L 55,70 L 55,220 L 145,220 L 145,70 L 170,85 L 180,60 L 140,30 Q 120,20 100,22 Q 80,20 60,30 Z" 
-                  id="jerseyBody" fill="#1a3a8f" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-            <!-- Mangas -->
-            <path d="M 60,30 L 20,60 L 30,85 L 55,70 L 55,55 Z" 
-                  id="jerseySleeveLeft" fill="#c8102e" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-            <path d="M 140,30 L 180,60 L 170,85 L 145,70 L 145,55 Z" 
-                  id="jerseySleeveRight" fill="#c8102e" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-            <!-- Cuello -->
-            <path d="M 80,22 Q 100,14 120,22 Q 110,35 100,36 Q 90,35 80,22 Z" 
-                  fill="rgba(0,0,0,0.4)"/>
-            <!-- Línea decorativa -->
-            <line x1="55" y1="90" x2="145" y2="90" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-          </svg>
-          <div class="jersey-name-overlay" id="nameOverlay">GARCIA</div>
-          <div class="jersey-number-overlay" id="numberOverlay">10</div>
-        </div>
-        <div class="color-panel-label">Vista previa en tiempo real</div>
+      <div class="jersey-card">
+        <img src="https://i.pinimg.com/736x/82/20/a4/8220a40857ff8088154d5a3c87ff5c51.jpg" alt="Camiseta Azul">
+        <div class="jersey-card-info"><h4>Estilo Europeo</h4><p>Sublimado Premium</p></div>
       </div>
-
-      <!-- Controles -->
-      <div>
-        <div class="controls-title">PERSONALIZA TU KIT</div>
-
-        <div class="control-group">
-          <span class="control-label">Deporte</span>
-          <div class="sport-tabs">
-            <div class="sport-tab active" onclick="setSport(this,'Fútbol')">⚽ Fútbol</div>
-            <div class="sport-tab" onclick="setSport(this,'Vóley')">🏐 Vóley</div>
-            <div class="sport-tab" onclick="setSport(this,'Básquet')">🏀 Básquet</div>
-            <div class="sport-tab" onclick="setSport(this,'Ciclismo')">🚴 Ciclismo</div>
-          </div>
-        </div>
-
-        <div class="control-group">
-          <span class="control-label">Color Principal de la Camiseta</span>
-          <div class="color-options" id="bodyColors">
-            <div class="color-dot active" style="background:#1a3a8f" data-color="#1a3a8f" onclick="setBodyColor(this)" title="Azul"></div>
-            <div class="color-dot" style="background:#c8102e" data-color="#c8102e" onclick="setBodyColor(this)" title="Rojo"></div>
-            <div class="color-dot" style="background:#006400" data-color="#006400" onclick="setBodyColor(this)" title="Verde"></div>
-            <div class="color-dot" style="background:#1a1a1a; border:1px solid #444;" data-color="#1a1a1a" onclick="setBodyColor(this)" title="Negro"></div>
-            <div class="color-dot" style="background:#f0a500" data-color="#f0a500" onclick="setBodyColor(this)" title="Dorado"></div>
-            <div class="color-dot" style="background:#ffffff; border:1px solid #555;" data-color="#ffffff" onclick="setBodyColor(this)" title="Blanco"></div>
-            <div class="color-dot" style="background:#7b2d8b" data-color="#7b2d8b" onclick="setBodyColor(this)" title="Morado"></div>
-          </div>
-        </div>
-
-        <div class="control-group">
-          <span class="control-label">Color de Mangas</span>
-          <div class="color-options" id="sleeveColors">
-            <div class="color-dot active" style="background:#c8102e" data-color="#c8102e" onclick="setSleeveColor(this)" title="Rojo"></div>
-            <div class="color-dot" style="background:#1a3a8f" data-color="#1a3a8f" onclick="setSleeveColor(this)" title="Azul"></div>
-            <div class="color-dot" style="background:#f0a500" data-color="#f0a500" onclick="setSleeveColor(this)" title="Dorado"></div>
-            <div class="color-dot" style="background:#1a1a1a; border:1px solid #444;" data-color="#1a1a1a" onclick="setSleeveColor(this)" title="Negro"></div>
-            <div class="color-dot" style="background:#ffffff; border:1px solid #555;" data-color="#ffffff" onclick="setSleeveColor(this)" title="Blanco"></div>
-            <div class="color-dot" style="background:#006400" data-color="#006400" onclick="setSleeveColor(this)" title="Verde"></div>
-          </div>
-        </div>
-
-        <div class="control-group">
-          <span class="control-label">Datos del Jugador</span>
-          <div class="form-row">
-            <input type="text" id="playerName" class="form-field" placeholder="Nombre / Apodo" maxlength="12"
-                   oninput="document.getElementById('nameOverlay').textContent = this.value.toUpperCase() || 'GARCIA'">
-            <input type="number" id="playerNum" class="form-field" placeholder="Número" min="1" max="99"
-                   oninput="document.getElementById('numberOverlay').textContent = this.value || '10'">
-          </div>
-        </div>
-
-        <div class="control-group">
-          <span class="control-label">Cantidad y Tallas</span>
-          <div class="form-row">
-            <input type="number" id="quantity" class="form-field" placeholder="Cantidad (mín. 1)" min="1">
-            <select class="form-field" id="sizeRange">
-              <option value="" style="background:#111">Tallas...</option>
-              <option value="XS-S" style="background:#111">XS / S</option>
-              <option value="M-L" style="background:#111">M / L</option>
-              <option value="XL-XXL" style="background:#111">XL / XXL</option>
-              <option value="Mixto" style="background:#111">Tallas mixtas</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="control-group">
-          <span class="control-label">Mensaje adicional (opcional)</span>
-          <textarea class="form-field" id="extraMsg" rows="2" placeholder="Ej: Escudo del club, colores específicos, fecha de entrega..."></textarea>
-        </div>
-
-        <button class="btn-whatsapp" onclick="sendToWhatsApp()">
-          <i class="fab fa-whatsapp" style="font-size:1.3rem;"></i>
-          ENVIAR COTIZACIÓN A WHATSAPP
-        </button>
-
-        <p style="text-align:center; color: var(--gray); font-size:0.8rem; margin-top:12px; letter-spacing:1px;">
-          <i class="fas fa-clock" style="color:var(--gold)"></i>
-          Respuesta en menos de 2 horas
-        </p>
+      <div class="jersey-card">
+        <img src="https://i1-c.pinimg.com/736x/ff/eb/1d/ffeb1db96f8bb8dc3728543407c493a5.jpg" alt="Camiseta Roja">
+        <div class="jersey-card-info"><h4>Diseño Especial</h4><p>Full Color</p></div>
+      </div>
+      <div class="jersey-card">
+        <img src="https://i.pinimg.com/originals/cb/56/71/cb5671893cf9c11517b2f14441822d0d.png" alt="Alianza Lima">
+        <div class="jersey-card-info"><h4>Alianza Lima</h4><p>Liga 1 · Perú</p></div>
+      </div>
+      <div class="jersey-card">
+        <img src="https://i.pinimg.com/736x/ec/97/d9/ec97d997bd4a823f6076ad7cd5f6e2c2.jpg" alt="Universitario">
+        <div class="jersey-card-info"><h4>Universitario</h4><p>Liga 1 · Perú</p></div>
+      </div>
+      <div class="jersey-card">
+        <img src="https://i1-c.pinimg.com/1200x/e9/59/34/e9593407ed67eef379b5153c46f02cbc.jpg" alt="Sporting Cristal">
+        <div class="jersey-card-info"><h4>Sporting Cristal</h4><p>Liga 1 · Perú</p></div>
+      </div>
+      <div class="jersey-card">
+        <img src="https://i1-c.pinimg.com/1200x/fa/48/1a/fa481a192b539477798fc8614ca4a23b.jpg" alt="Selección Perú">
+        <div class="jersey-card-info"><h4>Selección Perú</h4><p>Blanquirroja</p></div>
+      </div>
+ 
+<!-- COTIZACIÓN WHATSAPP -->
+<section id="cotizar" class="section" style="padding-top:0;">
+  <div class="section-tag reveal">Contáctanos</div>
+  <h2 class="section-title reveal reveal-delay-1">SOLICITA TU <span>COTIZACIÓN</span></h2>
+  <div class="quote-wrap reveal">
+ 
+    <span class="control-label">Tipo de prenda</span>
+    <div class="prenda-opts">
+      <div class="prenda-opt active" onclick="setPrenda(this,'Conjunto completo (camiseta + short + medias)')">
+        <i class="fas fa-tshirt"></i><span>Conjunto Completo</span>
+      </div>
+      <div class="prenda-opt" onclick="setPrenda(this,'Solo camiseta')">
+        <i class="fas fa-circle-dot"></i><span>Solo Camiseta</span>
+      </div>
+      <div class="prenda-opt" onclick="setPrenda(this,'Short deportivo')">
+        <i class="fas fa-person-running"></i><span>Solo Short</span>
       </div>
     </div>
+ 
+    <span class="control-label">Deporte</span>
+    <div class="sport-tabs">
+      <div class="sport-tab active" onclick="setSport(this,'Fútbol')">⚽ Fútbol</div>
+      <div class="sport-tab" onclick="setSport(this,'Vóley')">🏐 Vóley</div>
+      <div class="sport-tab" onclick="setSport(this,'Básquet')">🏀 Básquet</div>
+      <div class="sport-tab" onclick="setSport(this,'Ciclismo')">🚴 Ciclismo</div>
+      <div class="sport-tab" onclick="setSport(this,'Otro')">🏅 Otro</div>
+    </div>
+ 
+    <span class="control-label">Datos del pedido</span>
+    <div class="quote-grid">
+      <input type="number" id="quantity" class="form-field" placeholder="Cantidad de prendas" min="1">
+      <select id="sizeRange" class="form-field">
+        <option value="" style="background:#111">Tallas...</option>
+        <option value="XS / S" style="background:#111">XS / S</option>
+        <option value="M / L" style="background:#111">M / L</option>
+        <option value="XL / XXL" style="background:#111">XL / XXL</option>
+        <option value="Tallas mixtas" style="background:#111">Tallas mixtas</option>
+      </select>
+    </div>
+ 
+    <span class="control-label">Tu nombre y mensaje (opcional)</span>
+    <input type="text" id="clientName" class="form-field" placeholder="Tu nombre o club">
+    <textarea id="extraMsg" class="form-field" rows="2" style="margin-top:12px;resize:none;" placeholder="Colores, diseño, fecha de entrega, escudo..."></textarea>
+ 
+    <button class="btn-whatsapp" onclick="sendToWhatsApp()">
+      <i class="fab fa-whatsapp" style="font-size:1.3rem;"></i>
+      ENVIAR COTIZACIÓN POR WHATSAPP
+    </button>
+    <p style="text-align:center;color:var(--gray);font-size:0.78rem;margin-top:10px;letter-spacing:1px;">
+      <i class="fas fa-clock" style="color:var(--gold)"></i> Respuesta en menos de 2 horas · Callao Perú
+    </p>
   </div>
 </section>
-
-<!-- ─── PROCESO ─── -->
+ 
+<!-- PROCESO -->
 <section id="proceso" class="process-section">
-  <div style="padding: 0 0 80px;">
+  <div style="padding:0 0 70px;">
     <div class="section-tag reveal">Cómo trabajamos</div>
     <h2 class="section-title reveal reveal-delay-1">PROCESO DE <span>TRABAJO</span></h2>
   </div>
@@ -961,40 +435,37 @@ footer {
     <div class="step reveal">
       <div class="step-num">01</div>
       <h3>Cotiza gratis</h3>
-      <p>Contáctanos por WhatsApp con tu idea, cantidad y presupuesto.</p>
+      <p>Escríbenos por WhatsApp con tu idea, cantidad y presupuesto.</p>
     </div>
     <div class="step reveal reveal-delay-1">
       <div class="step-num">02</div>
       <h3>Diseño digital</h3>
-      <p>Nuestro equipo crea el arte en alta resolución para tu aprobación.</p>
+      <p>Creamos el arte en alta resolución para tu aprobación.</p>
     </div>
     <div class="step reveal reveal-delay-2">
       <div class="step-num">03</div>
       <h3>Producción</h3>
-      <p>Sublimación e impresión con telas premium seleccionadas.</p>
+      <p>Sublimación con telas premium seleccionadas.</p>
     </div>
     <div class="step reveal reveal-delay-3">
       <div class="step-num">04</div>
       <h3>Entrega rápida</h3>
-      <p>Enviamos a todo el Perú. Recibe tu pedido a tiempo.</p>
+      <p>Enviamos a todo el Perú. Entrega a tiempo garantizada.</p>
     </div>
   </div>
 </section>
-
-<!-- ─── TESTIMONIOS ─── -->
-<section class="section" style="padding-top: 0;">
+ 
+<!-- TESTIMONIOS -->
+<section class="section" style="padding-top:0;">
   <div class="section-tag reveal">Lo que dicen</div>
   <h2 class="section-title reveal reveal-delay-1">CLIENTES <span>SATISFECHOS</span></h2>
   <div class="testimonials-grid">
     <div class="testimonial-card reveal">
       <div class="stars">★★★★★</div>
-      <p class="testimonial-text">"Los uniformes llegaron perfectos, los colores exactos y la tela de primera calidad. Todo el equipo quedó feliz. Ya pedimos para la siguiente temporada."</p>
+      <p class="testimonial-text">"Los uniformes llegaron perfectos, los colores exactos y la tela de primera. Todo el equipo quedó feliz. Ya pedimos para la siguiente temporada."</p>
       <div class="testimonial-author">
         <div class="author-avatar">CJ</div>
-        <div>
-          <div class="author-name">Club Jorge Chávez</div>
-          <div class="author-role">Liga Distrital Callao</div>
-        </div>
+        <div><div class="author-name">Club Jorge Chávez</div><div class="author-role">Liga Distrital Callao</div></div>
       </div>
     </div>
     <div class="testimonial-card reveal reveal-delay-1">
@@ -1002,50 +473,29 @@ footer {
       <p class="testimonial-text">"Pedí 20 uniformes de vóley con diseño propio y quedaron exactamente como quería. El trato fue excelente y cumplieron con el plazo."</p>
       <div class="testimonial-author">
         <div class="author-avatar">ML</div>
-        <div>
-          <div class="author-name">María López</div>
-          <div class="author-role">Entrenadora de Vóley</div>
-        </div>
+        <div><div class="author-name">María López</div><div class="author-role">Entrenadora de Vóley</div></div>
       </div>
     </div>
     <div class="testimonial-card reveal reveal-delay-2">
       <div class="stars">★★★★★</div>
-      <p class="testimonial-text">"Super recomendado, muy profesionales. El diseño digital estuvo listo en 24 horas y la producción fue rapidísima. Calidad increíble."</p>
+      <p class="testimonial-text">"Super recomendado, muy profesionales. El diseño digital estuvo listo en 24h y la producción fue rapidísima. Calidad increíble."</p>
       <div class="testimonial-author">
         <div class="author-avatar">RP</div>
-        <div>
-          <div class="author-name">Roberto Paredes</div>
-          <div class="author-role">Capitán Club Deportivo</div>
-        </div>
+        <div><div class="author-name">Roberto Paredes</div><div class="author-role">Capitán Club Deportivo</div></div>
       </div>
     </div>
   </div>
 </section>
-
-<!-- ─── CTA BANNER ─── -->
-<div class="cta-banner reveal" id="contacto">
-  <h2>¿LISTO PARA TU <span>PRÓXIMO UNIFORME?</span></h2>
-  <p>Contáctanos hoy mismo y obtén cotización sin costo. Atendemos todo el Perú.</p>
-  <div class="cta-actions">
-    <button onclick="sendToWhatsApp()" class="btn-main">
-      <i class="fab fa-whatsapp"></i> PEDIR COTIZACIÓN
-    </button>
-    <a href="https://www.facebook.com/wilber.garcia" target="_blank" class="btn-outline">
-      <i class="fab fa-facebook"></i> VER FACEBOOK
-    </a>
-  </div>
-</div>
-
-<!-- ─── FOOTER ─── -->
+ 
+<!-- FOOTER -->
 <footer>
   <div class="footer-top">
     <div class="footer-brand">
       <span class="logo">SUBLISPORT <span>GARCIA</span></span>
       <p>Confección deportiva de alto nivel con sublimación premium. Diseños únicos para equipos que quieren destacar.</p>
       <div class="social-links">
-        <a href="https://www.facebook.com/wilber.garcia" target="_blank" class="social-link"><i class="fab fa-facebook-f"></i></a>
-        <a href="https://instagram.com/sublisport_garcia" target="_blank" class="social-link"><i class="fab fa-instagram"></i></a>
-        <a href="https://tiktok.com/@sublisport_garcia" target="_blank" class="social-link"><i class="fab fa-tiktok"></i></a>
+        <a href="https://www.facebook.com/wilber.garcia.902" target="_blank" class="social-link"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://www.tiktok.com/@cayarino.sport" target="_blank" class="social-link"><i class="fab fa-tiktok"></i></a>
         <a href="https://wa.me/51960840874" target="_blank" class="social-link"><i class="fab fa-whatsapp"></i></a>
       </div>
     </div>
@@ -1055,124 +505,84 @@ footer {
         <li><a href="#inicio">Inicio</a></li>
         <li><a href="#servicios">Servicios</a></li>
         <li><a href="#catalogo">Catálogo</a></li>
-        <li><a href="#personalizar">Diseñar</a></li>
+        <li><a href="#cotizar">Cotizar</a></li>
         <li><a href="#proceso">Proceso</a></li>
       </ul>
     </div>
     <div class="footer-col">
       <h4>Deportes</h4>
       <ul>
-        <li><a href="#personalizar">Fútbol</a></li>
-        <li><a href="#personalizar">Vóley</a></li>
-        <li><a href="#personalizar">Básquet</a></li>
-        <li><a href="#personalizar">Ciclismo</a></li>
-        <li><a href="#personalizar">Atletismo</a></li>
+        <li><a href="#cotizar">Fútbol</a></li>
+        <li><a href="#cotizar">Vóley</a></li>
+        <li><a href="#cotizar">Básquet</a></li>
+        <li><a href="#cotizar">Ciclismo</a></li>
+        <li><a href="#cotizar">Atletismo</a></li>
       </ul>
     </div>
     <div class="footer-col">
       <h4>Contacto</h4>
       <ul>
         <li><a href="https://wa.me/51960840874">📱 960 840 874</a></li>
-        <li><a href="https://www.facebook.com/wilber.garcia">📘 Facebook</a></li>
-        <li><a href="#"><i></i> Callao, Perú</a></li>
+        <li><a href="https://www.facebook.com/wilber.garcia.902">📘 Facebook</a></li>
+        <li><a href="https://www.tiktok.com/@cayarino.sport">🎵 TikTok</a></li>
+        <li><a href="#" style="color:var(--gray);pointer-events:none;">📍 Av. Aviación 697, Galería Llancama Int. 311 y 320, La Victoria</a></li>
       </ul>
     </div>
   </div>
   <div class="footer-bottom">
     <p>© 2025 SUBLISPORT GARCIA · Todos los derechos reservados</p>
-    <p>Hecho con ❤️ en <a href="#">Callao, Perú</a></p>
+    <p>Hecho con ❤️ en <a href="#">La Victoria, Lima</a></p>
   </div>
 </footer>
-
-<!-- ─── SCRIPTS ─── -->
+ 
 <script>
 // CURSOR
 const cursor = document.getElementById('cursor');
 const ring = document.getElementById('cursorRing');
 document.addEventListener('mousemove', e => {
-  cursor.style.left = e.clientX - 6 + 'px';
-  cursor.style.top = e.clientY - 6 + 'px';
-  ring.style.left = e.clientX - 18 + 'px';
-  ring.style.top = e.clientY - 18 + 'px';
+  cursor.style.left = e.clientX-6+'px'; cursor.style.top = e.clientY-6+'px';
+  ring.style.left = e.clientX-18+'px'; ring.style.top = e.clientY-18+'px';
 });
-document.querySelectorAll('a, button, .color-dot, .sport-tab, .gallery-item').forEach(el => {
-  el.addEventListener('mouseenter', () => {
-    cursor.style.transform = 'scale(2)';
-    ring.style.transform = 'scale(1.4)';
-    ring.style.opacity = '1';
-  });
-  el.addEventListener('mouseleave', () => {
-    cursor.style.transform = 'scale(1)';
-    ring.style.transform = 'scale(1)';
-    ring.style.opacity = '0.6';
-  });
+document.querySelectorAll('a,button,.prenda-opt,.sport-tab,.jersey-card').forEach(el => {
+  el.addEventListener('mouseenter',()=>{cursor.style.transform='scale(2)';ring.style.transform='scale(1.4)';ring.style.opacity='1';});
+  el.addEventListener('mouseleave',()=>{cursor.style.transform='scale(1)';ring.style.transform='scale(1)';ring.style.opacity='0.6';});
 });
-
-// NAVBAR SCROLL
-window.addEventListener('scroll', () => {
-  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
-});
-
-// HAMBURGER
-function toggleMenu() {
-  document.getElementById('navLinks').classList.toggle('open');
-}
-document.querySelectorAll('.nav-links a').forEach(a => {
-  a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open'));
-});
-
-// REVEAL ON SCROLL
-const revealEls = document.querySelectorAll('.reveal');
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => { if(e.isIntersecting) { e.target.classList.add('visible'); } });
-}, { threshold: 0.1 });
-revealEls.forEach(el => observer.observe(el));
-
-// SPORT TABS
+ 
+// NAVBAR
+window.addEventListener('scroll',()=>{ document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>20); });
+ 
+// MENU
+function toggleMenu(){ document.getElementById('navLinks').classList.toggle('open'); }
+document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')));
+ 
+// REVEAL
+const obs = new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+ 
+// PRENDA
+let selectedPrenda = 'Conjunto completo (camiseta + short + medias)';
+function setPrenda(el,p){ document.querySelectorAll('.prenda-opt').forEach(d=>d.classList.remove('active')); el.classList.add('active'); selectedPrenda=p; }
+ 
+// DEPORTE
 let selectedSport = 'Fútbol';
-function setSport(el, sport) {
-  document.querySelectorAll('.sport-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  selectedSport = sport;
-}
-
-// JERSEY COLORS
-function setBodyColor(el) {
-  document.querySelectorAll('#bodyColors .color-dot').forEach(d => d.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('jerseyBody').setAttribute('fill', el.dataset.color);
-}
-function setSleeveColor(el) {
-  document.querySelectorAll('#sleeveColors .color-dot').forEach(d => d.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('jerseySleeveLeft').setAttribute('fill', el.dataset.color);
-  document.getElementById('jerseySleeveRight').setAttribute('fill', el.dataset.color);
-}
-
+function setSport(el,s){ document.querySelectorAll('.sport-tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); selectedSport=s; }
+ 
 // WHATSAPP
-function sendToWhatsApp() {
+function sendToWhatsApp(){
   const phone = '51960840874';
-  const name = document.getElementById('playerName')?.value || '';
-  const num = document.getElementById('playerNum')?.value || '';
-  const qty = document.getElementById('quantity')?.value || '';
-  const size = document.getElementById('sizeRange')?.value || '';
-  const extra = document.getElementById('extraMsg')?.value || '';
-  
-  const bodyColor = document.querySelector('#bodyColors .color-dot.active')?.title || '';
-  const sleeveColor = document.querySelector('#sleeveColors .color-dot.active')?.title || '';
-
-  let msg = `🏅 *NUEVA COTIZACIÓN - SUBLISPORT GARCIA*\n\n`;
+  const qty = document.getElementById('quantity').value;
+  const size = document.getElementById('sizeRange').value;
+  const name = document.getElementById('clientName').value;
+  const extra = document.getElementById('extraMsg').value;
+  let msg = `🏅 *COTIZACIÓN - SUBLISPORT GARCIA*\n\n`;
+  msg += `👕 *Prenda:* ${selectedPrenda}\n`;
   msg += `⚽ *Deporte:* ${selectedSport}\n`;
-  if(name) msg += `👤 *Nombre en camiseta:* ${name}\n`;
-  if(num) msg += `🔢 *Número:* ${num}\n`;
-  msg += `🎨 *Color principal:* ${bodyColor}\n`;
-  msg += `🎨 *Color mangas:* ${sleeveColor}\n`;
-  if(qty) msg += `📦 *Cantidad:* ${qty} uniformes\n`;
+  if(qty) msg += `📦 *Cantidad:* ${qty} prendas\n`;
   if(size) msg += `📏 *Tallas:* ${size}\n`;
-  if(extra) msg += `📝 *Observaciones:* ${extra}\n`;
-  msg += `\n¡Hola! Me gustaría recibir cotización para mi pedido. 😊`;
-
-  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  if(name) msg += `👤 *Nombre/Club:* ${name}\n`;
+  if(extra) msg += `📝 *Detalles:* ${extra}\n`;
+  msg += `\n¡Hola! Me gustaría recibir cotización. 😊`;
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,'_blank');
 }
 </script>
 </body>
