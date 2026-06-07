@@ -239,6 +239,7 @@ public class OrderService(AppDbContext db)
         order.Status = OrderStatus.EnImpresion;
         await AddHistoryAsync(order, previous, OrderStatus.EnImpresion, userId, ProduccionOrderHelper.StartedComment);
         await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
     }
 
     public async Task ProduccionSetStageAsync(Guid orderId, OrderStatus stage, string userId)
@@ -265,6 +266,7 @@ public class OrderService(AppDbContext db)
         order.Status = stage;
         await AddHistoryAsync(order, previous, stage, userId, $"Etapa: {OrderStatusHelper.GetLabel(stage)}");
         await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
     }
 
     public async Task ProduccionMarkReadyForPickupAsync(Guid orderId, string userId)
@@ -279,6 +281,7 @@ public class OrderService(AppDbContext db)
         order.Status = OrderStatus.ListoEntrega;
         await AddHistoryAsync(order, previous, OrderStatus.ListoEntrega, userId, ProduccionOrderHelper.ReadyPickupComment);
         await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
     }
 
     public async Task SaveOrderPricingAsync(

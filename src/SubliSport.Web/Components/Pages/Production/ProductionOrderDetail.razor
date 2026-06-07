@@ -71,10 +71,20 @@ else
                 <div class="designer-actions">
                     @if (ProduccionOrderHelper.CanAccept(order))
                     {
-                        <button type="button" class="btn-action btn-success btn-action-lg" disabled="@isBusy" @onclick="AcceptOrderAsync">
-                            @(isBusy ? "Guardando…" : "✓ Aceptar pedido")
-                        </button>
+                        <div class="accept-row">
+                            <form method="post" action="/produccion/pedidos/@OrderId/aceptar" class="inline-form accept-form">
+                                <button type="submit" class="btn-action btn-success btn-action-lg">✓ Aceptar pedido</button>
+                            </form>
+                            @if (productionGroupWhatsAppUrl is not null)
+                            {
+                                <a href="@productionGroupWhatsAppUrl" target="_blank" rel="noopener noreferrer"
+                                   class="whatsapp-link whatsapp-link-sm" title="Opcional: abrir grupo WhatsApp">
+                                    📲 Grupo WA
+                                </a>
+                            }
+                        </div>
                     }
+
                     @if (ProduccionOrderHelper.CanStart(order))
                     {
                         <button type="button" class="btn-action btn-edit btn-action-lg" disabled="@isBusy" @onclick="StartOrderAsync">▶ Iniciar producción</button>
@@ -105,38 +115,25 @@ else
                     {
                         <div class="alert-success inline-alert">Pedido listo. El cliente puede recogerlo.</div>
                     }
+
+                    @if (ProduccionOrderHelper.IsAccepted(order))
+                    {
+                        <div class="whatsapp-actions-inline">
+                            @if (productionGroupWhatsAppUrl is not null)
+                            {
+                                <a href="@productionGroupWhatsAppUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link whatsapp-link-sm">
+                                    📲 @(string.IsNullOrWhiteSpace(productionGroupName) ? "Grupo WA" : productionGroupName)
+                                </a>
+                            }
+                            @if (designerWhatsAppUrl is not null)
+                            {
+                                <a href="@designerWhatsAppUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link whatsapp-link-sm">
+                                    📱 Diseñador
+                                </a>
+                            }
+                        </div>
+                    }
                 </div>
-            </section>
-
-            <section class="panel-section @(ProduccionOrderHelper.IsAccepted(order) ? "panel-highlight" : "")">
-                <h2>Archivo para imprimir (WhatsApp)</h2>
-                @if (ProduccionOrderHelper.IsAccepted(order))
-                {
-                    <p class="field-hint">Los archivos se envían al grupo de WhatsApp de producción. Abra el grupo para ver el mensaje con el archivo del diseñador.</p>
-                    <div class="whatsapp-actions">
-                        @if (productionGroupWhatsAppUrl is not null)
-                        {
-                            <a href="@productionGroupWhatsAppUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link btn-action btn-success btn-action-lg">
-                                📲 @(string.IsNullOrWhiteSpace(productionGroupName) ? "Grupo WhatsApp producción" : productionGroupName)
-                            </a>
-                        }
-                        else
-                        {
-                            <p class="text-muted">Grupo WhatsApp no configurado. El SuperAdmin debe agregar el enlace en Configuración.</p>
-                        }
-
-                        @if (designerWhatsAppUrl is not null)
-                        {
-                            <a href="@designerWhatsAppUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link btn-action btn-edit">
-                                📱 Chat con diseñador (@WhatsAppHelper.FormatDisplayPhone(order.AssignedDesigner?.PhoneNumber))
-                            </a>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <p class="field-hint">Acepte el pedido para habilitar el acceso al archivo en WhatsApp.</p>
-                }
             </section>
         }
 
@@ -185,6 +182,7 @@ else
 
     [Inject] private OrderService OrderService { get; set; } = default!;
     [Inject] private ProductionConfigurationService ProductionConfig { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
     private Order? order;
@@ -198,7 +196,26 @@ else
     private string? message;
     private string? error;
 
-    protected override async Task OnInitializedAsync() => await ReloadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        ReadQueryMessages();
+        await ReloadAsync();
+    }
+
+    private void ReadQueryMessages()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("msg", out var msg) && msg == "accepted")
+        {
+            message = "Pedido aceptado. Puede iniciar producción o abrir WhatsApp si lo necesita.";
+        }
+
+        if (query.TryGetValue("error", out var err) && !string.IsNullOrWhiteSpace(err))
+        {
+            error = err.ToString();
+        }
+    }
 
     private async Task ReloadAsync()
     {
@@ -217,12 +234,20 @@ else
 
         designerWhatsAppUrl = WhatsAppHelper.BuildChatUrl(designerPhone, fileMessage);
 
-        var productionSettings = await ProductionConfig.GetSettingsAsync();
-        productionGroupName = productionSettings.GroupName;
-        productionGroupWhatsAppUrl = WhatsAppHelper.ResolveProductionGroupUrl(
-            productionSettings.GroupInviteUrl,
-            productionSettings.FallbackPhone,
-            fileMessage);
+        try
+        {
+            var productionSettings = await ProductionConfig.GetSettingsAsync();
+            productionGroupName = productionSettings.GroupName;
+            productionGroupWhatsAppUrl = WhatsAppHelper.ResolveProductionGroupUrl(
+                productionSettings.GroupInviteUrl,
+                productionSettings.FallbackPhone,
+                fileMessage);
+        }
+        catch
+        {
+            productionGroupWhatsAppUrl = WhatsAppHelper.BuildChatUrl("51960840874", fileMessage);
+            productionGroupName = "Grupo Producción";
+        }
 
         var auth = await AuthState;
         var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
@@ -252,15 +277,6 @@ else
             isBusy = false;
             StateHasChanged();
         }
-    }
-
-    private async Task AcceptOrderAsync()
-    {
-        await RunAction(async () =>
-        {
-            var userId = await GetUserIdAsync();
-            await OrderService.ProduccionAcceptAsync(OrderId, userId);
-        }, "Pedido aceptado. Abra WhatsApp para ver el archivo del diseñador.");
     }
 
     private async Task StartOrderAsync()

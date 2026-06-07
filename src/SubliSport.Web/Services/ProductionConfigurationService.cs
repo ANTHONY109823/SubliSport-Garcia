@@ -17,14 +17,14 @@ public class ProductionConfigurationService(AppDbContext db, IConfiguration conf
 
     public async Task<ProductionSettingsData> GetSettingsAsync()
     {
-        var row = await db.ProductionConfigurations.AsNoTracking().FirstOrDefaultAsync(p => p.Id == 1);
-        if (row is null || string.IsNullOrWhiteSpace(row.JsonData))
-        {
-            return CreateDefaultWithFallback();
-        }
-
         try
         {
+            var row = await db.ProductionConfigurations.AsNoTracking().FirstOrDefaultAsync(p => p.Id == 1);
+            if (row is null || string.IsNullOrWhiteSpace(row.JsonData))
+            {
+                return CreateDefaultWithFallback();
+            }
+
             return JsonSerializer.Deserialize<ProductionSettingsData>(row.JsonData, JsonOptions)
                    ?? CreateDefaultWithFallback();
         }

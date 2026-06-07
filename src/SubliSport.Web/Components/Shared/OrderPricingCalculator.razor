@@ -156,17 +156,24 @@ else
     protected override async Task OnParametersSetAsync()
     {
         order = Order;
-        settings = await PricingConfig.GetSettingsAsync();
+        try
+        {
+            settings = await PricingConfig.GetSettingsAsync();
 
-        fabricTypeId = order.FabricTypeId ?? settings.Fabrics.FirstOrDefault()?.Id ?? 1;
-        fabricRipIdStr = order.FabricTypeRipId?.ToString() ?? "";
-        fabricMeters = order.FabricMeters ?? 0;
-        fabricMetersRip = order.FabricMetersRip ?? 0;
-        includesConfection = order.IncludesConfection;
-        serviceOnly = order.ServiceOnlyPrintPress;
-        chargeAmount = order.ChargeAmount > 0 ? order.ChargeAmount : order.CalculatedTotal;
-        pricingNotes = order.PricingNotes;
-        Recalculate();
+            fabricTypeId = order.FabricTypeId ?? settings.Fabrics.FirstOrDefault()?.Id ?? 1;
+            fabricRipIdStr = order.FabricTypeRipId?.ToString() ?? "";
+            fabricMeters = order.FabricMeters ?? 0;
+            fabricMetersRip = order.FabricMetersRip ?? 0;
+            includesConfection = order.IncludesConfection;
+            serviceOnly = order.ServiceOnlyPrintPress;
+            chargeAmount = order.ChargeAmount > 0 ? order.ChargeAmount : order.CalculatedTotal;
+            pricingNotes = order.PricingNotes;
+            Recalculate();
+        }
+        catch
+        {
+            settings = PricingSettingsData.CreateDefault();
+        }
     }
 
     private void Recalculate()

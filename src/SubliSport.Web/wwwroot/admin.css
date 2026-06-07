@@ -457,6 +457,9 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 .whatsapp-link:hover { background: rgba(37,211,102,0.2); color: #6ee7a0; }
 .whatsapp-link-sm { font-size: 0.85rem; padding: 4px 10px; }
 .whatsapp-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.whatsapp-actions-inline { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.accept-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.accept-form { margin: 0; }
 .inline-hint { display: block; margin-top: 4px; font-size: 0.78rem; }
 
 .designer-actions { display: flex; flex-direction: column; gap: 12px; }
