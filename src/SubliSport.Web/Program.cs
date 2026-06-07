@@ -1,5 +1,7 @@
+using System.Net;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using SubliSport.Domain.Constants;
 using SubliSport.Domain.Entities;
@@ -8,11 +10,21 @@ using SubliSport.Infrastructure.Data;
 using SubliSport.Web.Components;
 using SubliSport.Web.Services;
 
+var port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8080");
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Railway inyecta PORT; local/Docker usa 8080 por defecto
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Listen(IPAddress.Any, port);
+});
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -52,18 +64,27 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
+app.Logger.LogInformation("SubliSport escuchando en 0.0.0.0:{Port} (PORT env={EnvPort})",
+    port, Environment.GetEnvironmentVariable("PORT") ?? "no definido");
+
+app.UseForwardedHeaders();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    app.UseHsts();
+}
+else
+{
+    app.UseHttpsRedirection();
 }
 
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-app.UseHttpsRedirection();
 app.UseAntiforgery();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 
 app.UseDefaultFiles();
 app.MapStaticAssets();

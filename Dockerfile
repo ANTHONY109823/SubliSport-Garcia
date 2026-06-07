@@ -12,6 +12,7 @@ RUN dotnet publish SubliSport.Web/SubliSport.Web.csproj -c Release -o /app/publi
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-# Railway inyecta PORT dinámicamente — no fijar ASPNETCORE_URLS aquí
+COPY start.sh /app/start.sh
+RUN sed -i 's/\r$//' /app/start.sh && chmod +x /app/start.sh
 EXPOSE 8080
-ENTRYPOINT ["dotnet", "SubliSport.Web.dll"]
+ENTRYPOINT ["/app/start.sh"]
