@@ -39,11 +39,11 @@ else
             <dl class="detail-list">
                 <div><dt>Cliente</dt><dd>@order.ClientName</dd></div>
                 <div>
-                    <dt>WhatsApp</dt>
+                    <dt>WhatsApp cliente</dt>
                     <dd>
-                        @if (whatsappUrl is not null)
+                        @if (clientWhatsAppUrl is not null)
                         {
-                            <a href="@whatsappUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link">
+                            <a href="@clientWhatsAppUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link">
                                 📱 @WhatsAppHelper.FormatDisplayPhone(order.ClientPhone)
                             </a>
                         }
@@ -62,7 +62,7 @@ else
             </dl>
         </section>
 
-        @if (isProductionUser)
+        @if (canDoProductionActions)
         {
             <section class="panel-section panel-highlight">
                 <h2>Acciones de producción</h2>
@@ -71,11 +71,13 @@ else
                 <div class="designer-actions">
                     @if (ProduccionOrderHelper.CanAccept(order))
                     {
-                        <button type="button" class="btn-action btn-success btn-action-lg" @onclick="AcceptOrderAsync">✓ Aceptar pedido</button>
+                        <button type="button" class="btn-action btn-success btn-action-lg" disabled="@isBusy" @onclick="AcceptOrderAsync">
+                            @(isBusy ? "Guardando…" : "✓ Aceptar pedido")
+                        </button>
                     }
                     @if (ProduccionOrderHelper.CanStart(order))
                     {
-                        <button type="button" class="btn-action btn-edit btn-action-lg" @onclick="StartOrderAsync">▶ Iniciar producción</button>
+                        <button type="button" class="btn-action btn-edit btn-action-lg" disabled="@isBusy" @onclick="StartOrderAsync">▶ Iniciar producción</button>
                     }
 
                     @if (order.Status is OrderStatus.EnImpresion or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion
@@ -83,18 +85,18 @@ else
                     {
                         <div class="stage-buttons">
                             <span class="field-hint">Etapa actual:</span>
-                            <button type="button" class="btn-action @(order.Status == OrderStatus.EnImpresion ? "btn-primary-action" : "")" @onclick="() => SetStageAsync(OrderStatus.EnImpresion)">🖨 Impresión</button>
-                            <button type="button" class="btn-action @(order.Status == OrderStatus.EnPlanchado ? "btn-primary-action" : "")" @onclick="() => SetStageAsync(OrderStatus.EnPlanchado)">🔥 Planchado</button>
+                            <button type="button" class="btn-action @(order.Status == OrderStatus.EnImpresion ? "btn-primary-action" : "")" disabled="@isBusy" @onclick="() => SetStageAsync(OrderStatus.EnImpresion)">🖨 Impresión</button>
+                            <button type="button" class="btn-action @(order.Status == OrderStatus.EnPlanchado ? "btn-primary-action" : "")" disabled="@isBusy" @onclick="() => SetStageAsync(OrderStatus.EnPlanchado)">🔥 Planchado</button>
                             @if (order.IncludesConfection && !order.ServiceOnlyPrintPress)
                             {
-                                <button type="button" class="btn-action @(order.Status == OrderStatus.EnConfeccion ? "btn-primary-action" : "")" @onclick="() => SetStageAsync(OrderStatus.EnConfeccion)">✂️ Confección</button>
+                                <button type="button" class="btn-action @(order.Status == OrderStatus.EnConfeccion ? "btn-primary-action" : "")" disabled="@isBusy" @onclick="() => SetStageAsync(OrderStatus.EnConfeccion)">✂️ Confección</button>
                             }
                         </div>
                     }
 
                     @if (ProduccionOrderHelper.CanMarkReadyForPickup(order))
                     {
-                        <button type="button" class="btn-action btn-primary-action btn-action-lg" @onclick="MarkReadyAsync">
+                        <button type="button" class="btn-action btn-primary-action btn-action-lg" disabled="@isBusy" @onclick="MarkReadyAsync">
                             ✔ Trabajo finalizado — pendiente por recoger
                         </button>
                     }
@@ -105,9 +107,40 @@ else
                     }
                 </div>
             </section>
+
+            <section class="panel-section @(ProduccionOrderHelper.IsAccepted(order) ? "panel-highlight" : "")">
+                <h2>Archivo para imprimir (WhatsApp)</h2>
+                @if (ProduccionOrderHelper.IsAccepted(order))
+                {
+                    <p class="field-hint">El diseñador envía el archivo por WhatsApp. Abra el chat indicado para ver el mensaje con el archivo.</p>
+                    <div class="whatsapp-actions">
+                        @if (designerWhatsAppUrl is not null)
+                        {
+                            <a href="@designerWhatsAppUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link btn-action btn-success btn-action-lg">
+                                📱 WhatsApp del diseñador (@WhatsAppHelper.FormatDisplayPhone(order.AssignedDesigner?.PhoneNumber))
+                            </a>
+                        }
+                        else
+                        {
+                            <p class="text-muted">Sin WhatsApp del diseñador. Pida a Wilber que registre el número en Usuarios.</p>
+                        }
+
+                        @if (productionLineWhatsAppUrl is not null)
+                        {
+                            <a href="@productionLineWhatsAppUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link btn-action btn-edit">
+                                📲 Línea SubliSport (@WhatsAppHelper.FormatDisplayPhone(productionLinePhone))
+                            </a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="field-hint">Acepte el pedido para habilitar el acceso al archivo en WhatsApp.</p>
+                }
+            </section>
         }
 
-        @if ((isProductionUser || isAdminView) && !ProduccionOrderHelper.IsCompleted(order))
+        @if ((canDoProductionActions || isAdminView) && !ProduccionOrderHelper.IsCompleted(order))
         {
             <OrderPricingCalculator Order="order" OnSaved="ReloadAsync" ReadOnly="@isAdminView" />
         }
@@ -151,12 +184,17 @@ else
     [Parameter] public Guid OrderId { get; set; }
 
     [Inject] private OrderService OrderService { get; set; } = default!;
+    [Inject] private IConfiguration Configuration { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
     private Order? order;
-    private string? whatsappUrl;
-    private bool isProductionUser;
+    private string? clientWhatsAppUrl;
+    private string? designerWhatsAppUrl;
+    private string? productionLineWhatsAppUrl;
+    private string? productionLinePhone;
+    private bool canDoProductionActions;
     private bool isAdminView;
+    private bool isBusy;
     private string? message;
     private string? error;
 
@@ -167,18 +205,36 @@ else
         order = await OrderService.GetByIdAsync(OrderId);
         if (order is null) return;
 
-        whatsappUrl = WhatsAppHelper.BuildChatUrl(order.ClientPhone, WhatsAppHelper.BuildOrderMessage(order.ClientName, order.OrderNumber));
+        clientWhatsAppUrl = WhatsAppHelper.BuildChatUrl(
+            order.ClientPhone,
+            WhatsAppHelper.BuildOrderMessage(order.ClientName, order.OrderNumber));
+
+        var designerPhone = order.AssignedDesigner?.PhoneNumber;
+        var fileMessage = WhatsAppHelper.BuildProductionFileMessage(
+            order.OrderNumber,
+            order.ClientName,
+            order.AssignedDesigner?.FullName);
+
+        designerWhatsAppUrl = WhatsAppHelper.BuildChatUrl(designerPhone, fileMessage);
+
+        productionLinePhone = Configuration["Production:WhatsAppNumber"];
+        productionLineWhatsAppUrl = WhatsAppHelper.BuildChatUrl(
+            productionLinePhone,
+            fileMessage);
 
         var auth = await AuthState;
         var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
-        isProductionUser = roles.Contains(AppRoles.Production) && !roles.Contains(AppRoles.Admin);
-        isAdminView = roles.Contains(AppRoles.Admin);
+        canDoProductionActions = roles.Contains(AppRoles.Production);
+        isAdminView = roles.Contains(AppRoles.Admin) && !canDoProductionActions;
     }
 
     private async Task RunAction(Func<Task> action, string success)
     {
+        if (isBusy) return;
+
         error = null;
         message = null;
+        isBusy = true;
         try
         {
             await action();
@@ -189,6 +245,11 @@ else
         {
             error = ex.Message;
         }
+        finally
+        {
+            isBusy = false;
+            StateHasChanged();
+        }
     }
 
     private async Task AcceptOrderAsync()
@@ -197,7 +258,7 @@ else
         {
             var userId = await GetUserIdAsync();
             await OrderService.ProduccionAcceptAsync(OrderId, userId);
-        }, "Pedido aceptado. Puede iniciar producción.");
+        }, "Pedido aceptado. Abra WhatsApp para ver el archivo del diseñador.");
     }
 
     private async Task StartOrderAsync()

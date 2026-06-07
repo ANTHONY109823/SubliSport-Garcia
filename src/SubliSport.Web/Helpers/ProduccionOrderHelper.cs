@@ -10,6 +10,7 @@ public static class ProduccionOrderHelper
     public const string ReadyPickupComment = "Trabajo finalizado — pendiente por recoger";
 
     public static bool IsAccepted(Order order) =>
+        order.ProductionAcceptedAt.HasValue ||
         order.StatusHistory.Any(h =>
             h.Comment != null &&
             (h.Comment.Contains("aceptado por producción", StringComparison.OrdinalIgnoreCase) ||

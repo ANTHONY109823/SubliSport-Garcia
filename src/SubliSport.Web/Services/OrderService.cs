@@ -12,6 +12,8 @@ namespace SubliSport.Web.Services;
 
 public class OrderService(AppDbContext db)
 {
+    public void ClearChangeTracker() => db.ChangeTracker.Clear();
+
     public async Task<List<Order>> GetOrdersForUserAsync(string userId, IEnumerable<string> roles)
     {
         var query = db.Orders
@@ -60,13 +62,16 @@ public class OrderService(AppDbContext db)
         return [];
     }
 
-    public async Task<Order?> GetByIdAsync(Guid id) =>
-        await db.Orders
+    public async Task<Order?> GetByIdAsync(Guid id)
+    {
+        db.ChangeTracker.Clear();
+        return await db.Orders
             .AsNoTracking()
             .Include(o => o.AssignedDesigner)
             .Include(o => o.CreatedByUser)
-            .Include(o => o.StatusHistory.OrderByDescending(h => h.ChangedAt))
+            .Include(o => o.StatusHistory)
             .FirstOrDefaultAsync(o => o.Id == id);
+    }
 
     public async Task<Order> CreateManualOrderAsync(Order order, string createdByUserId)
     {
@@ -215,9 +220,11 @@ public class OrderService(AppDbContext db)
             throw new InvalidOperationException("Este pedido ya fue aceptado.");
         }
 
+        order.ProductionAcceptedAt = DateTime.UtcNow;
+        order.ProductionAcceptedByUserId = userId;
         await AddHistoryAsync(order, order.Status, order.Status, userId, ProduccionOrderHelper.AcceptedComment);
         await db.SaveChangesAsync();
-        db.Entry(order).State = EntityState.Detached;
+        db.ChangeTracker.Clear();
     }
 
     public async Task ProduccionStartAsync(Guid orderId, string userId)

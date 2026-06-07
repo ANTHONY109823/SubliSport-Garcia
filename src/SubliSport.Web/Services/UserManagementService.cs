@@ -9,7 +9,8 @@ public record CreateUserRequest(
     string Email,
     string FullName,
     string Password,
-    string Role);
+    string Role,
+    string? PhoneNumber = null);
 
 public record UpdateUserRequest(
     string UserId,
@@ -17,7 +18,8 @@ public record UpdateUserRequest(
     string FullName,
     string Role,
     bool IsActive,
-    string? NewPassword);
+    string? NewPassword,
+    string? PhoneNumber = null);
 
 public class UserManagementService(UserManager<ApplicationUser> userManager)
 {
@@ -60,6 +62,7 @@ public class UserManagementService(UserManager<ApplicationUser> userManager)
             Email = request.Email.Trim(),
             EmailConfirmed = true,
             FullName = request.FullName.Trim(),
+            PhoneNumber = NormalizePhone(request.PhoneNumber),
             IsActive = true
         };
 
@@ -107,6 +110,7 @@ public class UserManagementService(UserManager<ApplicationUser> userManager)
         user.FullName = request.FullName.Trim();
         user.Email = email;
         user.UserName = email;
+        user.PhoneNumber = NormalizePhone(request.PhoneNumber);
         user.IsActive = request.IsActive;
 
         if (user.Id == currentUserId && !request.IsActive)
@@ -198,5 +202,11 @@ public class UserManagementService(UserManager<ApplicationUser> userManager)
         user.IsActive = !user.IsActive;
         await userManager.UpdateAsync(user);
         return (true, null);
+    }
+
+    private static string? NormalizePhone(string? phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone)) return null;
+        return phone.Trim();
     }
 }

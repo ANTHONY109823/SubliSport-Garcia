@@ -26,6 +26,9 @@ public class Order
     public string? AssignedDesignerId { get; set; }
     public ApplicationUser? AssignedDesigner { get; set; }
 
+    public DateTime? ProductionAcceptedAt { get; set; }
+    public string? ProductionAcceptedByUserId { get; set; }
+
     public int? FabricTypeId { get; set; }
     public string? FabricTypeName { get; set; }
     public int? FabricTypeRipId { get; set; }

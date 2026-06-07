@@ -33,4 +33,10 @@ public static class WhatsAppHelper
 
     public static string BuildOrderMessage(string clientName, string orderNumber) =>
         $"Hola {clientName}, le escribe el equipo de diseño de SubliSport García respecto a su pedido {orderNumber}.";
+
+    public static string BuildProductionFileMessage(string orderNumber, string clientName, string? designerName = null)
+    {
+        var designerPart = string.IsNullOrWhiteSpace(designerName) ? string.Empty : $" · diseño: {designerName}";
+        return $"Pedido {orderNumber} ({clientName}){designerPart}. Busco el archivo para imprimir en WhatsApp.";
+    }
 }

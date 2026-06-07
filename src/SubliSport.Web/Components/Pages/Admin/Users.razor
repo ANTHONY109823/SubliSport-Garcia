@@ -32,6 +32,11 @@
                 <ValidationMessage For="() => model.Email" />
             </div>
             <div class="form-group">
+                <label>WhatsApp / teléfono</label>
+                <InputText @bind-value="model.PhoneNumber" class="form-control" placeholder="960 840 874" />
+                <span class="field-hint">Obligatorio para diseñadores (envío de archivos a producción).</span>
+            </div>
+            <div class="form-group">
                 <label>@(editingUserId is null ? "Contraseña temporal" : "Nueva contraseña (opcional)")</label>
                 <InputText type="password" @bind-value="model.Password" class="form-control" />
                 @if (editingUserId is null)
@@ -77,6 +82,7 @@
                 <tr>
                     <th>Nombre</th>
                     <th>Correo</th>
+                    <th>WhatsApp</th>
                     <th>Rol</th>
                     <th>Estado</th>
                     <th>Acciones</th>
@@ -90,6 +96,7 @@
                     <tr>
                         <td>@user.FullName</td>
                         <td>@user.Email</td>
+                        <td>@(string.IsNullOrWhiteSpace(user.PhoneNumber) ? "—" : user.PhoneNumber)</td>
                         <td>@roleLabel</td>
                         <td>
                             <span class="badge @(user.IsActive ? "status-active" : "status-inactive")">
@@ -164,7 +171,7 @@
             }
 
             var (success, err) = await UserManagementService.CreateUserAsync(
-                new CreateUserRequest(model.Email, model.FullName, model.Password, model.Role),
+                new CreateUserRequest(model.Email, model.FullName, model.Password, model.Role, model.PhoneNumber),
                 isSuperAdmin: true);
 
             if (!success)
@@ -178,7 +185,7 @@
         else
         {
             var (success, err) = await UserManagementService.UpdateUserAsync(
-                new UpdateUserRequest(editingUserId, model.Email, model.FullName, model.Role, model.IsActive, model.Password),
+                new UpdateUserRequest(editingUserId, model.Email, model.FullName, model.Role, model.IsActive, model.Password, model.PhoneNumber),
                 currentUserId ?? string.Empty,
                 isSuperAdmin: true);
 
@@ -201,6 +208,7 @@
         editingUserId = user.Id;
         model.FullName = user.FullName;
         model.Email = user.Email ?? string.Empty;
+        model.PhoneNumber = user.PhoneNumber ?? string.Empty;
         model.Password = string.Empty;
         model.IsActive = user.IsActive;
         model.Role = userRoles.GetValueOrDefault(user.Id, [AppRoles.Admin]).FirstOrDefault() ?? AppRoles.Admin;
@@ -218,6 +226,7 @@
     {
         model.FullName = string.Empty;
         model.Email = string.Empty;
+        model.PhoneNumber = string.Empty;
         model.Password = string.Empty;
         model.Role = AppRoles.Admin;
         model.IsActive = true;
@@ -262,6 +271,8 @@
 
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
+
+        public string PhoneNumber { get; set; } = string.Empty;
 
         public string Password { get; set; } = string.Empty;
 
