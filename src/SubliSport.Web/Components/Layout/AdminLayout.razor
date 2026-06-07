@@ -1,6 +1,17 @@
 @inherits LayoutComponentBase
+@inject IHttpContextAccessor HttpContextAccessor
 
-<div class="admin-shell">
+<div class="admin-shell @(isImpersonating ? "with-impersonation-banner" : "")">
+    @if (isImpersonating)
+    {
+        <div class="impersonation-banner">
+            <span>🛟 Modo soporte — Viendo como <strong>@currentUserName</strong></span>
+            <form method="post" action="/account/stop-impersonation" class="impersonation-form">
+                <button type="submit" class="btn-action btn-edit">← Volver a SuperAdmin</button>
+            </form>
+        </div>
+    }
+
     <aside class="admin-sidebar">
         <div class="admin-brand">
             <span>SUBLISPORT</span>
@@ -8,24 +19,47 @@
         </div>
         <nav class="admin-nav">
             <NavLink href="/dashboard" Match="NavLinkMatch.All">Panel</NavLink>
-            <AuthorizeView Roles="SuperAdmin,Admin">
-                <NavLink href="/pedidos">Pedidos</NavLink>
-                <NavLink href="/pedidos/nuevo">Nuevo pedido</NavLink>
-            </AuthorizeView>
-            <AuthorizeView Roles="Designer">
-                <NavLink href="/pedidos">Mis diseños</NavLink>
-            </AuthorizeView>
-            <AuthorizeView Roles="Production">
-                <NavLink href="/produccion">Producción</NavLink>
-            </AuthorizeView>
-            <AuthorizeView Roles="SuperAdmin">
+
+            @if (isSuperAdminSupport)
+            {
                 <NavLink href="/usuarios">Usuarios</NavLink>
-            </AuthorizeView>
+                <NavLink href="/configuracion/precios">Precios calculadora</NavLink>
+            }
+            else
+            {
+                <AuthorizeView Roles="Admin">
+                    <NavLink href="/pedidos">Pedidos</NavLink>
+                    <NavLink href="/pedidos/nuevo">Nuevo pedido</NavLink>
+                    <NavLink href="/produccion">Producción</NavLink>
+                </AuthorizeView>
+                <AuthorizeView Roles="Designer">
+                    <NavLink href="/pedidos">Mis diseños</NavLink>
+                </AuthorizeView>
+                <AuthorizeView Roles="Production">
+                    <NavLink href="/produccion">Producción</NavLink>
+                </AuthorizeView>
+            }
         </nav>
         <div class="admin-sidebar-footer">
             <AuthorizeView>
                 <Authorized>
                     <p>@context.User.Identity?.Name</p>
+                    @if (isSuperAdminSupport)
+                    {
+                        <span class="role-badge">SuperAdmin · Soporte</span>
+                    }
+                    else if (context.User.IsInRole(AppRoles.Admin))
+                    {
+                        <span class="role-badge">Administrador</span>
+                    }
+                    else if (context.User.IsInRole(AppRoles.Designer))
+                    {
+                        <span class="role-badge">Diseño</span>
+                    }
+                    else if (context.User.IsInRole(AppRoles.Production))
+                    {
+                        <span class="role-badge">Producción</span>
+                    }
                     <form method="post" action="/account/logout">
                         <button type="submit" class="btn-logout">Cerrar sesión</button>
                     </form>
@@ -37,3 +71,20 @@
         @Body
     </main>
 </div>
+
+@code {
+    private bool isImpersonating;
+    private bool isSuperAdminSupport;
+    private string currentUserName = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        var context = HttpContextAccessor.HttpContext;
+        isImpersonating = ImpersonationHelper.IsImpersonating(context);
+        currentUserName = context?.User.Identity?.Name ?? "";
+
+        var roles = context?.User.FindAll(System.Security.Claims.ClaimTypes.Role)
+            .Select(c => c.Value) ?? [];
+        isSuperAdminSupport = ImpersonationHelper.IsSuperAdminSupportMode(roles, context);
+    }
+}

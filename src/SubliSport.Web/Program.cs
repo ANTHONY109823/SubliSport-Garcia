@@ -69,9 +69,11 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromHours(8);
 });
 
+builder.Services.AddScoped<PricingConfigurationService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<UserManagementService>();
+builder.Services.AddScoped<MetricsService>();
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
@@ -107,5 +109,10 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 await app.Services.InitializeDatabaseAsync();
+
+using (var scope = app.Services.CreateScope())
+{
+    await scope.ServiceProvider.GetRequiredService<PricingConfigurationService>().EnsureSeedAsync();
+}
 
 app.Run();

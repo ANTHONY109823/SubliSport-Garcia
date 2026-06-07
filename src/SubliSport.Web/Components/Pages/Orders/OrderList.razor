@@ -1,15 +1,95 @@
 @page "/pedidos"
 @layout AdminLayout
-@attribute [Authorize(Roles = "SuperAdmin,Admin,Designer")]
+@attribute [Authorize(Roles = "Admin,Designer")]
 @rendermode InteractiveServer
 
 <PageTitle>Pedidos - SUBLISPORT GARCIA</PageTitle>
 
-<h1 class="page-title">Gestión de pedidos</h1>
+<div class="page-header-row">
+    <div>
+        <h1 class="page-title">@(isDesigner ? "Mis diseños" : "Gestión de pedidos")</h1>
+        @if (isAdmin)
+        {
+            <p class="page-subtitle">@filteredOrders.Count pedido(s) · @unassignedCount sin diseñador</p>
+        }
+        else if (isDesigner)
+        {
+            <p class="page-subtitle">@pendingCount pendiente(s) · @completedCount culminado(s)</p>
+        }
+    </div>
+    @if (isAdmin)
+    {
+        <a href="/pedidos/nuevo" class="btn-primary">+ Nuevo pedido</a>
+    }
+</div>
 
-@if (orders.Count == 0)
+@if (isAdmin)
+{
+    <div class="filter-tabs">
+        <button type="button" class="filter-tab @(filter == AdminFilter.All ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.All)">
+            Todos (@orders.Count)
+        </button>
+        <button type="button" class="filter-tab @(filter == AdminFilter.Unassigned ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.Unassigned)">
+            Sin diseñador (@unassignedCount)
+        </button>
+        <button type="button" class="filter-tab @(filter == AdminFilter.Urgent ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.Urgent)">
+            Urgentes (@urgentCount)
+        </button>
+    </div>
+}
+else if (isDesigner)
+{
+    <div class="filter-tabs">
+        <button type="button" class="filter-tab @(designerFilter == DesignerFilter.Pending ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.Pending)">
+            Pendientes (@pendingCount)
+        </button>
+        <button type="button" class="filter-tab @(designerFilter == DesignerFilter.ToAccept ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.ToAccept)">
+            Por aceptar (@toAcceptCount)
+        </button>
+        <button type="button" class="filter-tab @(designerFilter == DesignerFilter.InProgress ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.InProgress)">
+            En diseño (@inProgressCount)
+        </button>
+        <button type="button" class="filter-tab @(designerFilter == DesignerFilter.Completed ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.Completed)">
+            Culminados (@completedCount)
+        </button>
+    </div>
+}
+
+@if (filteredOrders.Count == 0)
 {
     <p class="empty-state">No hay pedidos para mostrar.</p>
+}
+else if (isDesigner)
+{
+    <div class="order-cards">
+        @foreach (var order in filteredOrders)
+        {
+            var waUrl = WhatsAppHelper.BuildChatUrl(order.ClientPhone, WhatsAppHelper.BuildOrderMessage(order.ClientName, order.OrderNumber));
+            <article class="order-card @GetDesignerCardClass(order)">
+                <div class="order-card-header">
+                    <div>
+                        <strong>@order.OrderNumber</strong>
+                        <span class="badge priority-@order.Priority.ToString().ToLower()">@OrderStatusHelper.GetPriorityLabel(order.Priority)</span>
+                    </div>
+                    <span class="badge stage-badge">@DesignerOrderHelper.GetDesignerStageLabel(order)</span>
+                </div>
+                <div class="order-card-body">
+                    <p><span>Cliente</span> @order.ClientName</p>
+                    <p><span>Prenda</span> @order.GarmentType · @order.Sport · @order.Quantity uds.</p>
+                    <p><span>Entrega</span> @(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</p>
+                    @if (waUrl is not null)
+                    {
+                        <a href="@waUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link whatsapp-link-sm">
+                            📱 @WhatsAppHelper.FormatDisplayPhone(order.ClientPhone)
+                        </a>
+                    }
+                </div>
+                <div class="order-card-footer">
+                    <a href="/pedidos/@order.Id" class="btn-action btn-edit">Abrir pedido</a>
+                </div>
+            </article>
+        }
+    </div>
 }
 else
 {
@@ -28,17 +108,32 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var order in orders)
+                @foreach (var order in filteredOrders)
                 {
-                    <tr>
+                    var needsAssign = isAdmin && order.AssignedDesignerId is null &&
+                                      order.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado;
+                    <tr class="@(needsAssign ? "row-attention" : "")">
                         <td>@order.OrderNumber</td>
                         <td>@order.ClientName</td>
                         <td>@order.GarmentType</td>
                         <td><span class="badge priority-@order.Priority.ToString().ToLower()">@OrderStatusHelper.GetPriorityLabel(order.Priority)</span></td>
                         <td>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</td>
                         <td>@OrderStatusHelper.GetLabel(order.Status)</td>
-                        <td>@(order.AssignedDesigner?.FullName ?? "Sin asignar")</td>
-                        <td><a href="/pedidos/@order.Id">Ver</a></td>
+                        <td>
+                            @if (needsAssign)
+                            {
+                                <span class="badge status-inactive">Sin asignar</span>
+                            }
+                            else
+                            {
+                                @(order.AssignedDesigner?.FullName ?? "—")
+                            }
+                        </td>
+                        <td>
+                            <a href="/pedidos/@order.Id" class="@(needsAssign ? "btn-action btn-edit" : "")">
+                                @(needsAssign ? "Asignar" : "Ver")
+                            </a>
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -50,7 +145,21 @@ else
     [Inject] private OrderService OrderService { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
+    private enum AdminFilter { All, Unassigned, Urgent }
+    private enum DesignerFilter { Pending, ToAccept, InProgress, Completed }
+
     private List<Order> orders = [];
+    private List<Order> filteredOrders = [];
+    private AdminFilter filter = AdminFilter.All;
+    private DesignerFilter designerFilter = DesignerFilter.Pending;
+    private bool isAdmin;
+    private bool isDesigner;
+    private int unassignedCount;
+    private int urgentCount;
+    private int pendingCount;
+    private int toAcceptCount;
+    private int inProgressCount;
+    private int completedCount;
 
     protected override async Task OnInitializedAsync()
     {
@@ -58,7 +167,85 @@ else
         var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (userId is null) return;
 
-        var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value);
+        var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
+        isAdmin = roles.Contains(AppRoles.Admin);
+        isDesigner = roles.Contains(AppRoles.Designer) && !isAdmin;
         orders = await OrderService.GetOrdersForUserAsync(userId, roles);
+
+        if (isAdmin)
+        {
+            unassignedCount = orders.Count(o => o.AssignedDesignerId is null &&
+                                                o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado);
+            urgentCount = orders.Count(o => o.Priority == OrderPriority.Urgente &&
+                                            o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado);
+            ApplyAdminFilter();
+        }
+        else if (isDesigner)
+        {
+            CountDesignerOrders();
+            ApplyDesignerFilter();
+        }
+    }
+
+    private void CountDesignerOrders()
+    {
+        pendingCount = orders.Count(DesignerOrderHelper.IsPending);
+        toAcceptCount = orders.Count(DesignerOrderHelper.CanAccept);
+        inProgressCount = orders.Count(o => o.Status == OrderStatus.EnDiseno || DesignerOrderHelper.CanStart(o));
+        completedCount = orders.Count(DesignerOrderHelper.IsDesignPhaseComplete);
+    }
+
+    private void SetAdminFilter(AdminFilter newFilter)
+    {
+        filter = newFilter;
+        ApplyAdminFilter();
+    }
+
+    private void SetDesignerFilter(DesignerFilter newFilter)
+    {
+        designerFilter = newFilter;
+        ApplyDesignerFilter();
+    }
+
+    private void ApplyAdminFilter()
+    {
+        filteredOrders = filter switch
+        {
+            AdminFilter.Unassigned => orders
+                .Where(o => o.AssignedDesignerId is null &&
+                            o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
+                .ToList(),
+            AdminFilter.Urgent => orders
+                .Where(o => o.Priority == OrderPriority.Urgente &&
+                            o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
+                .ToList(),
+            _ => orders
+        };
+    }
+
+    private void ApplyDesignerFilter()
+    {
+        filteredOrders = designerFilter switch
+        {
+            DesignerFilter.ToAccept => orders.Where(DesignerOrderHelper.CanAccept).ToList(),
+            DesignerFilter.InProgress => orders
+                .Where(o => o.Status == OrderStatus.EnDiseno || DesignerOrderHelper.CanStart(o))
+                .ToList(),
+            DesignerFilter.Completed => orders.Where(DesignerOrderHelper.IsDesignPhaseComplete).ToList(),
+            _ => orders.Where(DesignerOrderHelper.IsPending).ToList()
+        };
+
+        filteredOrders = filteredOrders
+            .OrderByDescending(o => o.Priority)
+            .ThenBy(o => o.AgreedDeliveryDate)
+            .ToList();
+    }
+
+    private static string GetDesignerCardClass(Order order)
+    {
+        if (DesignerOrderHelper.CanAccept(order)) return "card-new";
+        if (order.Status == OrderStatus.EnDiseno) return "card-active";
+        if (DesignerOrderHelper.IsDesignPhaseComplete(order)) return "card-done";
+        return "";
     }
 }

@@ -1,0 +1,99 @@
+@using SubliSport.Web.Services
+
+@if (Metrics is not null)
+{
+    <div class="stats-grid">
+        <div class="stat-card"><span>Total pedidos</span><strong>@Metrics.TotalOrders</strong></div>
+        @if (ShowUserCounts)
+        {
+            <div class="stat-card"><span>Usuarios activos</span><strong>@Metrics.ActiveUsers / @Metrics.TotalUsers</strong></div>
+        }
+        <div class="stat-card"><span>Urgentes</span><strong>@Metrics.UrgentOrders</strong></div>
+        <div class="stat-card"><span>Entregados</span><strong>@Metrics.Delivered</strong></div>
+        <div class="stat-card"><span>En diseño</span><strong>@Metrics.PendingDesign</strong></div>
+        <div class="stat-card"><span>En producción</span><strong>@Metrics.InProduction</strong></div>
+    </div>
+
+    <div class="detail-grid detail-grid-3">
+        <section class="panel-section">
+            <h2>Pedidos por estado</h2>
+            <ul class="metrics-list">
+                @foreach (var item in Metrics.OrdersByStatus.OrderByDescending(x => x.Value))
+                {
+                    <li><span>@item.Key</span><strong>@item.Value</strong></li>
+                }
+            </ul>
+        </section>
+
+        <section class="panel-section">
+            <h2>@TeamSectionTitle</h2>
+            <ul class="metrics-list">
+                @foreach (var item in Metrics.UsersByRole)
+                {
+                    <li><span>@item.Key</span><strong>@item.Value</strong></li>
+                }
+            </ul>
+        </section>
+
+        <section class="panel-section">
+            <h2>Tiempos promedio</h2>
+            <ul class="metrics-list">
+                <li><span>Diseño (asignado → aprobado)</span><strong>@FormatHours(Metrics.AvgDesignHours)</strong></li>
+                <li><span>Producción (impresión → entrega)</span><strong>@FormatHours(Metrics.AvgProductionHours)</strong></li>
+            </ul>
+        </section>
+    </div>
+
+    <section class="panel-section">
+        <h2>Métricas por diseñador</h2>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr><th>Nombre</th><th>Correo</th><th>Pedidos activos</th><th>Tiempo prom.</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var d in Metrics.DesignerMetrics)
+                    {
+                        <tr>
+                            <td>@d.FullName</td>
+                            <td>@d.Email</td>
+                            <td>@d.ActiveOrders</td>
+                            <td>@FormatHours(d.AvgHoursInStage)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel-section">
+        <h2>Métricas producción / impresión</h2>
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr><th>Nombre</th><th>Correo</th><th>Cola actual</th><th>Tiempo prom.</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Metrics.ProductionMetrics)
+                    {
+                        <tr>
+                            <td>@p.FullName</td>
+                            <td>@p.Email</td>
+                            <td>@p.ActiveOrders</td>
+                            <td>@FormatHours(p.AvgHoursInStage)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}
+
+@code {
+    [Parameter, EditorRequired] public SystemMetrics Metrics { get; set; } = default!;
+    [Parameter] public bool ShowUserCounts { get; set; }
+    [Parameter] public string TeamSectionTitle { get; set; } = "Equipo operativo";
+
+    private static string FormatHours(double? hours) =>
+        hours.HasValue ? $"{hours.Value:F1} h" : "—";
+}

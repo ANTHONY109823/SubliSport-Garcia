@@ -9,6 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 {
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
+    public DbSet<PricingConfiguration> PricingConfigurations => Set<PricingConfiguration>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -30,6 +31,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             entity.Property(o => o.Sport).HasMaxLength(80).IsRequired();
             entity.Property(o => o.SizeRange).HasMaxLength(80);
             entity.Property(o => o.Notes).HasMaxLength(2000);
+            entity.Property(o => o.FabricTypeName).HasMaxLength(120);
+            entity.Property(o => o.FabricTypeRipName).HasMaxLength(120);
+            entity.Property(o => o.PricingNotes).HasMaxLength(1000);
+            entity.Property(o => o.FabricMeters).HasPrecision(10, 2);
+            entity.Property(o => o.FabricMetersRip).HasPrecision(10, 2);
+            entity.Property(o => o.CalculatedFabricCost).HasPrecision(12, 2);
+            entity.Property(o => o.CalculatedFabricRipCost).HasPrecision(12, 2);
+            entity.Property(o => o.CalculatedLaserCost).HasPrecision(12, 2);
+            entity.Property(o => o.CalculatedPrintPressCost).HasPrecision(12, 2);
+            entity.Property(o => o.CalculatedExtraCost).HasPrecision(12, 2);
+            entity.Property(o => o.CalculatedConfectionCost).HasPrecision(12, 2);
+            entity.Property(o => o.CalculatedTotal).HasPrecision(12, 2);
+            entity.Property(o => o.ChargeAmount).HasPrecision(12, 2);
 
             entity.HasOne(o => o.CreatedByUser)
                 .WithMany(u => u.CreatedOrders)
@@ -58,6 +72,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
                 .WithMany(u => u.StatusChanges)
                 .HasForeignKey(h => h.ChangedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<PricingConfiguration>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.JsonData).IsRequired();
         });
 
         builder.Entity<ApplicationUser>(entity =>

@@ -26,5 +26,25 @@ public class Order
     public string? AssignedDesignerId { get; set; }
     public ApplicationUser? AssignedDesigner { get; set; }
 
+    public int? FabricTypeId { get; set; }
+    public string? FabricTypeName { get; set; }
+    public int? FabricTypeRipId { get; set; }
+    public string? FabricTypeRipName { get; set; }
+    public decimal? FabricMeters { get; set; }
+    public decimal? FabricMetersRip { get; set; }
+    public bool IncludesConfection { get; set; } = true;
+    public bool ServiceOnlyPrintPress { get; set; }
+
+    public decimal? CalculatedFabricCost { get; set; }
+    public decimal? CalculatedFabricRipCost { get; set; }
+    public decimal? CalculatedLaserCost { get; set; }
+    public decimal? CalculatedPrintPressCost { get; set; }
+    public decimal? CalculatedExtraCost { get; set; }
+    public decimal? CalculatedConfectionCost { get; set; }
+    public decimal CalculatedTotal { get; set; }
+    public decimal ChargeAmount { get; set; }
+    public string? PricingNotes { get; set; }
+    public DateTime? PricingUpdatedAt { get; set; }
+
     public ICollection<OrderStatusHistory> StatusHistory { get; set; } = [];
 }

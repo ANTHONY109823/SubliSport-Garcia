@@ -5,55 +5,277 @@
 
 <PageTitle>Panel - SUBLISPORT GARCIA</PageTitle>
 
-<h1 class="page-title">Panel de control</h1>
+@if (isSuperAdminSupport)
+{
+    <h1 class="page-title">Panel de soporte — SuperAdmin</h1>
+    <p class="page-subtitle">Vista general del sistema para informes y monitoreo</p>
 
-<AuthorizeView Roles="SuperAdmin,Admin">
-    <Authorized>
-        <div class="stats-grid">
-            <div class="stat-card"><span>Total pedidos</span><strong>@orders.Count</strong></div>
-            <div class="stat-card"><span>En diseño</span><strong>@orders.Count(o => o.Status is OrderStatus.AsignadoDiseno or OrderStatus.EnDiseno)</strong></div>
-            <div class="stat-card"><span>En producción</span><strong>@orders.Count(o => o.Status is OrderStatus.EnImpresion or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion)</strong></div>
-            <div class="stat-card"><span>Urgentes</span><strong>@orders.Count(o => o.Priority == OrderPriority.Urgente)</strong></div>
-        </div>
-    </Authorized>
-</AuthorizeView>
+    @if (metrics is not null)
+    {
+        <MetricsDashboardView Metrics="metrics" ShowUserCounts="true" TeamSectionTitle="Usuarios por rol" />
+        <section class="panel-section">
+            <h2>Accesos de soporte</h2>
+            <div class="quick-links">
+                <a href="/usuarios" class="quick-link">Gestionar usuarios e ingresar como soporte</a>
+            </div>
+        </section>
+    }
+}
+else if (isAdmin)
+{
+    <h1 class="page-title">Panel de administración</h1>
+    <p class="page-subtitle">Vista operativa de pedidos, equipo y entregas</p>
 
-<AuthorizeView Roles="Designer">
-    <Authorized>
-        <p class="page-subtitle">Pedidos asignados para diseño: <strong>@orders.Count</strong></p>
-    </Authorized>
-</AuthorizeView>
+    @if (metrics is not null)
+    {
+        <MetricsDashboardView Metrics="metrics" TeamSectionTitle="Equipo operativo (activos)" />
 
-<AuthorizeView Roles="Production">
-    <Authorized>
-        <p class="page-subtitle">Pedidos en cola de producción: <strong>@orders.Count</strong></p>
-    </Authorized>
-</AuthorizeView>
+        @if (pendingAssignment.Count > 0)
+        {
+            <section class="panel-section panel-highlight">
+                <div class="section-header-row">
+                    <h2>Pedidos sin diseñador (@pendingAssignment.Count)</h2>
+                    <a href="/pedidos/nuevo" class="quick-link">+ Nuevo pedido</a>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>N°</th>
+                                <th>Cliente</th>
+                                <th>Prenda</th>
+                                <th>Prioridad</th>
+                                <th>Entrega</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in pendingAssignment.Take(8))
+                            {
+                                <tr>
+                                    <td>@order.OrderNumber</td>
+                                    <td>@order.ClientName</td>
+                                    <td>@order.GarmentType</td>
+                                    <td><span class="badge priority-@order.Priority.ToString().ToLower()">@OrderStatusHelper.GetPriorityLabel(order.Priority)</span></td>
+                                    <td>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</td>
+                                    <td><a href="/pedidos/@order.Id" class="btn-action btn-edit">Asignar</a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                @if (pendingAssignment.Count > 8)
+                {
+                    <p class="section-footnote"><a href="/pedidos">Ver los @pendingAssignment.Count pedidos pendientes →</a></p>
+                }
+            </section>
+        }
 
-<section class="panel-section">
-    <h2>Accesos rápidos</h2>
-    <div class="quick-links">
-        <AuthorizeView Roles="SuperAdmin,Admin">
-            <a href="/pedidos/nuevo" class="quick-link">+ Registrar pedido manual</a>
+        @if (urgentOrders.Count > 0)
+        {
+            <section class="panel-section">
+                <h2>Pedidos urgentes</h2>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>N°</th><th>Cliente</th><th>Estado</th><th>Entrega</th><th>Diseñador</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in urgentOrders.Take(5))
+                            {
+                                <tr>
+                                    <td>@order.OrderNumber</td>
+                                    <td>@order.ClientName</td>
+                                    <td>@OrderStatusHelper.GetLabel(order.Status)</td>
+                                    <td>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</td>
+                                    <td>@(order.AssignedDesigner?.FullName ?? "Sin asignar")</td>
+                                    <td><a href="/pedidos/@order.Id">Ver</a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        }
+
+        @if (withChargeCount > 0)
+        {
+            <section class="panel-section">
+                <h2>Métricas de cobro (producción)</h2>
+                <div class="stats-grid">
+                    <div class="stat-card"><span>Pedidos con cobro</span><strong>@withChargeCount</strong></div>
+                    <div class="stat-card"><span>Total registrado</span><strong>S/ @totalBilled.ToString("N2")</strong></div>
+                    <div class="stat-card"><span>Promedio por pedido</span><strong>S/ @avgBilled.ToString("N2")</strong></div>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>N°</th><th>Cliente</th><th>Metraje</th><th>Imp.+Planch.</th><th>Confección</th><th>Cobro</th><th>Estado</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var o in ordersWithCharge)
+                            {
+                                <tr>
+                                    <td>@o.OrderNumber</td>
+                                    <td>@o.ClientName</td>
+                                    <td>@(o.FabricMeters?.ToString("N2") ?? "—") m</td>
+                                    <td>S/ @(o.CalculatedPrintPressCost?.ToString("N2") ?? "—")</td>
+                                    <td>S/ @(o.CalculatedConfectionCost?.ToString("N2") ?? "—")</td>
+                                    <td><strong class="price-tag">S/ @o.ChargeAmount.ToString("N2")</strong></td>
+                                    <td>@OrderStatusHelper.GetLabel(o.Status)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        }
+    }
+
+    <section class="panel-section">
+        <h2>Accesos rápidos</h2>
+        <div class="quick-links">
+            <a href="/pedidos/nuevo" class="quick-link">+ Registrar pedido</a>
             <a href="/pedidos" class="quick-link">Ver todos los pedidos</a>
-        </AuthorizeView>
-        <AuthorizeView Roles="Designer">
+            <a href="/produccion" class="quick-link">Cola de producción</a>
+        </div>
+    </section>
+}
+else if (isDesigner)
+{
+    <h1 class="page-title">Panel de diseño</h1>
+    <p class="page-subtitle">Sus pedidos asignados y métricas personales</p>
+
+    @if (designerMetrics is not null)
+    {
+        <div class="stats-grid">
+            <div class="stat-card"><span>Por aceptar</span><strong>@designerMetrics.PendingAcceptance</strong></div>
+            <div class="stat-card"><span>Aceptados / por iniciar</span><strong>@designerMetrics.AcceptedNotStarted</strong></div>
+            <div class="stat-card"><span>En diseño activo</span><strong>@designerMetrics.InProgress</strong></div>
+            <div class="stat-card"><span>Culminados (total)</span><strong>@designerMetrics.CompletedTotal</strong></div>
+            <div class="stat-card"><span>Culminados (mes)</span><strong>@designerMetrics.CompletedThisMonth</strong></div>
+            <div class="stat-card"><span>Urgentes pendientes</span><strong>@designerMetrics.UrgentPending</strong></div>
+        </div>
+
+        @if (designerMetrics.AvgHoursToComplete.HasValue)
+        {
+            <p class="page-subtitle">Tiempo promedio por diseño: <strong>@($"{designerMetrics.AvgHoursToComplete.Value:F1} h")</strong></p>
+        }
+
+        @if (designerMetrics.PendingOrders.Count > 0)
+        {
+            <section class="panel-section panel-highlight">
+                <div class="section-header-row">
+                    <h2>Pendientes de trabajo (@designerMetrics.PendingOrders.Count)</h2>
+                    <a href="/pedidos" class="quick-link">Ver todos</a>
+                </div>
+                <div class="order-cards order-cards-compact">
+                    @foreach (var order in designerMetrics.PendingOrders.Take(6))
+                    {
+                        var waUrl = WhatsAppHelper.BuildChatUrl(order.ClientPhone, WhatsAppHelper.BuildOrderMessage(order.ClientName, order.OrderNumber));
+                        <article class="order-card @(DesignerOrderHelper.CanAccept(order) ? "card-new" : "card-active")">
+                            <div class="order-card-header">
+                                <strong>@order.OrderNumber</strong>
+                                <span class="badge stage-badge">@DesignerOrderHelper.GetDesignerStageLabel(order)</span>
+                            </div>
+                            <div class="order-card-body">
+                                <p>@order.ClientName · @order.GarmentType</p>
+                                @if (waUrl is not null)
+                                {
+                                    <a href="@waUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link whatsapp-link-sm">📱 WhatsApp</a>
+                                }
+                            </div>
+                            <a href="/pedidos/@order.Id" class="btn-action btn-edit">Abrir</a>
+                        </article>
+                    }
+                </div>
+            </section>
+        }
+
+        @if (designerMetrics.CompletedOrders.Count > 0)
+        {
+            <section class="panel-section">
+                <h2>Últimos diseños culminados</h2>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>N°</th><th>Cliente</th><th>Prenda</th><th>Estado</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in designerMetrics.CompletedOrders)
+                            {
+                                <tr>
+                                    <td>@order.OrderNumber</td>
+                                    <td>@order.ClientName</td>
+                                    <td>@order.GarmentType</td>
+                                    <td>@DesignerOrderHelper.GetDesignerStageLabel(order)</td>
+                                    <td><a href="/pedidos/@order.Id">Ver</a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        }
+    }
+
+    <section class="panel-section">
+        <h2>Accesos rápidos</h2>
+        <div class="quick-links">
             <a href="/pedidos" class="quick-link">Ver mis diseños</a>
-        </AuthorizeView>
-        <AuthorizeView Roles="Production">
-            <a href="/produccion" class="quick-link">Ir a producción</a>
-        </AuthorizeView>
-        <AuthorizeView Roles="SuperAdmin">
-            <a href="/usuarios" class="quick-link">Gestionar usuarios</a>
-        </AuthorizeView>
+        </div>
+    </section>
+}
+else if (isProduccion)
+{
+    <h1 class="page-title">Panel de producción</h1>
+    <p class="page-subtitle">Impresión · Planchado · Confección · Cobros</p>
+
+    <div class="stats-grid">
+        <div class="stat-card"><span>Por aceptar</span><strong>@toAcceptImp</strong></div>
+        <div class="stat-card"><span>En trabajo</span><strong>@inProgressImp</strong></div>
+        <div class="stat-card"><span>Pendiente por recoger</span><strong>@readyImp</strong></div>
+        <div class="stat-card"><span>Cobros registrados</span><strong>S/ @totalChargedImp.ToString("N2")</strong></div>
     </div>
-</section>
+
+    <section class="panel-section">
+        <h2>Accesos rápidos</h2>
+        <div class="quick-links">
+            <a href="/produccion" class="quick-link">Ver cola de producción</a>
+        </div>
+    </section>
+}
+else
+{
+    <h1 class="page-title">Panel de control</h1>
+    <section class="panel-section">
+        <h2>Accesos rápidos</h2>
+    </section>
+}
 
 @code {
     [Inject] private OrderService OrderService { get; set; } = default!;
+    [Inject] private MetricsService MetricsService { get; set; } = default!;
+    [Inject] private IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
     private List<Order> orders = [];
+    private List<Order> pendingAssignment = [];
+    private List<Order> urgentOrders = [];
+    private SystemMetrics? metrics;
+    private DesignerPersonalMetrics? designerMetrics;
+    private bool isSuperAdminSupport;
+    private bool isAdmin;
+    private bool isDesigner;
+    private bool isProduccion;
+    private int toAcceptImp;
+    private int inProgressImp;
+    private int readyImp;
+    private decimal totalChargedImp;
+    private int withChargeCount;
+    private decimal totalBilled;
+    private decimal avgBilled;
+    private List<Order> ordersWithCharge = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,7 +283,60 @@
         var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (userId is null) return;
 
-        var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value);
+        var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
+        isSuperAdminSupport = ImpersonationHelper.IsSuperAdminSupportMode(roles, HttpContextAccessor.HttpContext);
+        isAdmin = roles.Contains(AppRoles.Admin) && !isSuperAdminSupport;
+        isDesigner = roles.Contains(AppRoles.Designer) && !isAdmin && !isSuperAdminSupport;
+        isProduccion = roles.Contains(AppRoles.Production) && !isAdmin && !isSuperAdminSupport;
+
+        if (isSuperAdminSupport)
+        {
+            metrics = await MetricsService.GetSystemMetricsAsync();
+            return;
+        }
+
+        if (isAdmin)
+        {
+            metrics = await MetricsService.GetAdminMetricsAsync();
+            orders = await OrderService.GetOrdersForUserAsync(userId, roles);
+            pendingAssignment = orders
+                .Where(o => o.AssignedDesignerId is null &&
+                            o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
+                .OrderByDescending(o => o.Priority)
+                .ThenBy(o => o.AgreedDeliveryDate)
+                .ToList();
+            urgentOrders = orders
+                .Where(o => o.Priority == OrderPriority.Urgente &&
+                            o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
+                .OrderBy(o => o.AgreedDeliveryDate)
+                .ToList();
+            ordersWithCharge = orders
+                .Where(o => o.ChargeAmount > 0)
+                .OrderByDescending(o => o.PricingUpdatedAt)
+                .Take(10)
+                .ToList();
+            withChargeCount = orders.Count(o => o.ChargeAmount > 0);
+            totalBilled = orders.Where(o => o.ChargeAmount > 0).Sum(o => o.ChargeAmount);
+            avgBilled = withChargeCount > 0 ? totalBilled / withChargeCount : 0;
+            return;
+        }
+
+        if (isDesigner)
+        {
+            designerMetrics = await MetricsService.GetDesignerMetricsAsync(userId);
+            return;
+        }
+
+        if (isProduccion)
+        {
+            orders = await OrderService.GetOrdersForUserAsync(userId, roles);
+            toAcceptImp = orders.Count(ProduccionOrderHelper.CanAccept);
+            inProgressImp = orders.Count(o => o.Status is OrderStatus.EnImpresion or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion);
+            readyImp = orders.Count(o => o.Status == OrderStatus.ListoEntrega);
+            totalChargedImp = orders.Where(o => o.ChargeAmount > 0).Sum(o => o.ChargeAmount);
+            return;
+        }
+
         orders = await OrderService.GetOrdersForUserAsync(userId, roles);
     }
 }

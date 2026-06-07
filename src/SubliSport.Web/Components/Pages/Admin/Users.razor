@@ -98,6 +98,15 @@
                         </td>
                         <td>
                             <div class="action-buttons">
+                                @if (user.Id != currentUserId && user.IsActive)
+                                {
+                                    <form method="post" action="/account/impersonate" class="inline-form">
+                                        <input type="hidden" name="UserId" value="@user.Id" />
+                                        <button type="submit" class="btn-action btn-support" title="Ingresar como este usuario sin cerrar sesión">
+                                            Ingresar como
+                                        </button>
+                                    </form>
+                                }
                                 <button type="button" class="btn-action btn-edit" @onclick="() => StartEdit(user)">Editar</button>
                                 <button type="button" class="btn-action @(user.IsActive ? "btn-warn" : "btn-success")" @onclick="() => ToggleActive(user.Id)">
                                     @(user.IsActive ? "Desactivar" : "Activar")

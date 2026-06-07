@@ -1,0 +1,145 @@
+@page "/configuracion/precios"
+@layout AdminLayout
+@attribute [Authorize(Roles = "SuperAdmin")]
+@rendermode InteractiveServer
+
+<PageTitle>Configuración de precios - SUBLISPORT GARCIA</PageTitle>
+
+<h1 class="page-title">Parámetros de calculadora</h1>
+<p class="page-subtitle">Define telas, costos por metro y confección. Juanita usa estos valores al cobrar.</p>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert-success">@message</div>
+}
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert-error">@error</div>
+}
+
+<section class="panel-section">
+    <h2>Impresión + planchado y láser (por metro)</h2>
+    <div class="form-grid form-grid-2">
+        <div class="form-group">
+            <label>Impresión / sublimado + planchado (S/ por metro)</label>
+            <input type="number" step="0.01" @bind="model.PrintPressPricePerMeter" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Corte láser (S/ por metro)</label>
+            <input type="number" step="0.01" @bind="model.LaserPricePerMeter" class="form-control" />
+        </div>
+    </div>
+</section>
+
+<section class="panel-section">
+    <div class="section-header-row">
+        <h2>Tipos de tela</h2>
+    </div>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr><th>Nombre</th><th>Divisor</th><th>S/ kg</th><th>g/m²</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var f in model.Fabrics)
+                {
+                    <tr>
+                        <td><input @bind="f.Name" class="form-control form-control-sm" /></td>
+                        <td><input type="number" step="0.01" @bind="f.Divisor" class="form-control form-control-sm" /></td>
+                        <td><input type="number" step="0.5" @bind="f.PricePerKg" class="form-control form-control-sm" /></td>
+                        <td><input type="number" @bind="f.Gm2" class="form-control form-control-sm" /></td>
+                        <td><button type="button" class="btn-action btn-danger" @onclick="() => RemoveFabric(f)">×</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <button type="button" class="btn-secondary" @onclick="AddFabric">+ Agregar tela</button>
+</section>
+
+<section class="panel-section">
+    <h2>Confección — precio por prenda (S/)</h2>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Prenda</th><th>Precio</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var g in model.Garments)
+                {
+                    <tr>
+                        <td><input @bind="g.Name" class="form-control form-control-sm" /></td>
+                        <td><input type="number" step="0.5" @bind="g.Price" class="form-control form-control-sm" /></td>
+                        <td><button type="button" class="btn-action btn-danger" @onclick="() => model.Garments.Remove(g)">×</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <button type="button" class="btn-secondary" @onclick="AddGarment">+ Agregar prenda</button>
+
+    <h2 style="margin-top:20px">Medias (solo conjunto completo)</h2>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Tipo</th><th>Precio</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var s in model.Socks)
+                {
+                    <tr>
+                        <td><input @bind="s.Name" class="form-control form-control-sm" /></td>
+                        <td><input type="number" step="0.5" @bind="s.Price" class="form-control form-control-sm" /></td>
+                        <td><button type="button" class="btn-action btn-danger" @onclick="() => model.Socks.Remove(s)">×</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div class="form-actions-sticky">
+    <button type="button" class="btn-primary btn-primary-lg" @onclick="Save">Guardar configuración</button>
+</div>
+
+@code {
+    [Inject] private PricingConfigurationService PricingConfig { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private PricingSettingsData model = PricingSettingsData.CreateDefault();
+    private int nextFabricId = 10;
+    private int nextGarmentId = 10;
+    private string? message;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        model = await PricingConfig.GetSettingsAsync();
+        nextFabricId = model.Fabrics.Count > 0 ? model.Fabrics.Max(f => f.Id) + 1 : 1;
+        nextGarmentId = model.Garments.Count > 0 ? model.Garments.Max(g => g.Id) + 1 : 1;
+    }
+
+    private void AddFabric()
+    {
+        model.Fabrics.Add(new FabricTypeConfig { Id = nextFabricId++, Name = "Nueva tela", Divisor = 3.6m, PricePerKg = 17m, Gm2 = 200 });
+    }
+
+    private void RemoveFabric(FabricTypeConfig f) => model.Fabrics.Remove(f);
+
+    private void AddGarment()
+    {
+        model.Garments.Add(new GarmentPriceConfig { Id = nextGarmentId++, Name = "Nueva prenda", Price = 5m });
+    }
+
+    private async Task Save()
+    {
+        error = null;
+        try
+        {
+            var auth = await AuthState;
+            var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+            await PricingConfig.SaveSettingsAsync(model, userId);
+            message = "Configuración guardada. Aplica a nuevos cálculos de impresión.";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+}

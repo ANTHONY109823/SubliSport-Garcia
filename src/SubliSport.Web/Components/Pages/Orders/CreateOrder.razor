@@ -1,11 +1,12 @@
 @page "/pedidos/nuevo"
 @layout AdminLayout
-@attribute [Authorize(Roles = "SuperAdmin,Admin")]
+@attribute [Authorize(Roles = "Admin")]
 @rendermode InteractiveServer
 
 <PageTitle>Nuevo pedido - SUBLISPORT GARCIA</PageTitle>
 
-<h1 class="page-title">Registrar pedido manual</h1>
+<h1 class="page-title">Registrar pedido</h1>
+<p class="page-subtitle">Solo lo esencial — el diseñador completa tallas y detalles técnicos</p>
 
 @if (!string.IsNullOrEmpty(message))
 {
@@ -16,71 +17,146 @@
     <div class="alert-error">@error</div>
 }
 
-<EditForm Model="model" FormName="createOrderForm" OnValidSubmit="HandleSubmit" class="form-panel">
+<EditForm Model="model" FormName="createOrderForm" OnValidSubmit="HandleSubmit" class="form-panel form-quick-order">
     <DataAnnotationsValidator />
-    <div class="form-grid">
-        <div class="form-group">
-            <label>Cliente</label>
-            <InputText @bind-value="model.ClientName" class="form-control" />
-            <ValidationMessage For="() => model.ClientName" />
+
+    <section class="panel-section form-section-compact">
+        <h2>1. Cliente</h2>
+        <div class="form-grid form-grid-2">
+            <div class="form-group form-group-span2">
+                <label>Nombre del cliente *</label>
+                <InputText @bind-value="model.ClientName" class="form-control" placeholder="Ej. Club Deportivo Lima" />
+                <ValidationMessage For="() => model.ClientName" />
+            </div>
+            <div class="form-group">
+                <label>Teléfono / WhatsApp</label>
+                <InputText @bind-value="model.ClientPhone" class="form-control" placeholder="999 999 999" />
+            </div>
         </div>
-        <div class="form-group">
-            <label>Teléfono</label>
-            <InputText @bind-value="model.ClientPhone" class="form-control" />
+    </section>
+
+    <section class="panel-section form-section-compact">
+        <h2>2. Pedido</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Tipo de prenda *</label>
+                <InputSelect @bind-value="model.GarmentType" class="form-control">
+                    @foreach (var type in OrderFormOptions.GarmentTypes)
+                    {
+                        <option value="@type">@type</option>
+                    }
+                </InputSelect>
+                @if (model.GarmentType == "Otro")
+                {
+                    <InputText @bind-value="model.GarmentTypeOther" class="form-control form-control-mt" placeholder="Especifique prenda" />
+                }
+            </div>
+            <div class="form-group">
+                <label>Deporte *</label>
+                <InputSelect @bind-value="model.Sport" class="form-control">
+                    @foreach (var sport in OrderFormOptions.Sports)
+                    {
+                        <option value="@sport">@sport</option>
+                    }
+                </InputSelect>
+                @if (model.Sport == "Otro")
+                {
+                    <InputText @bind-value="model.SportOther" class="form-control form-control-mt" placeholder="Especifique deporte" />
+                }
+            </div>
+            <div class="form-group">
+                <label>Cantidad (aprox.) *</label>
+                <InputNumber @bind-value="model.Quantity" class="form-control" />
+                <ValidationMessage For="() => model.Quantity" />
+            </div>
+            <div class="form-group">
+                <label>Fecha de entrega *</label>
+                <InputDate @bind-value="model.AgreedDeliveryDate" class="form-control" />
+            </div>
         </div>
-        <div class="form-group">
-            <label>Correo</label>
-            <InputText @bind-value="model.ClientEmail" class="form-control" />
-        </div>
-        <div class="form-group">
-            <label>Tipo de prenda</label>
-            <InputText @bind-value="model.GarmentType" class="form-control" />
-            <ValidationMessage For="() => model.GarmentType" />
-        </div>
-        <div class="form-group">
-            <label>Deporte</label>
-            <InputText @bind-value="model.Sport" class="form-control" />
-            <ValidationMessage For="() => model.Sport" />
-        </div>
-        <div class="form-group">
-            <label>Cantidad</label>
-            <InputNumber @bind-value="model.Quantity" class="form-control" />
-            <ValidationMessage For="() => model.Quantity" />
-        </div>
-        <div class="form-group">
-            <label>Tallas</label>
-            <InputText @bind-value="model.SizeRange" class="form-control" />
-        </div>
-        <div class="form-group">
-            <label>Fecha de entrega acordada</label>
-            <InputDate @bind-value="model.AgreedDeliveryDate" class="form-control" />
-        </div>
+
         <div class="form-group">
             <label>Prioridad</label>
-            <InputSelect @bind-value="model.Priority" class="form-control">
-                @foreach (var p in Enum.GetValues<OrderPriority>())
+            <div class="priority-chips">
+                @foreach (var p in OrderFormOptions.PriorityQuick)
                 {
-                    <option value="@p">@OrderStatusHelper.GetPriorityLabel(p)</option>
+                    <button type="button"
+                            class="priority-chip priority-@p.Value.ToString().ToLower() @(model.Priority == p.Value ? "active" : "")"
+                            @onclick="() => model.Priority = p.Value">
+                        @p.Label
+                    </button>
                 }
-            </InputSelect>
+            </div>
         </div>
+
+        <div class="form-group">
+            <label>Nota breve (opcional)</label>
+            <InputText @bind-value="model.Notes" class="form-control" placeholder="Ej. Uniforme titular + suplente, colores rojo/negro" />
+        </div>
+    </section>
+
+    <section class="panel-section form-section-compact">
+        <h2>3. Asignar diseñador (opcional)</h2>
+        <p class="field-hint">Si ya sabe quién lo tomará, asígnelo ahora y ahorre un paso.</p>
+        <div class="designer-picker">
+            <button type="button"
+                    class="designer-card @(string.IsNullOrEmpty(model.DesignerId) ? "selected" : "")"
+                    @onclick="() => model.DesignerId = null">
+                <strong>Sin asignar aún</strong>
+                <span>Asignar después desde el pedido</span>
+            </button>
+            @foreach (var designer in designers)
+            {
+                var load = designerLoads.GetValueOrDefault(designer.Id, 0);
+                <button type="button"
+                        class="designer-card @(model.DesignerId == designer.Id ? "selected" : "")"
+                        @onclick="() => model.DesignerId = designer.Id">
+                    <strong>@designer.FullName</strong>
+                    <span>@load pedido(s) en diseño</span>
+                </button>
+            }
+        </div>
+    </section>
+
+    <div class="form-actions-sticky">
+        <button type="submit" class="btn-primary btn-primary-lg" disabled="@isSaving">
+            @(isSaving ? "Guardando..." : "Registrar pedido")
+        </button>
+        <a href="/pedidos" class="btn-secondary">Cancelar</a>
     </div>
-    <div class="form-group">
-        <label>Notas / detalles</label>
-        <InputTextArea @bind-value="model.Notes" class="form-control" rows="4" />
-    </div>
-    <button type="submit" class="btn-primary" disabled="@isSaving">@(isSaving ? "Guardando..." : "Registrar pedido")</button>
 </EditForm>
 
 @code {
     [Inject] private OrderService OrderService { get; set; } = default!;
+    [Inject] private UserManagementService UserManagementService { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
     private readonly CreateOrderModel model = new();
+    private List<ApplicationUser> designers = [];
+    private Dictionary<string, int> designerLoads = new();
     private bool isSaving;
     private string? message;
     private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        designers = await UserManagementService.GetDesignersAsync();
+        var activeDesigners = designers.Where(d => d.IsActive).ToList();
+        designers = activeDesigners;
+
+        var auth = await AuthState;
+        var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId is null) return;
+
+        var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value);
+        var orders = await OrderService.GetOrdersForUserAsync(userId, roles);
+        designerLoads = orders
+            .Where(o => o.AssignedDesignerId is not null &&
+                        o.Status is OrderStatus.AsignadoDiseno or OrderStatus.EnDiseno)
+            .GroupBy(o => o.AssignedDesignerId!)
+            .ToDictionary(g => g.Key, g => g.Count());
+    }
 
     private async Task HandleSubmit()
     {
@@ -97,21 +173,41 @@
             return;
         }
 
+        var garment = model.GarmentType == "Otro" ? model.GarmentTypeOther?.Trim() : model.GarmentType;
+        var sport = model.Sport == "Otro" ? model.SportOther?.Trim() : model.Sport;
+
+        if (string.IsNullOrWhiteSpace(garment))
+        {
+            error = "Indique el tipo de prenda.";
+            isSaving = false;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(sport))
+        {
+            error = "Indique el deporte.";
+            isSaving = false;
+            return;
+        }
+
         try
         {
             var order = await OrderService.CreateManualOrderAsync(new Order
             {
                 ClientName = model.ClientName.Trim(),
                 ClientPhone = model.ClientPhone,
-                ClientEmail = model.ClientEmail,
-                GarmentType = model.GarmentType.Trim(),
-                Sport = model.Sport.Trim(),
+                GarmentType = garment,
+                Sport = sport,
                 Quantity = model.Quantity,
-                SizeRange = model.SizeRange,
                 Notes = model.Notes,
                 Priority = model.Priority,
                 AgreedDeliveryDate = model.AgreedDeliveryDate?.ToUniversalTime()
             }, userId);
+
+            if (!string.IsNullOrEmpty(model.DesignerId))
+            {
+                await OrderService.AssignDesignerAsync(order.Id, model.DesignerId, userId);
+            }
 
             Navigation.NavigateTo($"/pedidos/{order.Id}");
         }
@@ -128,20 +224,19 @@
         public string ClientName { get; set; } = string.Empty;
 
         public string? ClientPhone { get; set; }
-        public string? ClientEmail { get; set; }
 
-        [Required(ErrorMessage = "Indique el tipo de prenda.")]
         public string GarmentType { get; set; } = "Conjunto completo";
+        public string? GarmentTypeOther { get; set; }
 
-        [Required(ErrorMessage = "Indique el deporte.")]
         public string Sport { get; set; } = "Fútbol";
+        public string? SportOther { get; set; }
 
         [Range(1, 10000, ErrorMessage = "Cantidad inválida.")]
         public int Quantity { get; set; } = 1;
 
-        public string? SizeRange { get; set; }
         public string? Notes { get; set; }
         public OrderPriority Priority { get; set; } = OrderPriority.Normal;
         public DateTime? AgreedDeliveryDate { get; set; } = DateTime.Today.AddDays(7);
+        public string? DesignerId { get; set; }
     }
 }

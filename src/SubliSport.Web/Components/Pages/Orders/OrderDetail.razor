@@ -1,6 +1,6 @@
 @page "/pedidos/{OrderId:guid}"
 @layout AdminLayout
-@attribute [Authorize(Roles = "SuperAdmin,Admin,Designer")]
+@attribute [Authorize(Roles = "Admin,Designer")]
 @rendermode InteractiveServer
 
 <PageTitle>Detalle pedido - SUBLISPORT GARCIA</PageTitle>
@@ -14,7 +14,11 @@ else
     <div class="detail-header">
         <div>
             <h1 class="page-title">@order.OrderNumber</h1>
-            <p class="page-subtitle">@order.ClientName · @OrderStatusHelper.GetLabel(order.Status)</p>
+            <p class="page-subtitle">
+                @order.ClientName
+                · <span class="badge status-@order.Status.ToString().ToLower()">@(isDesignerView ? DesignerOrderHelper.GetDesignerStageLabel(order) : OrderStatusHelper.GetLabel(order.Status))</span>
+                · <span class="badge priority-@order.Priority.ToString().ToLower()">@OrderStatusHelper.GetPriorityLabel(order.Priority)</span>
+            </p>
         </div>
         <a href="/pedidos" class="btn-outline">← Volver</a>
     </div>
@@ -28,66 +32,139 @@ else
         <div class="alert-error">@error</div>
     }
 
-    <div class="detail-grid">
+    <div class="detail-grid detail-grid-2">
         <section class="panel-section">
             <h2>Datos del pedido</h2>
             <dl class="detail-list">
+                <div><dt>Cliente</dt><dd>@order.ClientName</dd></div>
+                <div>
+                    <dt>WhatsApp</dt>
+                    <dd>
+                        @if (whatsappUrl is not null)
+                        {
+                            <a href="@whatsappUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link">
+                                📱 @WhatsAppHelper.FormatDisplayPhone(order.ClientPhone)
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sin número registrado</span>
+                        }
+                    </dd>
+                </div>
                 <div><dt>Prenda</dt><dd>@order.GarmentType</dd></div>
                 <div><dt>Deporte</dt><dd>@order.Sport</dd></div>
-                <div><dt>Cantidad</dt><dd>@order.Quantity</dd></div>
-                <div><dt>Tallas</dt><dd>@(order.SizeRange ?? "—")</dd></div>
-                <div><dt>Prioridad</dt><dd>@OrderStatusHelper.GetPriorityLabel(order.Priority)</dd></div>
+                <div><dt>Cantidad</dt><dd>@order.Quantity uds.</dd></div>
+                <div><dt>Tallas</dt><dd class="@(string.IsNullOrWhiteSpace(order.SizeRange) ? "text-muted" : "")">@(string.IsNullOrWhiteSpace(order.SizeRange) ? "Pendiente" : order.SizeRange)</dd></div>
                 <div><dt>Entrega acordada</dt><dd>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</dd></div>
-                <div><dt>Notas</dt><dd>@(order.Notes ?? "—")</dd></div>
+                <div><dt>Notas admin</dt><dd>@(order.Notes ?? "—")</dd></div>
+                @if (!isDesignerView)
+                {
+                    <div><dt>Diseñador</dt><dd>@(order.AssignedDesigner?.FullName ?? "Sin asignar")</dd></div>
+                }
             </dl>
         </section>
 
-        <AuthorizeView Roles="SuperAdmin,Admin">
-            <section class="panel-section">
+        <AuthorizeView Roles="Admin">
+            <section class="panel-section panel-highlight">
                 <h2>Asignar diseñador</h2>
-                <div class="form-inline">
-                    <select @bind="selectedDesignerId" class="form-control">
-                        <option value="">Seleccionar diseñador...</option>
-                        @foreach (var designer in designers)
-                        {
-                            <option value="@designer.Id">@designer.FullName</option>
-                        }
-                    </select>
-                    <button class="btn-primary" @onclick="AssignDesigner" disabled="@string.IsNullOrEmpty(selectedDesignerId)">Asignar</button>
+                <div class="designer-picker">
+                    @foreach (var designer in designers)
+                    {
+                        var load = designerLoads.GetValueOrDefault(designer.Id, 0);
+                        var isCurrent = order.AssignedDesignerId == designer.Id;
+                        <button type="button"
+                                class="designer-card @(selectedDesignerId == designer.Id ? "selected" : "") @(isCurrent ? "current" : "")"
+                                @onclick="() => selectedDesignerId = designer.Id">
+                            <strong>@designer.FullName</strong>
+                            <span>@load en diseño</span>
+                        </button>
+                    }
+                </div>
+                <div class="form-actions">
+                    <button class="btn-primary" @onclick="AssignDesigner" disabled="@string.IsNullOrEmpty(selectedDesignerId) || selectedDesignerId == order.AssignedDesignerId">
+                        @(order.AssignedDesignerId is null ? "Asignar diseñador" : "Reasignar")
+                    </button>
                 </div>
             </section>
+
+            @if (order.ChargeAmount > 0 || order.CalculatedTotal > 0)
+            {
+                <OrderPricingCalculator Order="order" ReadOnly="true" />
+            }
+
+            @if (order.Status is OrderStatus.DisenoAprobado or OrderStatus.EnImpresion or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion or OrderStatus.ListoEntrega)
+            {
+                <section class="panel-section">
+                    <a href="/produccion/@order.Id" class="quick-link">Ver en producción →</a>
+                </section>
+            }
         </AuthorizeView>
 
-        <AuthorizeView Roles="SuperAdmin,Admin,Designer">
-            <section class="panel-section">
-                <h2>Actualizar estado</h2>
-                <div class="form-inline">
-                    <select @bind="selectedStatus" class="form-control">
-                        @foreach (var status in Enum.GetValues<OrderStatus>())
+        <AuthorizeView Roles="Designer">
+            @if (isOwnDesignOrder)
+            {
+                @if (DesignerOrderHelper.IsPending(order))
+                {
+                    <section class="panel-section">
+                        <h2>Detalles técnicos (diseño)</h2>
+                        <div class="form-group">
+                            <label>Tallas / medidas</label>
+                            <InputText @bind-value="editSizeRange" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label>Notas de diseño</label>
+                            <InputTextArea @bind-value="editNotes" class="form-control" rows="3" />
+                        </div>
+                        <button type="button" class="btn-secondary" @onclick="SaveDesignerDetails">Guardar detalles</button>
+                    </section>
+                }
+
+                <section class="panel-section panel-highlight">
+                    <h2>Acciones de diseño</h2>
+                    <div class="designer-actions">
+                        @if (DesignerOrderHelper.CanAccept(order))
                         {
-                            <option value="@status">@OrderStatusHelper.GetLabel(status)</option>
+                            <button type="button" class="btn-action btn-success btn-action-lg" @onclick="AcceptOrder">✓ Aceptar pedido</button>
                         }
-                    </select>
-                    <InputText @bind-value="statusComment" placeholder="Comentario opcional" class="form-control" />
-                    <button class="btn-primary" @onclick="UpdateStatus">Actualizar</button>
-                </div>
-            </section>
+                        @if (DesignerOrderHelper.CanStart(order))
+                        {
+                            <button type="button" class="btn-action btn-edit btn-action-lg" @onclick="StartOrder">▶ Iniciar pedido</button>
+                        }
+                        @if (DesignerOrderHelper.CanFinish(order))
+                        {
+                            <button type="button" class="btn-action btn-primary-action btn-action-lg" @onclick="FinishDesign">✔ Diseño finalizado — enviar a producción</button>
+                        }
+                        @if (DesignerOrderHelper.CanReturn(order))
+                        {
+                            <div class="return-box">
+                                <label>Motivo de devolución</label>
+                                <InputTextArea @bind-value="returnComment" class="form-control" rows="2" />
+                                <button type="button" class="btn-action btn-warn" @onclick="ReturnOrder" disabled="@string.IsNullOrWhiteSpace(returnComment)">↩ Devolver</button>
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
         </AuthorizeView>
 
         <section class="panel-section">
-            <h2>Historial</h2>
+            <h2>Historial (con hora)</h2>
             @if (order.StatusHistory.Count == 0)
             {
                 <p class="empty-state">Sin movimientos registrados.</p>
             }
             else
             {
-                <ul class="history-list">
-                    @foreach (var item in order.StatusHistory)
+                <ul class="history-list history-timeline">
+                    @foreach (var item in order.StatusHistory.OrderByDescending(h => h.ChangedAt))
                     {
                         <li>
-                            <strong>@item.ChangedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</strong>
-                            — @OrderStatusHelper.GetLabel(item.FromStatus) → @OrderStatusHelper.GetLabel(item.ToStatus)
+                            <time>@item.ChangedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</time>
+                            @if (item.FromStatus != item.ToStatus)
+                            {
+                                <span> — @OrderStatusHelper.GetLabel(item.FromStatus) → @OrderStatusHelper.GetLabel(item.ToStatus)</span>
+                            }
                             @if (!string.IsNullOrWhiteSpace(item.Comment))
                             {
                                 <span> · @item.Comment</span>
@@ -105,66 +182,122 @@ else
 
     [Inject] private OrderService OrderService { get; set; } = default!;
     [Inject] private UserManagementService UserManagementService { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
     private Order? order;
     private List<ApplicationUser> designers = [];
+    private Dictionary<string, int> designerLoads = new();
     private string? selectedDesignerId;
-    private OrderStatus selectedStatus;
-    private string? statusComment;
+    private string? currentUserId;
+    private bool isDesignerView;
+    private bool isOwnDesignOrder;
+    private string? whatsappUrl;
+    private string? editSizeRange;
+    private string? editNotes;
+    private string? returnComment;
     private string? message;
     private string? error;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() => await LoadOrderAsync();
+
+    private async Task LoadOrderAsync()
     {
         order = await OrderService.GetByIdAsync(OrderId);
         if (order is null) return;
 
-        selectedStatus = order.Status;
         selectedDesignerId = order.AssignedDesignerId;
-        designers = await UserManagementService.GetDesignersAsync();
+        editSizeRange = order.SizeRange;
+        editNotes = order.Notes;
+        whatsappUrl = WhatsAppHelper.BuildChatUrl(order.ClientPhone, WhatsAppHelper.BuildOrderMessage(order.ClientName, order.OrderNumber));
+
+        var auth = await AuthState;
+        currentUserId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (currentUserId is null) return;
+
+        var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
+        isDesignerView = roles.Contains(AppRoles.Designer) && !roles.Contains(AppRoles.Admin);
+        isOwnDesignOrder = order.AssignedDesignerId == currentUserId;
+
+        if (roles.Contains(AppRoles.Admin))
+        {
+            designers = (await UserManagementService.GetDesignersAsync()).Where(d => d.IsActive).ToList();
+            var allOrders = await OrderService.GetOrdersForUserAsync(currentUserId, roles);
+            designerLoads = allOrders
+                .Where(o => o.AssignedDesignerId is not null && o.Status is OrderStatus.AsignadoDiseno or OrderStatus.EnDiseno)
+                .GroupBy(o => o.AssignedDesignerId!)
+                .ToDictionary(g => g.Key, g => g.Count());
+        }
     }
 
     private async Task AssignDesigner()
     {
-        if (order is null || string.IsNullOrEmpty(selectedDesignerId)) return;
-
-        var auth = await AuthState;
-        var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (userId is null) return;
-
+        if (order is null || string.IsNullOrEmpty(selectedDesignerId) || currentUserId is null) return;
         try
         {
-            await OrderService.AssignDesignerAsync(order.Id, selectedDesignerId, userId);
-            order = await OrderService.GetByIdAsync(OrderId);
+            await OrderService.AssignDesignerAsync(order.Id, selectedDesignerId, currentUserId);
+            await LoadOrderAsync();
             message = "Diseñador asignado correctamente.";
-            error = null;
         }
-        catch (Exception ex)
-        {
-            error = ex.Message;
-        }
+        catch (Exception ex) { error = ex.Message; }
     }
 
-    private async Task UpdateStatus()
+    private async Task SaveDesignerDetails()
     {
-        if (order is null) return;
-
-        var auth = await AuthState;
-        var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (userId is null) return;
-
+        if (order is null || currentUserId is null) return;
         try
         {
-            await OrderService.UpdateStatusAsync(order.Id, selectedStatus, userId, statusComment);
-            order = await OrderService.GetByIdAsync(OrderId);
-            message = "Estado actualizado.";
-            error = null;
-            statusComment = null;
+            await OrderService.DesignerUpdateDetailsAsync(order.Id, currentUserId, editSizeRange, editNotes);
+            await LoadOrderAsync();
+            message = "Detalles guardados.";
         }
-        catch (Exception ex)
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task AcceptOrder()
+    {
+        if (order is null || currentUserId is null) return;
+        try
         {
-            error = ex.Message;
+            await OrderService.DesignerAcceptAsync(order.Id, currentUserId);
+            await LoadOrderAsync();
+            message = "Pedido aceptado.";
         }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task StartOrder()
+    {
+        if (order is null || currentUserId is null) return;
+        try
+        {
+            await OrderService.DesignerStartAsync(order.Id, currentUserId);
+            await LoadOrderAsync();
+            message = "Trabajo iniciado.";
+        }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task FinishDesign()
+    {
+        if (order is null || currentUserId is null) return;
+        try
+        {
+            await OrderService.DesignerFinishAsync(order.Id, currentUserId);
+            await LoadOrderAsync();
+            message = "Diseño finalizado. El pedido fue enviado a producción.";
+        }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task ReturnOrder()
+    {
+        if (order is null || currentUserId is null) return;
+        try
+        {
+            await OrderService.DesignerReturnAsync(order.Id, currentUserId, returnComment ?? "");
+            Navigation.NavigateTo("/pedidos");
+        }
+        catch (Exception ex) { error = ex.Message; }
     }
 }

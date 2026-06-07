@@ -1,0 +1,222 @@
+@page "/produccion/{OrderId:guid}"
+@page "/impresion/{OrderId:guid}"
+@layout AdminLayout
+@attribute [Authorize(Roles = "Admin,Production")]
+@rendermode InteractiveServer
+
+<PageTitle>Producción pedido - SUBLISPORT GARCIA</PageTitle>
+
+@if (order is null)
+{
+    <p class="empty-state">Pedido no encontrado.</p>
+}
+else
+{
+    <div class="detail-header">
+        <div>
+            <h1 class="page-title">@order.OrderNumber</h1>
+            <p class="page-subtitle">
+                @order.ClientName
+                · <span class="badge stage-badge">@ProduccionOrderHelper.GetStageLabel(order)</span>
+                · <span class="badge priority-@order.Priority.ToString().ToLower()">@OrderStatusHelper.GetPriorityLabel(order.Priority)</span>
+            </p>
+        </div>
+        <a href="/produccion" class="btn-outline">← Volver</a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="alert-success">@message</div>
+    }
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert-error">@error</div>
+    }
+
+    <div class="detail-grid detail-grid-2">
+        <section class="panel-section">
+            <h2>Datos del pedido</h2>
+            <dl class="detail-list">
+                <div><dt>Cliente</dt><dd>@order.ClientName</dd></div>
+                <div>
+                    <dt>WhatsApp</dt>
+                    <dd>
+                        @if (whatsappUrl is not null)
+                        {
+                            <a href="@whatsappUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link">
+                                📱 @WhatsAppHelper.FormatDisplayPhone(order.ClientPhone)
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sin número</span>
+                        }
+                    </dd>
+                </div>
+                <div><dt>Prenda</dt><dd>@order.GarmentType · @order.Sport</dd></div>
+                <div><dt>Cantidad</dt><dd>@order.Quantity uds.</dd></div>
+                <div><dt>Tallas</dt><dd>@(order.SizeRange ?? "—")</dd></div>
+                <div><dt>Entrega</dt><dd>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</dd></div>
+                <div><dt>Diseñador</dt><dd>@(order.AssignedDesigner?.FullName ?? "—")</dd></div>
+                <div><dt>Notas</dt><dd>@(order.Notes ?? "—")</dd></div>
+            </dl>
+        </section>
+
+        @if (isProductionUser)
+        {
+            <section class="panel-section panel-highlight">
+                <h2>Acciones de producción</h2>
+                <p class="field-hint">Producción se desglosa en: Impresión → Planchado → Confección (si aplica). Cada movimiento queda con fecha y hora.</p>
+
+                <div class="designer-actions">
+                    @if (ProduccionOrderHelper.CanAccept(order))
+                    {
+                        <button type="button" class="btn-action btn-success btn-action-lg" @onclick="AcceptOrder">✓ Aceptar pedido</button>
+                    }
+                    @if (ProduccionOrderHelper.CanStart(order))
+                    {
+                        <button type="button" class="btn-action btn-edit btn-action-lg" @onclick="StartOrder">▶ Iniciar producción</button>
+                    }
+
+                    @if (order.Status is OrderStatus.EnImpresion or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion or OrderStatus.DisenoAprobado && ProduccionOrderHelper.IsAccepted(order))
+                    {
+                        <div class="stage-buttons">
+                            <span class="field-hint">Etapa actual:</span>
+                            <button type="button" class="btn-action @(order.Status == OrderStatus.EnImpresion ? "btn-primary-action" : "")" @onclick="() => SetStage(OrderStatus.EnImpresion)">🖨 Impresión</button>
+                            <button type="button" class="btn-action @(order.Status == OrderStatus.EnPlanchado ? "btn-primary-action" : "")" @onclick="() => SetStage(OrderStatus.EnPlanchado)">🔥 Planchado</button>
+                            @if (order.IncludesConfection && !order.ServiceOnlyPrintPress)
+                            {
+                                <button type="button" class="btn-action @(order.Status == OrderStatus.EnConfeccion ? "btn-primary-action" : "")" @onclick="() => SetStage(OrderStatus.EnConfeccion)">✂️ Confección</button>
+                            }
+                        </div>
+                    }
+
+                    @if (ProduccionOrderHelper.CanMarkReadyForPickup(order))
+                    {
+                        <button type="button" class="btn-action btn-primary-action btn-action-lg" @onclick="MarkReady">
+                            ✔ Trabajo finalizado — pendiente por recoger
+                        </button>
+                    }
+
+                    @if (order.Status == OrderStatus.ListoEntrega)
+                    {
+                        <div class="alert-success inline-alert">Pedido listo. El cliente puede recogerlo.</div>
+                    }
+                </div>
+            </section>
+        }
+
+        @if ((isProductionUser || isAdminView) && !ProduccionOrderHelper.IsCompleted(order))
+        {
+            <OrderPricingCalculator Order="order" OnSaved="ReloadAsync" ReadOnly="@isAdminView" />
+        }
+        else if (order.ChargeAmount > 0 || order.CalculatedTotal > 0)
+        {
+            <OrderPricingCalculator Order="order" ReadOnly="true" />
+        }
+
+        <section class="panel-section">
+            <h2>Historial (con hora)</h2>
+            @if (order.StatusHistory.Count == 0)
+            {
+                <p class="empty-state">Sin movimientos.</p>
+            }
+            else
+            {
+                <ul class="history-list history-timeline">
+                    @foreach (var item in order.StatusHistory.OrderByDescending(h => h.ChangedAt))
+                    {
+                        <li>
+                            <time datetime="@item.ChangedAt.ToString("O")">
+                                @item.ChangedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")
+                            </time>
+                            @if (item.FromStatus != item.ToStatus)
+                            {
+                                <span> — @OrderStatusHelper.GetLabel(item.FromStatus) → @OrderStatusHelper.GetLabel(item.ToStatus)</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(item.Comment))
+                            {
+                                <span> · @item.Comment</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid OrderId { get; set; }
+
+    [Inject] private OrderService OrderService { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private Order? order;
+    private string? whatsappUrl;
+    private bool isProductionUser;
+    private bool isAdminView;
+    private string? message;
+    private string? error;
+
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        order = await OrderService.GetByIdAsync(OrderId);
+        if (order is null) return;
+
+        whatsappUrl = WhatsAppHelper.BuildChatUrl(order.ClientPhone, WhatsAppHelper.BuildOrderMessage(order.ClientName, order.OrderNumber));
+
+        var auth = await AuthState;
+        var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
+        isProductionUser = roles.Contains(AppRoles.Production) && !roles.Contains(AppRoles.Admin);
+        isAdminView = roles.Contains(AppRoles.Admin);
+    }
+
+    private async Task RunAction(Func<Task> action, string success)
+    {
+        error = null;
+        try
+        {
+            await action();
+            await ReloadAsync();
+            message = success;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+
+    private Task AcceptOrder() => RunAction(async () =>
+    {
+        var userId = await GetUserIdAsync();
+        await OrderService.ProduccionAcceptAsync(OrderId, userId);
+    }, "Pedido aceptado.");
+
+    private Task StartOrder() => RunAction(async () =>
+    {
+        var userId = await GetUserIdAsync();
+        await OrderService.ProduccionStartAsync(OrderId, userId);
+    }, "Producción iniciada.");
+
+    private Task SetStage(OrderStatus stage) => RunAction(async () =>
+    {
+        var userId = await GetUserIdAsync();
+        await OrderService.ProduccionSetStageAsync(OrderId, stage, userId);
+    }, $"Etapa: {ProduccionOrderHelper.GetStageLabel(order!)}.");
+
+    private Task MarkReady() => RunAction(async () =>
+    {
+        var userId = await GetUserIdAsync();
+        await OrderService.ProduccionMarkReadyForPickupAsync(OrderId, userId);
+    }, "Marcado como pendiente por recoger.");
+
+    private async Task<string> GetUserIdAsync()
+    {
+        var auth = await AuthState;
+        return auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+               ?? throw new InvalidOperationException("Sesión inválida.");
+    }
+}

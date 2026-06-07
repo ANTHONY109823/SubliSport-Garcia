@@ -1,47 +1,70 @@
 @page "/produccion"
+@page "/impresion"
 @layout AdminLayout
-@attribute [Authorize(Roles = "SuperAdmin,Admin,Production")]
+@attribute [Authorize(Roles = "Admin,Production")]
 @rendermode InteractiveServer
 
 <PageTitle>Producción - SUBLISPORT GARCIA</PageTitle>
 
-<h1 class="page-title">Cola de producción</h1>
-<p class="page-subtitle">Impresión · Planchado · Confección · Entrega</p>
+<div class="page-header-row">
+    <div>
+        <h1 class="page-title">Cola de producción</h1>
+        <p class="page-subtitle">@filteredOrders.Count pedido(s) · Etapas: Impresión · Planchado · Confección</p>
+    </div>
+</div>
 
-@if (orders.Count == 0)
+<div class="filter-tabs">
+    <button type="button" class="filter-tab @(filter == QueueFilter.Pending ? "active" : "")" @onclick="() => SetFilter(QueueFilter.Pending)">
+        Pendientes (@pendingCount)
+    </button>
+    <button type="button" class="filter-tab @(filter == QueueFilter.ToAccept ? "active" : "")" @onclick="() => SetFilter(QueueFilter.ToAccept)">
+        Por aceptar (@toAcceptCount)
+    </button>
+    <button type="button" class="filter-tab @(filter == QueueFilter.Impresion ? "active" : "")" @onclick="() => SetFilter(QueueFilter.Impresion)">
+        Impresión (@impresionCount)
+    </button>
+    <button type="button" class="filter-tab @(filter == QueueFilter.Planchado ? "active" : "")" @onclick="() => SetFilter(QueueFilter.Planchado)">
+        Planchado (@planchadoCount)
+    </button>
+    <button type="button" class="filter-tab @(filter == QueueFilter.Confeccion ? "active" : "")" @onclick="() => SetFilter(QueueFilter.Confeccion)">
+        Confección (@confeccionCount)
+    </button>
+    <button type="button" class="filter-tab @(filter == QueueFilter.Ready ? "active" : "")" @onclick="() => SetFilter(QueueFilter.Ready)">
+        Por recoger (@readyCount)
+    </button>
+</div>
+
+@if (filteredOrders.Count == 0)
 {
-    <p class="empty-state">No hay pedidos en producción.</p>
+    <p class="empty-state">No hay pedidos en esta cola.</p>
 }
 else
 {
-    <div class="table-wrap">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>N°</th>
-                    <th>Cliente</th>
-                    <th>Prioridad</th>
-                    <th>Entrega</th>
-                    <th>Estado</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var order in orders)
-                {
-                    <tr>
-                        <td>@order.OrderNumber</td>
-                        <td>@order.ClientName</td>
-                        <td>@OrderStatusHelper.GetPriorityLabel(order.Priority)</td>
-                        <td>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</td>
-                        <td>@OrderStatusHelper.GetLabel(order.Status)</td>
-                        <td>
-                            <a href="/pedidos/@order.Id">Gestionar</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div class="order-cards">
+        @foreach (var order in filteredOrders)
+        {
+            <article class="order-card @GetCardClass(order)">
+                <div class="order-card-header">
+                    <div>
+                        <strong>@order.OrderNumber</strong>
+                        <span class="badge priority-@order.Priority.ToString().ToLower()">@OrderStatusHelper.GetPriorityLabel(order.Priority)</span>
+                    </div>
+                    <span class="badge stage-badge">@ProduccionOrderHelper.GetStageLabel(order)</span>
+                </div>
+                <div class="order-card-body">
+                    <p><span>Cliente</span> @order.ClientName</p>
+                    <p><span>Prenda</span> @order.GarmentType · @order.Quantity uds.</p>
+                    <p><span>Entrega</span> @(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</p>
+                    @if (order.ChargeAmount > 0)
+                    {
+                        <p><span>Cobro</span> <strong class="price-tag">S/ @order.ChargeAmount.ToString("N2")</strong></p>
+                    }
+                </div>
+                <div class="order-card-footer">
+                    <a href="/produccion/@order.Id" class="btn-action btn-edit">Gestionar</a>
+                </div>
+            </article>
+        }
     </div>
 }
 
@@ -49,7 +72,17 @@ else
     [Inject] private OrderService OrderService { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
+    private enum QueueFilter { Pending, ToAccept, Impresion, Planchado, Confeccion, Ready }
+
     private List<Order> orders = [];
+    private List<Order> filteredOrders = [];
+    private QueueFilter filter = QueueFilter.Pending;
+    private int pendingCount;
+    private int toAcceptCount;
+    private int impresionCount;
+    private int planchadoCount;
+    private int confeccionCount;
+    private int readyCount;
 
     protected override async Task OnInitializedAsync()
     {
@@ -59,5 +92,45 @@ else
 
         var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value);
         orders = await OrderService.GetOrdersForUserAsync(userId, roles);
+
+        pendingCount = orders.Count(ProduccionOrderHelper.IsActive);
+        toAcceptCount = orders.Count(ProduccionOrderHelper.CanAccept);
+        impresionCount = orders.Count(o => o.Status == OrderStatus.EnImpresion);
+        planchadoCount = orders.Count(o => o.Status == OrderStatus.EnPlanchado);
+        confeccionCount = orders.Count(o => o.Status == OrderStatus.EnConfeccion);
+        readyCount = orders.Count(o => o.Status == OrderStatus.ListoEntrega);
+        ApplyFilter();
+    }
+
+    private void SetFilter(QueueFilter f)
+    {
+        filter = f;
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        filteredOrders = filter switch
+        {
+            QueueFilter.ToAccept => orders.Where(ProduccionOrderHelper.CanAccept).ToList(),
+            QueueFilter.Impresion => orders.Where(o => o.Status == OrderStatus.EnImpresion).ToList(),
+            QueueFilter.Planchado => orders.Where(o => o.Status == OrderStatus.EnPlanchado).ToList(),
+            QueueFilter.Confeccion => orders.Where(o => o.Status == OrderStatus.EnConfeccion).ToList(),
+            QueueFilter.Ready => orders.Where(o => o.Status == OrderStatus.ListoEntrega).ToList(),
+            _ => orders.Where(ProduccionOrderHelper.IsActive).ToList()
+        };
+
+        filteredOrders = filteredOrders
+            .OrderByDescending(o => o.Priority)
+            .ThenBy(o => o.AgreedDeliveryDate)
+            .ToList();
+    }
+
+    private static string GetCardClass(Order order)
+    {
+        if (ProduccionOrderHelper.CanAccept(order)) return "card-new";
+        if (order.Status == OrderStatus.ListoEntrega) return "card-done";
+        if (ProduccionOrderHelper.IsActive(order)) return "card-active";
+        return "";
     }
 }
