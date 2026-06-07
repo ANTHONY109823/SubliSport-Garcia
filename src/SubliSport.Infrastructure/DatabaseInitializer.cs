@@ -11,6 +11,9 @@ namespace SubliSport.Infrastructure;
 
 public static class DatabaseInitializer
 {
+    private const int MaxRetries = 12;
+    private static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(5);
+
     public static async Task InitializeDatabaseAsync(this IServiceProvider services)
     {
         using var scope = services.CreateScope();
@@ -20,7 +23,7 @@ public static class DatabaseInitializer
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-        await context.Database.MigrateAsync();
+        await MigrateWithRetryAsync(context, logger);
 
         foreach (var role in AppRoles.All)
         {
@@ -63,5 +66,27 @@ public static class DatabaseInitializer
 
         await userManager.AddToRoleAsync(user, AppRoles.SuperAdmin);
         logger.LogInformation("SuperAdmin inicial creado correctamente.");
+    }
+
+    private static async Task MigrateWithRetryAsync(AppDbContext context, ILogger logger)
+    {
+        for (var attempt = 1; attempt <= MaxRetries; attempt++)
+        {
+            try
+            {
+                await context.Database.MigrateAsync();
+                logger.LogInformation("Migraciones aplicadas correctamente.");
+                return;
+            }
+            catch (Exception ex) when (attempt < MaxRetries)
+            {
+                logger.LogWarning(ex,
+                    "Intento {Attempt}/{Max} fallido al conectar con PostgreSQL. Reintentando en {Delay}s...",
+                    attempt, MaxRetries, RetryDelay.TotalSeconds);
+                await Task.Delay(RetryDelay);
+            }
+        }
+
+        await context.Database.MigrateAsync();
     }
 }

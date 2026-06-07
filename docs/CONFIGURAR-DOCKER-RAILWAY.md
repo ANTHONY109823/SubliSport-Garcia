@@ -67,13 +67,15 @@ git push origin main
 2. Selecciona **`SubliSport-Garcia`**
 3. Railway detectará el `Dockerfile` automáticamente
 
-### Paso 4 — Vincular PostgreSQL con la app
+### Paso 4 — Vincular PostgreSQL con la app (OBLIGATORIO)
 
 1. Abre el servicio de la **app** (no la base de datos)
 2. Ve a **Variables** → **+ New Variable** → **Add Reference**
 3. Selecciona el servicio **PostgreSQL** → variable **`DATABASE_URL`**
 
-> La app convierte `DATABASE_URL` automáticamente al formato .NET. **No necesitas convertirla manualmente.**
+> **Si no haces esto, la app intentará conectar a `localhost` y fallará.**
+
+La app usa `DATABASE_URL` con prioridad sobre cualquier otra configuración.
 
 ### Paso 5 — Agregar variables de entorno
 
