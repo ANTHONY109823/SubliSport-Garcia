@@ -62,6 +62,7 @@ public class OrderService(AppDbContext db)
 
     public async Task<Order?> GetByIdAsync(Guid id) =>
         await db.Orders
+            .AsNoTracking()
             .Include(o => o.AssignedDesigner)
             .Include(o => o.CreatedByUser)
             .Include(o => o.StatusHistory.OrderByDescending(h => h.ChangedAt))
@@ -216,6 +217,7 @@ public class OrderService(AppDbContext db)
 
         await AddHistoryAsync(order, order.Status, order.Status, userId, ProduccionOrderHelper.AcceptedComment);
         await db.SaveChangesAsync();
+        db.Entry(order).State = EntityState.Detached;
     }
 
     public async Task ProduccionStartAsync(Guid orderId, string userId)
@@ -349,17 +351,21 @@ public class OrderService(AppDbContext db)
         return order;
     }
 
-    private async Task AddHistoryAsync(Order order, OrderStatus from, OrderStatus to, string userId, string? comment)
+    private Task AddHistoryAsync(Order order, OrderStatus from, OrderStatus to, string userId, string? comment)
     {
-        db.OrderStatusHistories.Add(new OrderStatusHistory
+        var history = new OrderStatusHistory
         {
             OrderId = order.Id,
             FromStatus = from,
             ToStatus = to,
             ChangedByUserId = userId,
-            Comment = comment
-        });
-        await Task.CompletedTask;
+            Comment = comment,
+            ChangedAt = DateTime.UtcNow
+        };
+
+        db.OrderStatusHistories.Add(history);
+        order.StatusHistory.Add(history);
+        return Task.CompletedTask;
     }
 
     private async Task<string> GenerateOrderNumberAsync()

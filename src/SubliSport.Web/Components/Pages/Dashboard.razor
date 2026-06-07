@@ -24,119 +24,51 @@
 else if (isAdmin)
 {
     <h1 class="page-title">Panel de administración</h1>
-    <p class="page-subtitle">Vista operativa de pedidos, equipo y entregas</p>
+    <p class="page-subtitle">Resumen operativo del día</p>
 
-    @if (metrics is not null)
+    <div class="stats-grid">
+        <div class="stat-card"><span>Total pedidos</span><strong>@orders.Count</strong></div>
+        <div class="stat-card"><span>Sin diseñador</span><strong>@pendingAssignment.Count</strong></div>
+        <div class="stat-card"><span>Urgentes</span><strong>@urgentOrders.Count</strong></div>
+        <div class="stat-card"><span>En producción</span><strong>@inProductionCount</strong></div>
+        <div class="stat-card"><span>Por recoger</span><strong>@readyPickupCount</strong></div>
+        <div class="stat-card"><span>Cobros registrados</span><strong>S/ @totalBilled.ToString("N2")</strong></div>
+    </div>
+
+    @if (pendingAssignment.Count > 0)
     {
-        <MetricsDashboardView Metrics="metrics" TeamSectionTitle="Equipo operativo (activos)" />
-
-        @if (pendingAssignment.Count > 0)
-        {
-            <section class="panel-section panel-highlight">
-                <div class="section-header-row">
-                    <h2>Pedidos sin diseñador (@pendingAssignment.Count)</h2>
-                    <a href="/pedidos/nuevo" class="quick-link">+ Nuevo pedido</a>
-                </div>
-                <div class="table-wrap">
-                    <table class="data-table">
-                        <thead>
+        <section class="panel-section panel-highlight">
+            <div class="section-header-row">
+                <h2>Asignar diseñador (@pendingAssignment.Count)</h2>
+                <a href="/pedidos/nuevo" class="quick-link">+ Nuevo pedido</a>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>N°</th><th>Cliente</th><th>Prenda</th><th>Entrega</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in pendingAssignment.Take(5))
+                        {
                             <tr>
-                                <th>N°</th>
-                                <th>Cliente</th>
-                                <th>Prenda</th>
-                                <th>Prioridad</th>
-                                <th>Entrega</th>
-                                <th></th>
+                                <td>@order.OrderNumber</td>
+                                <td>@order.ClientName</td>
+                                <td>@order.GarmentType</td>
+                                <td>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</td>
+                                <td><a href="/pedidos/@order.Id" class="btn-action btn-edit">Asignar</a></td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var order in pendingAssignment.Take(8))
-                            {
-                                <tr>
-                                    <td>@order.OrderNumber</td>
-                                    <td>@order.ClientName</td>
-                                    <td>@order.GarmentType</td>
-                                    <td><span class="badge priority-@order.Priority.ToString().ToLower()">@OrderStatusHelper.GetPriorityLabel(order.Priority)</span></td>
-                                    <td>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</td>
-                                    <td><a href="/pedidos/@order.Id" class="btn-action btn-edit">Asignar</a></td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-                @if (pendingAssignment.Count > 8)
-                {
-                    <p class="section-footnote"><a href="/pedidos">Ver los @pendingAssignment.Count pedidos pendientes →</a></p>
-                }
-            </section>
-        }
-
-        @if (urgentOrders.Count > 0)
-        {
-            <section class="panel-section">
-                <h2>Pedidos urgentes</h2>
-                <div class="table-wrap">
-                    <table class="data-table">
-                        <thead>
-                            <tr><th>N°</th><th>Cliente</th><th>Estado</th><th>Entrega</th><th>Diseñador</th><th></th></tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var order in urgentOrders.Take(5))
-                            {
-                                <tr>
-                                    <td>@order.OrderNumber</td>
-                                    <td>@order.ClientName</td>
-                                    <td>@OrderStatusHelper.GetLabel(order.Status)</td>
-                                    <td>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</td>
-                                    <td>@(order.AssignedDesigner?.FullName ?? "Sin asignar")</td>
-                                    <td><a href="/pedidos/@order.Id">Ver</a></td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        }
-
-        @if (withChargeCount > 0)
-        {
-            <section class="panel-section">
-                <h2>Métricas de cobro (producción)</h2>
-                <div class="stats-grid">
-                    <div class="stat-card"><span>Pedidos con cobro</span><strong>@withChargeCount</strong></div>
-                    <div class="stat-card"><span>Total registrado</span><strong>S/ @totalBilled.ToString("N2")</strong></div>
-                    <div class="stat-card"><span>Promedio por pedido</span><strong>S/ @avgBilled.ToString("N2")</strong></div>
-                </div>
-                <div class="table-wrap">
-                    <table class="data-table">
-                        <thead>
-                            <tr><th>N°</th><th>Cliente</th><th>Metraje</th><th>Imp.+Planch.</th><th>Confección</th><th>Cobro</th><th>Estado</th></tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var o in ordersWithCharge)
-                            {
-                                <tr>
-                                    <td>@o.OrderNumber</td>
-                                    <td>@o.ClientName</td>
-                                    <td>@(o.FabricMeters?.ToString("N2") ?? "—") m</td>
-                                    <td>S/ @(o.CalculatedPrintPressCost?.ToString("N2") ?? "—")</td>
-                                    <td>S/ @(o.CalculatedConfectionCost?.ToString("N2") ?? "—")</td>
-                                    <td><strong class="price-tag">S/ @o.ChargeAmount.ToString("N2")</strong></td>
-                                    <td>@OrderStatusHelper.GetLabel(o.Status)</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
     }
 
     <section class="panel-section">
         <h2>Accesos rápidos</h2>
         <div class="quick-links">
             <a href="/pedidos/nuevo" class="quick-link">+ Registrar pedido</a>
-            <a href="/pedidos" class="quick-link">Ver todos los pedidos</a>
+            <a href="/pedidos" class="quick-link">Ver pedidos</a>
             <a href="/produccion" class="quick-link">Cola de producción</a>
         </div>
     </section>
@@ -268,14 +200,13 @@ else
     private bool isAdmin;
     private bool isDesigner;
     private bool isProduccion;
+    private int inProductionCount;
+    private int readyPickupCount;
     private int toAcceptImp;
     private int inProgressImp;
     private int readyImp;
     private decimal totalChargedImp;
-    private int withChargeCount;
     private decimal totalBilled;
-    private decimal avgBilled;
-    private List<Order> ordersWithCharge = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -297,7 +228,6 @@ else
 
         if (isAdmin)
         {
-            metrics = await MetricsService.GetAdminMetricsAsync();
             orders = await OrderService.GetOrdersForUserAsync(userId, roles);
             pendingAssignment = orders
                 .Where(o => o.AssignedDesignerId is null &&
@@ -308,16 +238,11 @@ else
             urgentOrders = orders
                 .Where(o => o.Priority == OrderPriority.Urgente &&
                             o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
-                .OrderBy(o => o.AgreedDeliveryDate)
                 .ToList();
-            ordersWithCharge = orders
-                .Where(o => o.ChargeAmount > 0)
-                .OrderByDescending(o => o.PricingUpdatedAt)
-                .Take(10)
-                .ToList();
-            withChargeCount = orders.Count(o => o.ChargeAmount > 0);
+            inProductionCount = orders.Count(o => o.Status is OrderStatus.DisenoAprobado or OrderStatus.EnImpresion
+                or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion);
+            readyPickupCount = orders.Count(o => o.Status == OrderStatus.ListoEntrega);
             totalBilled = orders.Where(o => o.ChargeAmount > 0).Sum(o => o.ChargeAmount);
-            avgBilled = withChargeCount > 0 ? totalBilled / withChargeCount : 0;
             return;
         }
 

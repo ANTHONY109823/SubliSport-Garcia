@@ -71,29 +71,30 @@ else
                 <div class="designer-actions">
                     @if (ProduccionOrderHelper.CanAccept(order))
                     {
-                        <button type="button" class="btn-action btn-success btn-action-lg" @onclick="AcceptOrder">✓ Aceptar pedido</button>
+                        <button type="button" class="btn-action btn-success btn-action-lg" @onclick="AcceptOrderAsync">✓ Aceptar pedido</button>
                     }
                     @if (ProduccionOrderHelper.CanStart(order))
                     {
-                        <button type="button" class="btn-action btn-edit btn-action-lg" @onclick="StartOrder">▶ Iniciar producción</button>
+                        <button type="button" class="btn-action btn-edit btn-action-lg" @onclick="StartOrderAsync">▶ Iniciar producción</button>
                     }
 
-                    @if (order.Status is OrderStatus.EnImpresion or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion or OrderStatus.DisenoAprobado && ProduccionOrderHelper.IsAccepted(order))
+                    @if (order.Status is OrderStatus.EnImpresion or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion
+                         || (order.Status == OrderStatus.DisenoAprobado && ProduccionOrderHelper.IsAccepted(order)))
                     {
                         <div class="stage-buttons">
                             <span class="field-hint">Etapa actual:</span>
-                            <button type="button" class="btn-action @(order.Status == OrderStatus.EnImpresion ? "btn-primary-action" : "")" @onclick="() => SetStage(OrderStatus.EnImpresion)">🖨 Impresión</button>
-                            <button type="button" class="btn-action @(order.Status == OrderStatus.EnPlanchado ? "btn-primary-action" : "")" @onclick="() => SetStage(OrderStatus.EnPlanchado)">🔥 Planchado</button>
+                            <button type="button" class="btn-action @(order.Status == OrderStatus.EnImpresion ? "btn-primary-action" : "")" @onclick="() => SetStageAsync(OrderStatus.EnImpresion)">🖨 Impresión</button>
+                            <button type="button" class="btn-action @(order.Status == OrderStatus.EnPlanchado ? "btn-primary-action" : "")" @onclick="() => SetStageAsync(OrderStatus.EnPlanchado)">🔥 Planchado</button>
                             @if (order.IncludesConfection && !order.ServiceOnlyPrintPress)
                             {
-                                <button type="button" class="btn-action @(order.Status == OrderStatus.EnConfeccion ? "btn-primary-action" : "")" @onclick="() => SetStage(OrderStatus.EnConfeccion)">✂️ Confección</button>
+                                <button type="button" class="btn-action @(order.Status == OrderStatus.EnConfeccion ? "btn-primary-action" : "")" @onclick="() => SetStageAsync(OrderStatus.EnConfeccion)">✂️ Confección</button>
                             }
                         </div>
                     }
 
                     @if (ProduccionOrderHelper.CanMarkReadyForPickup(order))
                     {
-                        <button type="button" class="btn-action btn-primary-action btn-action-lg" @onclick="MarkReady">
+                        <button type="button" class="btn-action btn-primary-action btn-action-lg" @onclick="MarkReadyAsync">
                             ✔ Trabajo finalizado — pendiente por recoger
                         </button>
                     }
@@ -177,6 +178,7 @@ else
     private async Task RunAction(Func<Task> action, string success)
     {
         error = null;
+        message = null;
         try
         {
             await action();
@@ -189,29 +191,41 @@ else
         }
     }
 
-    private Task AcceptOrder() => RunAction(async () =>
+    private async Task AcceptOrderAsync()
     {
-        var userId = await GetUserIdAsync();
-        await OrderService.ProduccionAcceptAsync(OrderId, userId);
-    }, "Pedido aceptado.");
+        await RunAction(async () =>
+        {
+            var userId = await GetUserIdAsync();
+            await OrderService.ProduccionAcceptAsync(OrderId, userId);
+        }, "Pedido aceptado. Puede iniciar producción.");
+    }
 
-    private Task StartOrder() => RunAction(async () =>
+    private async Task StartOrderAsync()
     {
-        var userId = await GetUserIdAsync();
-        await OrderService.ProduccionStartAsync(OrderId, userId);
-    }, "Producción iniciada.");
+        await RunAction(async () =>
+        {
+            var userId = await GetUserIdAsync();
+            await OrderService.ProduccionStartAsync(OrderId, userId);
+        }, "Producción iniciada.");
+    }
 
-    private Task SetStage(OrderStatus stage) => RunAction(async () =>
+    private async Task SetStageAsync(OrderStatus stage)
     {
-        var userId = await GetUserIdAsync();
-        await OrderService.ProduccionSetStageAsync(OrderId, stage, userId);
-    }, $"Etapa: {ProduccionOrderHelper.GetStageLabel(order!)}.");
+        await RunAction(async () =>
+        {
+            var userId = await GetUserIdAsync();
+            await OrderService.ProduccionSetStageAsync(OrderId, stage, userId);
+        }, $"Etapa: {OrderStatusHelper.GetLabel(stage)}.");
+    }
 
-    private Task MarkReady() => RunAction(async () =>
+    private async Task MarkReadyAsync()
     {
-        var userId = await GetUserIdAsync();
-        await OrderService.ProduccionMarkReadyForPickupAsync(OrderId, userId);
-    }, "Marcado como pendiente por recoger.");
+        await RunAction(async () =>
+        {
+            var userId = await GetUserIdAsync();
+            await OrderService.ProduccionMarkReadyForPickupAsync(OrderId, userId);
+        }, "Marcado como pendiente por recoger.");
+    }
 
     private async Task<string> GetUserIdAsync()
     {
