@@ -27,6 +27,7 @@ services:
       - "8080:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      PORT: "8080"
       ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=sublisport;Username=postgres;Password=postgres"
       Seed__SuperAdminEmail: "admin@sublisport.local"
       Seed__SuperAdminPassword: "SuperAdmin2026!"

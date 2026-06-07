@@ -10,11 +10,9 @@ using SubliSport.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var port = Environment.GetEnvironmentVariable("PORT");
-if (!string.IsNullOrWhiteSpace(port))
-{
-    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
-}
+// Railway inyecta PORT; local/Docker usa 8080 por defecto
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
