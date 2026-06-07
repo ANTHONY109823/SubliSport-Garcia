@@ -1,0 +1,67 @@
+@page "/dashboard"
+@layout AdminLayout
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+<PageTitle>Panel - SUBLISPORT GARCIA</PageTitle>
+
+<h1 class="page-title">Panel de control</h1>
+
+<AuthorizeView Roles="SuperAdmin,Admin">
+    <Authorized>
+        <div class="stats-grid">
+            <div class="stat-card"><span>Total pedidos</span><strong>@orders.Count</strong></div>
+            <div class="stat-card"><span>En diseño</span><strong>@orders.Count(o => o.Status is OrderStatus.AsignadoDiseno or OrderStatus.EnDiseno)</strong></div>
+            <div class="stat-card"><span>En producción</span><strong>@orders.Count(o => o.Status is OrderStatus.EnImpresion or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion)</strong></div>
+            <div class="stat-card"><span>Urgentes</span><strong>@orders.Count(o => o.Priority == OrderPriority.Urgente)</strong></div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="Designer">
+    <Authorized>
+        <p class="page-subtitle">Pedidos asignados para diseño: <strong>@orders.Count</strong></p>
+    </Authorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="Production">
+    <Authorized>
+        <p class="page-subtitle">Pedidos en cola de producción: <strong>@orders.Count</strong></p>
+    </Authorized>
+</AuthorizeView>
+
+<section class="panel-section">
+    <h2>Accesos rápidos</h2>
+    <div class="quick-links">
+        <AuthorizeView Roles="SuperAdmin,Admin">
+            <a href="/pedidos/nuevo" class="quick-link">+ Registrar pedido manual</a>
+            <a href="/pedidos" class="quick-link">Ver todos los pedidos</a>
+        </AuthorizeView>
+        <AuthorizeView Roles="Designer">
+            <a href="/pedidos" class="quick-link">Ver mis diseños</a>
+        </AuthorizeView>
+        <AuthorizeView Roles="Production">
+            <a href="/produccion" class="quick-link">Ir a producción</a>
+        </AuthorizeView>
+        <AuthorizeView Roles="SuperAdmin">
+            <a href="/usuarios" class="quick-link">Gestionar usuarios</a>
+        </AuthorizeView>
+    </div>
+</section>
+
+@code {
+    [Inject] private OrderService OrderService { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private List<Order> orders = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthState;
+        var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId is null) return;
+
+        var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value);
+        orders = await OrderService.GetOrdersForUserAsync(userId, roles);
+    }
+}

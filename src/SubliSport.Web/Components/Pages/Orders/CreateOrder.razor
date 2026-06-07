@@ -1,0 +1,147 @@
+@page "/pedidos/nuevo"
+@layout AdminLayout
+@attribute [Authorize(Roles = "SuperAdmin,Admin")]
+@rendermode InteractiveServer
+
+<PageTitle>Nuevo pedido - SUBLISPORT GARCIA</PageTitle>
+
+<h1 class="page-title">Registrar pedido manual</h1>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert-success">@message</div>
+}
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert-error">@error</div>
+}
+
+<EditForm Model="model" FormName="createOrderForm" OnValidSubmit="HandleSubmit" class="form-panel">
+    <DataAnnotationsValidator />
+    <div class="form-grid">
+        <div class="form-group">
+            <label>Cliente</label>
+            <InputText @bind-value="model.ClientName" class="form-control" />
+            <ValidationMessage For="() => model.ClientName" />
+        </div>
+        <div class="form-group">
+            <label>Teléfono</label>
+            <InputText @bind-value="model.ClientPhone" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Correo</label>
+            <InputText @bind-value="model.ClientEmail" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Tipo de prenda</label>
+            <InputText @bind-value="model.GarmentType" class="form-control" />
+            <ValidationMessage For="() => model.GarmentType" />
+        </div>
+        <div class="form-group">
+            <label>Deporte</label>
+            <InputText @bind-value="model.Sport" class="form-control" />
+            <ValidationMessage For="() => model.Sport" />
+        </div>
+        <div class="form-group">
+            <label>Cantidad</label>
+            <InputNumber @bind-value="model.Quantity" class="form-control" />
+            <ValidationMessage For="() => model.Quantity" />
+        </div>
+        <div class="form-group">
+            <label>Tallas</label>
+            <InputText @bind-value="model.SizeRange" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Fecha de entrega acordada</label>
+            <InputDate @bind-value="model.AgreedDeliveryDate" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Prioridad</label>
+            <InputSelect @bind-value="model.Priority" class="form-control">
+                @foreach (var p in Enum.GetValues<OrderPriority>())
+                {
+                    <option value="@p">@OrderStatusHelper.GetPriorityLabel(p)</option>
+                }
+            </InputSelect>
+        </div>
+    </div>
+    <div class="form-group">
+        <label>Notas / detalles</label>
+        <InputTextArea @bind-value="model.Notes" class="form-control" rows="4" />
+    </div>
+    <button type="submit" class="btn-primary" disabled="@isSaving">@(isSaving ? "Guardando..." : "Registrar pedido")</button>
+</EditForm>
+
+@code {
+    [Inject] private OrderService OrderService { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private readonly CreateOrderModel model = new();
+    private bool isSaving;
+    private string? message;
+    private string? error;
+
+    private async Task HandleSubmit()
+    {
+        isSaving = true;
+        error = null;
+        message = null;
+
+        var auth = await AuthState;
+        var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId is null)
+        {
+            error = "Sesión inválida.";
+            isSaving = false;
+            return;
+        }
+
+        try
+        {
+            var order = await OrderService.CreateManualOrderAsync(new Order
+            {
+                ClientName = model.ClientName.Trim(),
+                ClientPhone = model.ClientPhone,
+                ClientEmail = model.ClientEmail,
+                GarmentType = model.GarmentType.Trim(),
+                Sport = model.Sport.Trim(),
+                Quantity = model.Quantity,
+                SizeRange = model.SizeRange,
+                Notes = model.Notes,
+                Priority = model.Priority,
+                AgreedDeliveryDate = model.AgreedDeliveryDate?.ToUniversalTime()
+            }, userId);
+
+            Navigation.NavigateTo($"/pedidos/{order.Id}");
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            isSaving = false;
+        }
+    }
+
+    private sealed class CreateOrderModel
+    {
+        [Required(ErrorMessage = "Ingrese el nombre del cliente.")]
+        public string ClientName { get; set; } = string.Empty;
+
+        public string? ClientPhone { get; set; }
+        public string? ClientEmail { get; set; }
+
+        [Required(ErrorMessage = "Indique el tipo de prenda.")]
+        public string GarmentType { get; set; } = "Conjunto completo";
+
+        [Required(ErrorMessage = "Indique el deporte.")]
+        public string Sport { get; set; } = "Fútbol";
+
+        [Range(1, 10000, ErrorMessage = "Cantidad inválida.")]
+        public int Quantity { get; set; } = 1;
+
+        public string? SizeRange { get; set; }
+        public string? Notes { get; set; }
+        public OrderPriority Priority { get; set; } = OrderPriority.Normal;
+        public DateTime? AgreedDeliveryDate { get; set; } = DateTime.Today.AddDays(7);
+    }
+}

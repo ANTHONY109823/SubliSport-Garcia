@@ -1,0 +1,10 @@
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.idea/
+appsettings.Production.json
+.env
+.env.*
+!.env.example

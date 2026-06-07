@@ -1,0 +1,63 @@
+@page "/produccion"
+@layout AdminLayout
+@attribute [Authorize(Roles = "SuperAdmin,Admin,Production")]
+@rendermode InteractiveServer
+
+<PageTitle>Producción - SUBLISPORT GARCIA</PageTitle>
+
+<h1 class="page-title">Cola de producción</h1>
+<p class="page-subtitle">Impresión · Planchado · Confección · Entrega</p>
+
+@if (orders.Count == 0)
+{
+    <p class="empty-state">No hay pedidos en producción.</p>
+}
+else
+{
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Cliente</th>
+                    <th>Prioridad</th>
+                    <th>Entrega</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in orders)
+                {
+                    <tr>
+                        <td>@order.OrderNumber</td>
+                        <td>@order.ClientName</td>
+                        <td>@OrderStatusHelper.GetPriorityLabel(order.Priority)</td>
+                        <td>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</td>
+                        <td>@OrderStatusHelper.GetLabel(order.Status)</td>
+                        <td>
+                            <a href="/pedidos/@order.Id">Gestionar</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Inject] private OrderService OrderService { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private List<Order> orders = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthState;
+        var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId is null) return;
+
+        var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value);
+        orders = await OrderService.GetOrdersForUserAsync(userId, roles);
+    }
+}

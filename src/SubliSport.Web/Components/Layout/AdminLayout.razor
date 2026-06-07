@@ -1,0 +1,48 @@
+@inherits LayoutComponentBase
+
+<div class="admin-shell">
+    <aside class="admin-sidebar">
+        <div class="admin-brand">
+            <span>SUBLISPORT</span>
+            <strong>GARCIA</strong>
+        </div>
+        <nav class="admin-nav">
+            <NavLink href="/dashboard" Match="NavLinkMatch.All">Panel</NavLink>
+            <AuthorizeView Roles="SuperAdmin,Admin">
+                <NavLink href="/pedidos">Pedidos</NavLink>
+                <NavLink href="/pedidos/nuevo">Nuevo pedido</NavLink>
+            </AuthorizeView>
+            <AuthorizeView Roles="Designer">
+                <NavLink href="/pedidos">Mis diseños</NavLink>
+            </AuthorizeView>
+            <AuthorizeView Roles="Production">
+                <NavLink href="/produccion">Producción</NavLink>
+            </AuthorizeView>
+            <AuthorizeView Roles="SuperAdmin">
+                <NavLink href="/usuarios">Usuarios</NavLink>
+            </AuthorizeView>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <AuthorizeView>
+                <Authorized>
+                    <p>@context.User.Identity?.Name</p>
+                    <button class="btn-logout" @onclick="Logout">Cerrar sesión</button>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+    </aside>
+    <main class="admin-main">
+        @Body
+    </main>
+</div>
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [Inject] private SubliSport.Web.Services.AuthService AuthService { get; set; } = default!;
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}

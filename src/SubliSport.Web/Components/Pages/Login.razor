@@ -1,0 +1,78 @@
+@page "/login"
+@layout LoginLayout
+@attribute [AllowAnonymous]
+@rendermode InteractiveServer
+
+<PageTitle>Ingreso - SUBLISPORT GARCIA</PageTitle>
+
+<div class="login-card">
+    <div class="login-header">
+        <h1>SUBLISPORT <span>GARCIA</span></h1>
+        <p>Sistema de gestión interno</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert-error">@errorMessage</div>
+    }
+
+    <EditForm Model="model" FormName="loginForm" OnValidSubmit="HandleLogin">
+        <DataAnnotationsValidator />
+        <div class="form-group">
+            <label>Correo electrónico</label>
+            <InputText @bind-value="model.Email" class="form-control" autocomplete="username" />
+            <ValidationMessage For="() => model.Email" />
+        </div>
+        <div class="form-group">
+            <label>Contraseña</label>
+            <InputText type="password" @bind-value="model.Password" class="form-control" autocomplete="current-password" />
+            <ValidationMessage For="() => model.Password" />
+        </div>
+        <label class="checkbox-row">
+            <InputCheckbox @bind-value="model.RememberMe" />
+            Recordarme
+        </label>
+        <button type="submit" class="btn-login" disabled="@isLoading">
+            @(isLoading ? "Ingresando..." : "INGRESAR")
+        </button>
+    </EditForm>
+
+    <a href="/" class="back-link">← Volver al sitio público</a>
+</div>
+
+@code {
+    [Inject] private AuthService AuthService { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private readonly LoginModel model = new();
+    private string? errorMessage;
+    private bool isLoading;
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        var (success, error) = await AuthService.LoginAsync(model.Email, model.Password, model.RememberMe);
+        if (!success)
+        {
+            errorMessage = error;
+            isLoading = false;
+            return;
+        }
+
+        Navigation.NavigateTo("/dashboard", forceLoad: true);
+    }
+
+    private sealed class LoginModel
+    {
+        [Required(ErrorMessage = "Ingrese su correo.")]
+        [EmailAddress(ErrorMessage = "Correo inválido.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Ingrese su contraseña.")]
+        public string Password { get; set; } = string.Empty;
+
+        public bool RememberMe { get; set; }
+    }
+}

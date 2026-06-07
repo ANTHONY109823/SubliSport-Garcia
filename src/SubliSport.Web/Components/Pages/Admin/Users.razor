@@ -1,0 +1,161 @@
+@page "/usuarios"
+@layout AdminLayout
+@attribute [Authorize(Roles = "SuperAdmin")]
+@rendermode InteractiveServer
+
+<PageTitle>Usuarios - SUBLISPORT GARCIA</PageTitle>
+
+<h1 class="page-title">Gestión de usuarios</h1>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert-success">@message</div>
+}
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert-error">@error</div>
+}
+
+<section class="panel-section">
+    <h2>Crear nuevo usuario</h2>
+    <EditForm Model="model" FormName="createUserForm" OnValidSubmit="CreateUser" class="form-panel">
+        <DataAnnotationsValidator />
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Nombre completo</label>
+                <InputText @bind-value="model.FullName" class="form-control" />
+                <ValidationMessage For="() => model.FullName" />
+            </div>
+            <div class="form-group">
+                <label>Correo</label>
+                <InputText @bind-value="model.Email" class="form-control" />
+                <ValidationMessage For="() => model.Email" />
+            </div>
+            <div class="form-group">
+                <label>Contraseña temporal</label>
+                <InputText type="password" @bind-value="model.Password" class="form-control" />
+                <ValidationMessage For="() => model.Password" />
+            </div>
+            <div class="form-group">
+                <label>Rol</label>
+                <InputSelect @bind-value="model.Role" class="form-control">
+                    @foreach (var role in AppRoles.All)
+                    {
+                        <option value="@role">@role</option>
+                    }
+                </InputSelect>
+            </div>
+        </div>
+        <button type="submit" class="btn-primary">Crear usuario</button>
+    </EditForm>
+</section>
+
+<section class="panel-section">
+    <h2>Usuarios registrados</h2>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in users)
+                {
+                    var roles = userRoles.GetValueOrDefault(user.Id, []);
+                    <tr>
+                        <td>@user.FullName</td>
+                        <td>@user.Email</td>
+                        <td>@string.Join(", ", roles)</td>
+                        <td>@(user.IsActive ? "Activo" : "Inactivo")</td>
+                        <td>
+                            <button class="btn-outline" @onclick="() => ToggleActive(user.Id)">
+                                @(user.IsActive ? "Desactivar" : "Activar")
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@code {
+    [Inject] private UserManagementService UserManagementService { get; set; } = default!;
+
+    private List<ApplicationUser> users = [];
+    private Dictionary<string, IList<string>> userRoles = new();
+    private readonly CreateUserModel model = new();
+    private string? message;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsersAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        users = await UserManagementService.GetAllUsersAsync();
+        userRoles = new Dictionary<string, IList<string>>();
+        foreach (var user in users)
+        {
+            userRoles[user.Id] = await UserManagementService.GetUserRolesAsync(user);
+        }
+    }
+
+    private async Task CreateUser()
+    {
+        var (success, err) = await UserManagementService.CreateUserAsync(
+            new CreateUserRequest(model.Email, model.FullName, model.Password, model.Role),
+            string.Empty,
+            isSuperAdmin: true);
+
+        if (!success)
+        {
+            error = err;
+            message = null;
+            return;
+        }
+
+        message = "Usuario creado correctamente.";
+        error = null;
+        model.FullName = string.Empty;
+        model.Email = string.Empty;
+        model.Password = string.Empty;
+        model.Role = AppRoles.Admin;
+        await LoadUsersAsync();
+    }
+
+    private async Task ToggleActive(string userId)
+    {
+        var (success, err) = await UserManagementService.ToggleActiveAsync(userId, isSuperAdmin: true);
+        if (!success)
+        {
+            error = err;
+            return;
+        }
+
+        message = "Estado actualizado.";
+        error = null;
+        await LoadUsersAsync();
+    }
+
+    private sealed class CreateUserModel
+    {
+        [Required]
+        public string FullName { get; set; } = string.Empty;
+
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required, MinLength(10)]
+        public string Password { get; set; } = string.Empty;
+
+        public string Role { get; set; } = AppRoles.Admin;
+    }
+}
