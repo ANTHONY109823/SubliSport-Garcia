@@ -26,10 +26,16 @@ public static class AccountEndpoints
             try
             {
                 var user = await userManager.FindByEmailAsync(email);
-                if (user is null || !user.IsActive)
+                if (user is null)
                 {
-                    logger.LogWarning("Login fallido: usuario no encontrado o inactivo ({Email})", email);
+                    logger.LogWarning("Login fallido: usuario no encontrado ({Email})", email);
                     return Results.Redirect($"/login?error=invalid&email={Uri.EscapeDataString(email)}");
+                }
+
+                if (!user.IsActive)
+                {
+                    logger.LogWarning("Login fallido: usuario inactivo ({Email})", email);
+                    return Results.Redirect($"/login?error=inactive&email={Uri.EscapeDataString(email)}");
                 }
 
                 var result = await signInManager.PasswordSignInAsync(

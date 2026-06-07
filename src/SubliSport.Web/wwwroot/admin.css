@@ -120,7 +120,65 @@ body {
     margin-top: 8px;
 }
 .btn-primary { width: auto; }
+.btn-secondary {
+    background: transparent;
+    color: var(--gray);
+    border: 1px solid var(--border);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
 .btn-login:hover, .btn-primary:hover { background: var(--gold-light); }
+
+.form-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+
+.action-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+button.btn-action {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    color: var(--white);
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: 0.2s;
+}
+button.btn-action:hover { transform: translateY(-1px); }
+
+button.btn-edit {
+    color: var(--gold);
+    border-color: rgba(240,165,0,0.45);
+    background: rgba(240,165,0,0.1);
+}
+button.btn-edit:hover { background: rgba(240,165,0,0.2); }
+
+button.btn-warn {
+    color: #ffb347;
+    border-color: rgba(255,165,0,0.4);
+    background: rgba(255,165,0,0.08);
+}
+button.btn-warn:hover { background: rgba(255,165,0,0.15); }
+
+button.btn-success {
+    color: #6ee7a0;
+    border-color: rgba(80,200,120,0.4);
+    background: rgba(80,200,120,0.1);
+}
+button.btn-success:hover { background: rgba(80,200,120,0.18); }
+
+button.btn-danger {
+    color: #ff8080;
+    border-color: rgba(255,80,80,0.45);
+    background: rgba(255,80,80,0.1);
+}
+button.btn-danger:hover { background: rgba(255,80,80,0.2); }
+
 .btn-outline {
     display: inline-block;
     border: 1px solid var(--border);
@@ -186,7 +244,9 @@ body {
 .data-table th { color: var(--gold); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
 .data-table a { color: var(--gold); }
 
-.badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; }
+.badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+.status-active { background: rgba(80,200,120,0.15); color: #6ee7a0; }
+.status-inactive { background: rgba(255,80,80,0.15); color: #ff8080; }
 .priority-urgente { background: rgba(255,80,80,0.2); color: #ff8080; }
 .priority-alta { background: rgba(255,165,0,0.2); color: #ffb347; }
 .priority-normal { background: rgba(100,149,237,0.2); color: #87b3ff; }

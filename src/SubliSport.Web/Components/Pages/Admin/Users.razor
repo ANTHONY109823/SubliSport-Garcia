@@ -17,8 +17,8 @@
 }
 
 <section class="panel-section">
-    <h2>Crear nuevo usuario</h2>
-    <EditForm Model="model" FormName="createUserForm" OnValidSubmit="CreateUser" class="form-panel">
+    <h2>@(editingUserId is null ? "Crear nuevo usuario" : "Editar usuario")</h2>
+    <EditForm Model="model" FormName="userForm" OnValidSubmit="SaveUser" class="form-panel">
         <DataAnnotationsValidator />
         <div class="form-grid">
             <div class="form-group">
@@ -32,21 +32,40 @@
                 <ValidationMessage For="() => model.Email" />
             </div>
             <div class="form-group">
-                <label>Contraseña temporal</label>
+                <label>@(editingUserId is null ? "Contraseña temporal" : "Nueva contraseña (opcional)")</label>
                 <InputText type="password" @bind-value="model.Password" class="form-control" />
-                <ValidationMessage For="() => model.Password" />
+                @if (editingUserId is null)
+                {
+                    <ValidationMessage For="() => model.Password" />
+                }
             </div>
             <div class="form-group">
                 <label>Rol</label>
                 <InputSelect @bind-value="model.Role" class="form-control">
                     @foreach (var role in AppRoles.All)
                     {
-                        <option value="@role">@role</option>
+                        <option value="@role">@RoleHelper.GetLabel(role)</option>
                     }
                 </InputSelect>
             </div>
+            @if (editingUserId is not null)
+            {
+                <div class="form-group">
+                    <label>Estado</label>
+                    <InputSelect @bind-value="model.IsActive" class="form-control">
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </InputSelect>
+                </div>
+            }
         </div>
-        <button type="submit" class="btn-primary">Crear usuario</button>
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">@(editingUserId is null ? "Crear usuario" : "Guardar cambios")</button>
+            @if (editingUserId is not null)
+            {
+                <button type="button" class="btn-secondary" @onclick="CancelEdit">Cancelar</button>
+            }
+        </div>
     </EditForm>
 </section>
 
@@ -60,22 +79,31 @@
                     <th>Correo</th>
                     <th>Rol</th>
                     <th>Estado</th>
-                    <th></th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var user in users)
                 {
                     var roles = userRoles.GetValueOrDefault(user.Id, []);
+                    var roleLabel = roles.Count > 0 ? RoleHelper.GetLabel(roles[0]) : "—";
                     <tr>
                         <td>@user.FullName</td>
                         <td>@user.Email</td>
-                        <td>@string.Join(", ", roles)</td>
-                        <td>@(user.IsActive ? "Activo" : "Inactivo")</td>
+                        <td>@roleLabel</td>
                         <td>
-                            <button class="btn-outline" @onclick="() => ToggleActive(user.Id)">
-                                @(user.IsActive ? "Desactivar" : "Activar")
-                            </button>
+                            <span class="badge @(user.IsActive ? "status-active" : "status-inactive")">
+                                @(user.IsActive ? "Activo" : "Inactivo")
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button type="button" class="btn-action btn-edit" @onclick="() => StartEdit(user)">Editar</button>
+                                <button type="button" class="btn-action @(user.IsActive ? "btn-warn" : "btn-success")" @onclick="() => ToggleActive(user.Id)">
+                                    @(user.IsActive ? "Desactivar" : "Activar")
+                                </button>
+                                <button type="button" class="btn-action btn-danger" @onclick="() => DeleteUser(user.Id, user.FullName)">Eliminar</button>
+                            </div>
                         </td>
                     </tr>
                 }
@@ -86,15 +114,20 @@
 
 @code {
     [Inject] private UserManagementService UserManagementService { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
     private List<ApplicationUser> users = [];
     private Dictionary<string, IList<string>> userRoles = new();
-    private readonly CreateUserModel model = new();
+    private readonly UserFormModel model = new();
+    private string? editingUserId;
+    private string? currentUserId;
     private string? message;
     private string? error;
 
     protected override async Task OnInitializedAsync()
     {
+        var auth = await AuthState;
+        currentUserId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         await LoadUsersAsync();
     }
 
@@ -108,32 +141,82 @@
         }
     }
 
-    private async Task CreateUser()
+    private async Task SaveUser()
     {
-        var (success, err) = await UserManagementService.CreateUserAsync(
-            new CreateUserRequest(model.Email, model.FullName, model.Password, model.Role),
-            string.Empty,
-            isSuperAdmin: true);
+        error = null;
+        message = null;
 
-        if (!success)
+        if (editingUserId is null)
         {
-            error = err;
-            message = null;
-            return;
+            if (string.IsNullOrWhiteSpace(model.Password))
+            {
+                error = "Ingrese una contraseña temporal.";
+                return;
+            }
+
+            var (success, err) = await UserManagementService.CreateUserAsync(
+                new CreateUserRequest(model.Email, model.FullName, model.Password, model.Role),
+                isSuperAdmin: true);
+
+            if (!success)
+            {
+                error = err;
+                return;
+            }
+
+            message = "Usuario creado correctamente.";
+        }
+        else
+        {
+            var (success, err) = await UserManagementService.UpdateUserAsync(
+                new UpdateUserRequest(editingUserId, model.Email, model.FullName, model.Role, model.IsActive, model.Password),
+                currentUserId ?? string.Empty,
+                isSuperAdmin: true);
+
+            if (!success)
+            {
+                error = err;
+                return;
+            }
+
+            message = "Usuario actualizado correctamente.";
+            editingUserId = null;
         }
 
-        message = "Usuario creado correctamente.";
+        ResetForm();
+        await LoadUsersAsync();
+    }
+
+    private void StartEdit(ApplicationUser user)
+    {
+        editingUserId = user.Id;
+        model.FullName = user.FullName;
+        model.Email = user.Email ?? string.Empty;
+        model.Password = string.Empty;
+        model.IsActive = user.IsActive;
+        model.Role = userRoles.GetValueOrDefault(user.Id, [AppRoles.Admin]).FirstOrDefault() ?? AppRoles.Admin;
         error = null;
+        message = null;
+    }
+
+    private void CancelEdit()
+    {
+        editingUserId = null;
+        ResetForm();
+    }
+
+    private void ResetForm()
+    {
         model.FullName = string.Empty;
         model.Email = string.Empty;
         model.Password = string.Empty;
         model.Role = AppRoles.Admin;
-        await LoadUsersAsync();
+        model.IsActive = true;
     }
 
     private async Task ToggleActive(string userId)
     {
-        var (success, err) = await UserManagementService.ToggleActiveAsync(userId, isSuperAdmin: true);
+        var (success, err) = await UserManagementService.ToggleActiveAsync(userId, currentUserId ?? string.Empty, isSuperAdmin: true);
         if (!success)
         {
             error = err;
@@ -145,17 +228,36 @@
         await LoadUsersAsync();
     }
 
-    private sealed class CreateUserModel
+    private async Task DeleteUser(string userId, string fullName)
     {
-        [Required]
+        var (success, err) = await UserManagementService.DeleteUserAsync(userId, currentUserId ?? string.Empty, isSuperAdmin: true);
+        if (!success)
+        {
+            error = err;
+            return;
+        }
+
+        message = $"Usuario {fullName} eliminado.";
+        error = null;
+        if (editingUserId == userId)
+        {
+            CancelEdit();
+        }
+        await LoadUsersAsync();
+    }
+
+    private sealed class UserFormModel
+    {
+        [Required(ErrorMessage = "Ingrese el nombre.")]
         public string FullName { get; set; } = string.Empty;
 
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Required, MinLength(10)]
         public string Password { get; set; } = string.Empty;
 
         public string Role { get; set; } = AppRoles.Admin;
+
+        public bool IsActive { get; set; } = true;
     }
 }
