@@ -25,6 +25,8 @@ public static class ProduccionOrderHelper
     public static bool CanSetStage(Order order) =>
         order.Status is OrderStatus.EnImpresion or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion;
 
+    public static bool IsOnStage(Order order, OrderStatus stage) => order.Status == stage;
+
     public static bool CanMarkReadyForPickup(Order order)
     {
         if (order.Status == OrderStatus.ListoEntrega || order.Status == OrderStatus.Entregado)

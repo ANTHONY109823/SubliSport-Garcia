@@ -262,6 +262,11 @@ public class OrderService(AppDbContext db)
             throw new InvalidOperationException("Este pedido no incluye confección.");
         }
 
+        if (order.Status == stage)
+        {
+            return;
+        }
+
         var previous = order.Status;
         order.Status = stage;
         await AddHistoryAsync(order, previous, stage, userId, $"Etapa: {OrderStatusHelper.GetLabel(stage)}");
