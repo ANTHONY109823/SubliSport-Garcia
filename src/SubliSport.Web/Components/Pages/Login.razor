@@ -1,7 +1,6 @@
 @page "/login"
 @layout LoginLayout
 @attribute [AllowAnonymous]
-@rendermode InteractiveServer
 
 <PageTitle>Ingreso - SUBLISPORT GARCIA</PageTitle>
 
@@ -16,63 +15,97 @@
         <div class="alert-error">@errorMessage</div>
     }
 
-    <EditForm Model="model" FormName="loginForm" OnValidSubmit="HandleLogin">
-        <DataAnnotationsValidator />
+    <form method="post" @formname="login">
+        <AntiforgeryToken />
         <div class="form-group">
             <label>Correo electrónico</label>
-            <InputText @bind-value="model.Email" class="form-control" autocomplete="username" />
-            <ValidationMessage For="() => model.Email" />
+            <input name="Email" type="email" value="@(Input?.Email ?? "")" class="form-control" autocomplete="username" required />
         </div>
         <div class="form-group">
             <label>Contraseña</label>
-            <InputText type="password" @bind-value="model.Password" class="form-control" autocomplete="current-password" />
-            <ValidationMessage For="() => model.Password" />
+            <input name="Password" type="password" class="form-control" autocomplete="current-password" required />
         </div>
         <label class="checkbox-row">
-            <InputCheckbox @bind-value="model.RememberMe" />
+            <input name="RememberMe" type="checkbox" value="true" checked="@(Input?.RememberMe ?? false)" />
             Recordarme
         </label>
-        <button type="submit" class="btn-login" disabled="@isLoading">
-            @(isLoading ? "Ingresando..." : "INGRESAR")
-        </button>
-    </EditForm>
+        <button type="submit" class="btn-login">INGRESAR</button>
+    </form>
 
     <a href="/" class="back-link">← Volver al sitio público</a>
 </div>
 
 @code {
-    [Inject] private AuthService AuthService { get; set; } = default!;
+    [SupplyParameterFromForm(FormName = "login")]
+    private InputModel? Input { get; set; }
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [Inject] private SignInManager<ApplicationUser> SignInManager { get; set; } = default!;
+    [Inject] private UserManager<ApplicationUser> UserManager { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
-    private readonly LoginModel model = new();
     private string? errorMessage;
-    private bool isLoading;
 
-    private async Task HandleLogin()
+    protected override async Task OnInitializedAsync()
     {
-        isLoading = true;
-        errorMessage = null;
-
-        var (success, error) = await AuthService.LoginAsync(model.Email, model.Password, model.RememberMe);
-        if (!success)
+        if (HttpMethods.IsPost(HttpContext.Request.Method) && Input is not null)
         {
-            errorMessage = error;
-            isLoading = false;
+            await HandleLoginAsync();
+        }
+    }
+
+    private async Task HandleLoginAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Input!.Email) || string.IsNullOrWhiteSpace(Input.Password))
+        {
+            errorMessage = "Ingrese correo y contraseña.";
             return;
         }
 
-        Navigation.NavigateTo("/dashboard", forceLoad: true);
+        try
+        {
+            var user = await UserManager.FindByEmailAsync(Input!.Email.Trim());
+            if (user is null || !user.IsActive)
+            {
+                errorMessage = "Credenciales inválidas.";
+                return;
+            }
+
+            var result = await SignInManager.PasswordSignInAsync(
+                user.UserName!,
+                Input!.Password,
+                Input.RememberMe,
+                lockoutOnFailure: true);
+
+            if (result.IsLockedOut)
+            {
+                errorMessage = "Cuenta bloqueada temporalmente. Intente más tarde.";
+                return;
+            }
+
+            if (!result.Succeeded)
+            {
+                errorMessage = "Credenciales inválidas.";
+                return;
+            }
+
+            user.LastLoginAt = DateTime.UtcNow;
+            await UserManager.UpdateAsync(user);
+
+            Navigation.NavigateTo("/dashboard", forceLoad: true);
+        }
+        catch (Exception)
+        {
+            errorMessage = "Error al iniciar sesión. Verifique sus credenciales e intente de nuevo.";
+        }
     }
 
-    private sealed class LoginModel
+    private sealed class InputModel
     {
-        [Required(ErrorMessage = "Ingrese su correo.")]
-        [EmailAddress(ErrorMessage = "Correo inválido.")]
         public string Email { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Ingrese su contraseña.")]
         public string Password { get; set; } = string.Empty;
-
         public bool RememberMe { get; set; }
     }
 }
