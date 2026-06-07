@@ -4,11 +4,18 @@ namespace SubliSport.Infrastructure;
 
 public static class ConnectionStringHelper
 {
+    private static readonly string[] DatabaseUrlKeys =
+    [
+        "DATABASE_URL",
+        "DATABASE_PRIVATE_URL",
+        "PostgreSQL",
+        "POSTGRES_URL"
+    ];
+
     public static string Resolve(IConfiguration configuration)
     {
-        // Railway inyecta DATABASE_URL — debe tener prioridad sobre appsettings.json
-        var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-        if (!string.IsNullOrWhiteSpace(databaseUrl))
+        var databaseUrl = FindDatabaseUrl();
+        if (databaseUrl is not null)
         {
             return ParseDatabaseUrl(databaseUrl);
         }
@@ -26,9 +33,27 @@ public static class ConnectionStringHelper
         }
 
         throw new InvalidOperationException(
-            "No se encontró conexión a PostgreSQL. En Railway: referencia DATABASE_URL desde PostgreSQL. " +
-            "Local: configure ConnectionStrings__DefaultConnection o use docker compose.");
+            "No se encontró conexión a PostgreSQL. En Railway: referencia DATABASE_URL desde el servicio PostgreSQL.");
     }
+
+    private static string? FindDatabaseUrl()
+    {
+        foreach (var key in DatabaseUrlKeys)
+        {
+            var value = Environment.GetEnvironmentVariable(key);
+            if (IsPostgresUrl(value))
+            {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
+    private static bool IsPostgresUrl(string? value) =>
+        !string.IsNullOrWhiteSpace(value) &&
+        (value.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase) ||
+         value.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase));
 
     public static string ParseDatabaseUrl(string databaseUrl)
     {
