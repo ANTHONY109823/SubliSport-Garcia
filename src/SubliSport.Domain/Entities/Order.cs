@@ -28,6 +28,7 @@ public class Order
 
     public DateTime? ProductionAcceptedAt { get; set; }
     public string? ProductionAcceptedByUserId { get; set; }
+    public ProductionSubStage ProductionSubStage { get; set; } = ProductionSubStage.None;
 
     public int? FabricTypeId { get; set; }
     public string? FabricTypeName { get; set; }

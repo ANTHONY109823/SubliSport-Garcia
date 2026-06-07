@@ -227,49 +227,92 @@ public class OrderService(AppDbContext db)
         db.ChangeTracker.Clear();
     }
 
-    public async Task ProduccionStartAsync(Guid orderId, string userId)
+    public async Task ProduccionStartImpresionAsync(Guid orderId, string userId)
     {
         var order = await GetProduccionOrderAsync(orderId);
-        if (order.Status != OrderStatus.DisenoAprobado || !ProduccionOrderHelper.IsAccepted(order))
+        if (!ProduccionOrderHelper.CanStartImpresion(order))
         {
-            throw new InvalidOperationException("Debe aceptar el pedido antes de iniciarlo.");
+            throw new InvalidOperationException("Debe aceptar el pedido antes de iniciar impresión.");
         }
 
         var previous = order.Status;
         order.Status = OrderStatus.EnImpresion;
-        await AddHistoryAsync(order, previous, OrderStatus.EnImpresion, userId, ProduccionOrderHelper.StartedComment);
+        order.ProductionSubStage = ProductionSubStage.ImpresionEnCurso;
+        await AddHistoryAsync(order, previous, OrderStatus.EnImpresion, userId, ProduccionOrderHelper.ImpresionStartedComment);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
     }
 
-    public async Task ProduccionSetStageAsync(Guid orderId, OrderStatus stage, string userId)
+    public async Task ProduccionFinishImpresionAsync(Guid orderId, string userId)
     {
-        if (stage is not (OrderStatus.EnImpresion or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion))
-        {
-            throw new InvalidOperationException("Etapa inválida.");
-        }
-
         var order = await GetProduccionOrderAsync(orderId);
-        var canChange = ProduccionOrderHelper.CanSetStage(order) ||
-                        (order.Status == OrderStatus.DisenoAprobado && ProduccionOrderHelper.IsAccepted(order));
-        if (!canChange)
+        if (!ProduccionOrderHelper.CanFinishImpresion(order))
         {
-            throw new InvalidOperationException("El pedido aún no está en proceso de producción.");
+            throw new InvalidOperationException("La impresión aún no está en curso.");
         }
 
-        if (stage == OrderStatus.EnConfeccion && (order.ServiceOnlyPrintPress || !order.IncludesConfection))
-        {
-            throw new InvalidOperationException("Este pedido no incluye confección.");
-        }
+        order.ProductionSubStage = ProductionSubStage.ImpresionLista;
+        await AddHistoryAsync(order, order.Status, order.Status, userId, ProduccionOrderHelper.ImpresionFinishedComment);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+    }
 
-        if (order.Status == stage)
+    public async Task ProduccionStartPlanchadoAsync(Guid orderId, string userId)
+    {
+        var order = await GetProduccionOrderAsync(orderId);
+        if (!ProduccionOrderHelper.CanStartPlanchado(order))
         {
-            return;
+            throw new InvalidOperationException("Debe finalizar la impresión antes de enviar a planchado.");
         }
 
         var previous = order.Status;
-        order.Status = stage;
-        await AddHistoryAsync(order, previous, stage, userId, $"Etapa: {OrderStatusHelper.GetLabel(stage)}");
+        order.Status = OrderStatus.EnPlanchado;
+        order.ProductionSubStage = ProductionSubStage.PlanchadoEnCurso;
+        await AddHistoryAsync(order, previous, OrderStatus.EnPlanchado, userId, ProduccionOrderHelper.PlanchadoStartedComment);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+    }
+
+    public async Task ProduccionFinishPlanchadoAsync(Guid orderId, string userId)
+    {
+        var order = await GetProduccionOrderAsync(orderId);
+        if (!ProduccionOrderHelper.CanFinishPlanchado(order))
+        {
+            throw new InvalidOperationException("El planchado aún no está en curso.");
+        }
+
+        order.ProductionSubStage = ProductionSubStage.PlanchadoListo;
+        await AddHistoryAsync(order, order.Status, order.Status, userId, ProduccionOrderHelper.PlanchadoFinishedComment);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+    }
+
+    public async Task ProduccionStartConfeccionAsync(Guid orderId, string userId)
+    {
+        var order = await GetProduccionOrderAsync(orderId);
+        if (!ProduccionOrderHelper.CanStartConfeccion(order))
+        {
+            throw new InvalidOperationException("Debe finalizar el planchado antes de iniciar confección.");
+        }
+
+        var previous = order.Status;
+        order.Status = OrderStatus.EnConfeccion;
+        order.ProductionSubStage = ProductionSubStage.ConfeccionEnCurso;
+        await AddHistoryAsync(order, previous, OrderStatus.EnConfeccion, userId, ProduccionOrderHelper.ConfeccionStartedComment);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+    }
+
+    public async Task ProduccionFinishConfeccionAsync(Guid orderId, string userId)
+    {
+        var order = await GetProduccionOrderAsync(orderId);
+        if (!ProduccionOrderHelper.CanFinishConfeccion(order))
+        {
+            throw new InvalidOperationException("La confección aún no está en curso.");
+        }
+
+        order.ProductionSubStage = ProductionSubStage.ConfeccionListo;
+        await AddHistoryAsync(order, order.Status, order.Status, userId, ProduccionOrderHelper.ConfeccionFinishedComment);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
     }
@@ -279,11 +322,12 @@ public class OrderService(AppDbContext db)
         var order = await GetProduccionOrderAsync(orderId);
         if (!ProduccionOrderHelper.CanMarkReadyForPickup(order))
         {
-            throw new InvalidOperationException("Complete la etapa actual antes de marcar pendiente por recoger.");
+            throw new InvalidOperationException("Complete todas las etapas antes de marcar listo para entrega.");
         }
 
         var previous = order.Status;
         order.Status = OrderStatus.ListoEntrega;
+        order.ProductionSubStage = ProductionSubStage.None;
         await AddHistoryAsync(order, previous, OrderStatus.ListoEntrega, userId, ProduccionOrderHelper.ReadyPickupComment);
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();

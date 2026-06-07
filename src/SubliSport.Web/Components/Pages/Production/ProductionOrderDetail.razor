@@ -66,9 +66,9 @@ else
         {
             <section class="panel-section panel-highlight">
                 <h2>Acciones de producción</h2>
-                <p class="field-hint">Producción se desglosa en: Impresión → Planchado → Confección (si aplica). Cada movimiento queda con fecha y hora.</p>
+                <p class="field-hint">Avance paso a paso: Impresión → Planchado → Confección (si aplica). Solo un botón activo a la vez.</p>
 
-                <div class="designer-actions">
+                <div class="designer-actions production-steps">
                     @if (ProduccionOrderHelper.CanAccept(order))
                     {
                         <form method="post" action="/produccion/pedidos/@OrderId/aceptar" class="inline-form accept-form">
@@ -76,35 +76,75 @@ else
                         </form>
                     }
 
-                    @if (ProduccionOrderHelper.CanStart(order))
+                    @if (ProduccionOrderHelper.IsAccepted(order) || order.Status is OrderStatus.EnImpresion or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion or OrderStatus.ListoEntrega)
                     {
-                        <button type="button" class="btn-action btn-edit btn-action-lg" disabled="@isBusy" @onclick="StartOrderAsync">▶ Iniciar producción</button>
-                    }
-
-                    @if (order.Status is OrderStatus.EnImpresion or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion
-                         || (order.Status == OrderStatus.DisenoAprobado && ProduccionOrderHelper.IsAccepted(order)))
-                    {
-                        <div class="stage-buttons">
-                            <span class="field-hint">Etapa actual:</span>
-                            <button type="button" class="btn-action @(order.Status == OrderStatus.EnImpresion ? "btn-primary-action" : "")" disabled="@(isBusy || ProduccionOrderHelper.IsOnStage(order, OrderStatus.EnImpresion))" @onclick="() => SetStageAsync(OrderStatus.EnImpresion)">🖨 Impresión</button>
-                            <button type="button" class="btn-action @(order.Status == OrderStatus.EnPlanchado ? "btn-primary-action" : "")" disabled="@(isBusy || ProduccionOrderHelper.IsOnStage(order, OrderStatus.EnPlanchado))" @onclick="() => SetStageAsync(OrderStatus.EnPlanchado)">🔥 Planchado</button>
-                            @if (order.IncludesConfection && !order.ServiceOnlyPrintPress)
+                        <div class="production-step @(ProduccionOrderHelper.IsImpresionComplete(order) ? "step-done" : "step-active")">
+                            <h3>1. Impresión</h3>
+                            @if (ProduccionOrderHelper.CanStartImpresion(order))
                             {
-                                <button type="button" class="btn-action @(order.Status == OrderStatus.EnConfeccion ? "btn-primary-action" : "")" disabled="@(isBusy || ProduccionOrderHelper.IsOnStage(order, OrderStatus.EnConfeccion))" @onclick="() => SetStageAsync(OrderStatus.EnConfeccion)">✂️ Confección</button>
+                                <button type="button" class="btn-action btn-edit" disabled="@isBusy" @onclick="StartImpresionAsync">▶ Iniciar impresión</button>
+                            }
+                            else if (ProduccionOrderHelper.CanFinishImpresion(order))
+                            {
+                                <button type="button" class="btn-action btn-primary-action" disabled="@isBusy" @onclick="FinishImpresionAsync">✔ Finalizar impresión</button>
+                            }
+                            else if (ProduccionOrderHelper.IsImpresionComplete(order))
+                            {
+                                <span class="step-status">✓ Impresión completada</span>
                             }
                         </div>
-                    }
 
-                    @if (ProduccionOrderHelper.CanMarkReadyForPickup(order))
-                    {
-                        <button type="button" class="btn-action btn-primary-action btn-action-lg" disabled="@isBusy" @onclick="MarkReadyAsync">
-                            ✔ Trabajo finalizado — pendiente por recoger
-                        </button>
-                    }
+                        @if (ProduccionOrderHelper.IsImpresionComplete(order))
+                        {
+                            <div class="production-step @(ProduccionOrderHelper.IsPlanchadoComplete(order) ? "step-done" : "step-active")">
+                                <h3>2. Planchado</h3>
+                                @if (ProduccionOrderHelper.CanStartPlanchado(order))
+                                {
+                                    <button type="button" class="btn-action btn-edit" disabled="@isBusy" @onclick="StartPlanchadoAsync">▶ Enviar a planchado</button>
+                                }
+                                else if (ProduccionOrderHelper.CanFinishPlanchado(order))
+                                {
+                                    <button type="button" class="btn-action btn-primary-action" disabled="@isBusy" @onclick="FinishPlanchadoAsync">✔ Finalizar planchado</button>
+                                }
+                                else if (ProduccionOrderHelper.IsPlanchadoComplete(order))
+                                {
+                                    <span class="step-status">✓ Planchado completado</span>
+                                }
+                            </div>
+                        }
 
-                    @if (order.Status == OrderStatus.ListoEntrega)
-                    {
-                        <div class="alert-success inline-alert">Pedido listo. El cliente puede recogerlo.</div>
+                        @if (ProduccionOrderHelper.RequiresConfection(order) && ProduccionOrderHelper.IsPlanchadoComplete(order))
+                        {
+                            <div class="production-step @(ProduccionOrderHelper.GetEffectiveSubStage(order) == ProductionSubStage.ConfeccionListo ? "step-done" : "step-active")">
+                                <h3>3. Confección</h3>
+                                @if (ProduccionOrderHelper.CanStartConfeccion(order))
+                                {
+                                    <button type="button" class="btn-action btn-edit" disabled="@isBusy" @onclick="StartConfeccionAsync">▶ Iniciar confección</button>
+                                }
+                                else if (ProduccionOrderHelper.CanFinishConfeccion(order))
+                                {
+                                    <button type="button" class="btn-action btn-primary-action" disabled="@isBusy" @onclick="FinishConfeccionAsync">✔ Finalizar confección</button>
+                                }
+                                else if (ProduccionOrderHelper.GetEffectiveSubStage(order) == ProductionSubStage.ConfeccionListo)
+                                {
+                                    <span class="step-status">✓ Confección completada</span>
+                                }
+                            </div>
+                        }
+
+                        @if (ProduccionOrderHelper.CanMarkReadyForPickup(order))
+                        {
+                            <div class="production-step step-final">
+                                <button type="button" class="btn-action btn-success btn-action-lg" disabled="@isBusy" @onclick="MarkReadyAsync">
+                                    ✔ Finalizar producción — pedido listo para entrega
+                                </button>
+                            </div>
+                        }
+
+                        @if (order.Status == OrderStatus.ListoEntrega)
+                        {
+                            <div class="alert-success inline-alert">Pedido listo. El cliente puede recogerlo.</div>
+                        }
                     }
                 </div>
             </section>
@@ -225,34 +265,42 @@ else
         }
     }
 
-    private async Task StartOrderAsync()
+    private async Task StartImpresionAsync() => await RunAction(async () =>
     {
-        await RunAction(async () =>
-        {
-            var userId = await GetUserIdAsync();
-            await OrderService.ProduccionStartAsync(OrderId, userId);
-        }, "Producción iniciada.");
-    }
+        await OrderService.ProduccionStartImpresionAsync(OrderId, await GetUserIdAsync());
+    }, "Impresión iniciada.");
 
-    private async Task SetStageAsync(OrderStatus stage)
+    private async Task FinishImpresionAsync() => await RunAction(async () =>
     {
-        if (order is not null && order.Status == stage) return;
+        await OrderService.ProduccionFinishImpresionAsync(OrderId, await GetUserIdAsync());
+    }, "Impresión finalizada. Puede enviar a planchado.");
 
-        await RunAction(async () =>
-        {
-            var userId = await GetUserIdAsync();
-            await OrderService.ProduccionSetStageAsync(OrderId, stage, userId);
-        }, $"Etapa: {OrderStatusHelper.GetLabel(stage)}.");
-    }
-
-    private async Task MarkReadyAsync()
+    private async Task StartPlanchadoAsync() => await RunAction(async () =>
     {
-        await RunAction(async () =>
-        {
-            var userId = await GetUserIdAsync();
-            await OrderService.ProduccionMarkReadyForPickupAsync(OrderId, userId);
-        }, "Marcado como pendiente por recoger.");
-    }
+        await OrderService.ProduccionStartPlanchadoAsync(OrderId, await GetUserIdAsync());
+    }, "Planchado iniciado.");
+
+    private async Task FinishPlanchadoAsync() => await RunAction(async () =>
+    {
+        await OrderService.ProduccionFinishPlanchadoAsync(OrderId, await GetUserIdAsync());
+    }, ProduccionOrderHelper.RequiresConfection(order!)
+        ? "Planchado finalizado. Puede iniciar confección."
+        : "Planchado finalizado. Puede marcar listo para entrega.");
+
+    private async Task StartConfeccionAsync() => await RunAction(async () =>
+    {
+        await OrderService.ProduccionStartConfeccionAsync(OrderId, await GetUserIdAsync());
+    }, "Confección iniciada.");
+
+    private async Task FinishConfeccionAsync() => await RunAction(async () =>
+    {
+        await OrderService.ProduccionFinishConfeccionAsync(OrderId, await GetUserIdAsync());
+    }, "Confección finalizada. Puede marcar listo para entrega.");
+
+    private async Task MarkReadyAsync() => await RunAction(async () =>
+    {
+        await OrderService.ProduccionMarkReadyForPickupAsync(OrderId, await GetUserIdAsync());
+    }, "Pedido listo para entrega.");
 
     private async Task<string> GetUserIdAsync()
     {

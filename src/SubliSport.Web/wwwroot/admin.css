@@ -463,6 +463,18 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 .inline-hint { display: block; margin-top: 4px; font-size: 0.78rem; }
 
 .designer-actions { display: flex; flex-direction: column; gap: 12px; }
+.production-steps { gap: 14px; }
+.production-step {
+    padding: 14px 16px;
+    border: 1px solid rgba(240,165,0,0.25);
+    border-radius: 10px;
+    background: rgba(0,0,0,0.2);
+}
+.production-step.step-done { opacity: 0.75; border-color: rgba(37,211,102,0.35); }
+.production-step.step-active { border-color: rgba(240,165,0,0.5); }
+.production-step h3 { margin: 0 0 10px; font-size: 0.95rem; color: var(--gold); }
+.production-step .step-status { color: #6ee7a0; font-weight: 600; font-size: 0.9rem; }
+.production-step.step-final { border-color: rgba(37,211,102,0.4); background: rgba(37,211,102,0.06); }
 .btn-action-lg { padding: 12px 18px; font-size: 0.92rem; }
 .btn-primary-action {
     color: var(--black);
