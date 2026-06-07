@@ -9,6 +9,7 @@ using SubliSport.Infrastructure;
 using SubliSport.Infrastructure.Data;
 using SubliSport.Web.Components;
 using SubliSport.Web.Services;
+using SubliSport.Web;
 
 var port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8080");
 
@@ -97,11 +98,7 @@ app.UseAuthorization();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 
-app.MapPost("/account/logout", async (SignInManager<ApplicationUser> signInManager) =>
-{
-    await signInManager.SignOutAsync();
-    return Results.Redirect("/login");
-}).DisableAntiforgery();
+app.MapAccountEndpoints();
 
 app.UseDefaultFiles();
 app.MapStaticAssets();

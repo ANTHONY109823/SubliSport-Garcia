@@ -27,7 +27,6 @@
                 <Authorized>
                     <p>@context.User.Identity?.Name</p>
                     <form method="post" action="/account/logout">
-                        <AntiforgeryToken />
                         <button type="submit" class="btn-logout">Cerrar sesión</button>
                     </form>
                 </Authorized>

@@ -33,39 +33,65 @@ public static class DatabaseInitializer
             }
         }
 
-        var superAdminEmail = configuration["Seed:SuperAdminEmail"];
+        await EnsureSuperAdminAsync(userManager, configuration, logger);
+    }
+
+    private static async Task EnsureSuperAdminAsync(
+        UserManager<ApplicationUser> userManager,
+        IConfiguration configuration,
+        ILogger logger)
+    {
+        var superAdminEmail = configuration["Seed:SuperAdminEmail"]?.Trim();
         var superAdminPassword = configuration["Seed:SuperAdminPassword"];
 
         if (string.IsNullOrWhiteSpace(superAdminEmail) || string.IsNullOrWhiteSpace(superAdminPassword))
         {
-            logger.LogWarning("SuperAdmin seed skipped: configure Seed:SuperAdminEmail and Seed:SuperAdminPassword.");
+            logger.LogWarning("SuperAdmin seed skipped: configure Seed:SuperAdminEmail y Seed:SuperAdminPassword.");
             return;
         }
 
         var existing = await userManager.FindByEmailAsync(superAdminEmail);
-        if (existing is not null)
+        if (existing is null)
         {
+            var user = new ApplicationUser
+            {
+                UserName = superAdminEmail,
+                Email = superAdminEmail,
+                EmailConfirmed = true,
+                FullName = "Super Administrador",
+                IsActive = true
+            };
+
+            var result = await userManager.CreateAsync(user, superAdminPassword);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new InvalidOperationException($"No se pudo crear SuperAdmin: {errors}");
+            }
+
+            await userManager.AddToRoleAsync(user, AppRoles.SuperAdmin);
+            logger.LogInformation("SuperAdmin creado: {Email}", superAdminEmail);
             return;
         }
 
-        var user = new ApplicationUser
+        if (!await userManager.IsInRoleAsync(existing, AppRoles.SuperAdmin))
         {
-            UserName = superAdminEmail,
-            Email = superAdminEmail,
-            EmailConfirmed = true,
-            FullName = "Super Administrador",
-            IsActive = true
-        };
-
-        var result = await userManager.CreateAsync(user, superAdminPassword);
-        if (!result.Succeeded)
-        {
-            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            throw new InvalidOperationException($"No se pudo crear SuperAdmin: {errors}");
+            await userManager.AddToRoleAsync(existing, AppRoles.SuperAdmin);
         }
 
-        await userManager.AddToRoleAsync(user, AppRoles.SuperAdmin);
-        logger.LogInformation("SuperAdmin inicial creado correctamente.");
+        existing.IsActive = true;
+        await userManager.UpdateAsync(existing);
+
+        var resetToken = await userManager.GeneratePasswordResetTokenAsync(existing);
+        var resetResult = await userManager.ResetPasswordAsync(existing, resetToken, superAdminPassword);
+        if (!resetResult.Succeeded)
+        {
+            var errors = string.Join(", ", resetResult.Errors.Select(e => e.Description));
+            logger.LogWarning("No se pudo sincronizar clave SuperAdmin: {Errors}", errors);
+            return;
+        }
+
+        logger.LogInformation("SuperAdmin sincronizado: {Email}", superAdminEmail);
     }
 
     private static async Task MigrateWithRetryAsync(AppDbContext context, ILogger logger)
