@@ -70,6 +70,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddScoped<PricingConfigurationService>();
+builder.Services.AddScoped<ProductionConfigurationService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<UserManagementService>();
@@ -113,6 +114,7 @@ await app.Services.InitializeDatabaseAsync();
 using (var scope = app.Services.CreateScope())
 {
     await scope.ServiceProvider.GetRequiredService<PricingConfigurationService>().EnsureSeedAsync();
+    await scope.ServiceProvider.GetRequiredService<ProductionConfigurationService>().EnsureSeedAsync();
 }
 
 app.Run();

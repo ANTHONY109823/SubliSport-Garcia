@@ -112,23 +112,23 @@ else
                 <h2>Archivo para imprimir (WhatsApp)</h2>
                 @if (ProduccionOrderHelper.IsAccepted(order))
                 {
-                    <p class="field-hint">El diseñador envía el archivo por WhatsApp. Abra el chat indicado para ver el mensaje con el archivo.</p>
+                    <p class="field-hint">Los archivos se envían al grupo de WhatsApp de producción. Abra el grupo para ver el mensaje con el archivo del diseñador.</p>
                     <div class="whatsapp-actions">
-                        @if (designerWhatsAppUrl is not null)
+                        @if (productionGroupWhatsAppUrl is not null)
                         {
-                            <a href="@designerWhatsAppUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link btn-action btn-success btn-action-lg">
-                                📱 WhatsApp del diseñador (@WhatsAppHelper.FormatDisplayPhone(order.AssignedDesigner?.PhoneNumber))
+                            <a href="@productionGroupWhatsAppUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link btn-action btn-success btn-action-lg">
+                                📲 @(string.IsNullOrWhiteSpace(productionGroupName) ? "Grupo WhatsApp producción" : productionGroupName)
                             </a>
                         }
                         else
                         {
-                            <p class="text-muted">Sin WhatsApp del diseñador. Pida a Wilber que registre el número en Usuarios.</p>
+                            <p class="text-muted">Grupo WhatsApp no configurado. El SuperAdmin debe agregar el enlace en Configuración.</p>
                         }
 
-                        @if (productionLineWhatsAppUrl is not null)
+                        @if (designerWhatsAppUrl is not null)
                         {
-                            <a href="@productionLineWhatsAppUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link btn-action btn-edit">
-                                📲 Línea SubliSport (@WhatsAppHelper.FormatDisplayPhone(productionLinePhone))
+                            <a href="@designerWhatsAppUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link btn-action btn-edit">
+                                📱 Chat con diseñador (@WhatsAppHelper.FormatDisplayPhone(order.AssignedDesigner?.PhoneNumber))
                             </a>
                         }
                     </div>
@@ -184,14 +184,14 @@ else
     [Parameter] public Guid OrderId { get; set; }
 
     [Inject] private OrderService OrderService { get; set; } = default!;
-    [Inject] private IConfiguration Configuration { get; set; } = default!;
+    [Inject] private ProductionConfigurationService ProductionConfig { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
     private Order? order;
     private string? clientWhatsAppUrl;
     private string? designerWhatsAppUrl;
-    private string? productionLineWhatsAppUrl;
-    private string? productionLinePhone;
+    private string? productionGroupWhatsAppUrl;
+    private string? productionGroupName;
     private bool canDoProductionActions;
     private bool isAdminView;
     private bool isBusy;
@@ -217,9 +217,11 @@ else
 
         designerWhatsAppUrl = WhatsAppHelper.BuildChatUrl(designerPhone, fileMessage);
 
-        productionLinePhone = Configuration["Production:WhatsAppNumber"];
-        productionLineWhatsAppUrl = WhatsAppHelper.BuildChatUrl(
-            productionLinePhone,
+        var productionSettings = await ProductionConfig.GetSettingsAsync();
+        productionGroupName = productionSettings.GroupName;
+        productionGroupWhatsAppUrl = WhatsAppHelper.ResolveProductionGroupUrl(
+            productionSettings.GroupInviteUrl,
+            productionSettings.FallbackPhone,
             fileMessage);
 
         var auth = await AuthState;

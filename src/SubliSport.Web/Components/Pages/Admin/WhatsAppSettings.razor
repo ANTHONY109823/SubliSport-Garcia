@@ -1,0 +1,116 @@
+@page "/configuracion/whatsapp"
+@layout AdminLayout
+@attribute [Authorize(Roles = "SuperAdmin")]
+@rendermode InteractiveServer
+
+<PageTitle>WhatsApp producción - SUBLISPORT GARCIA</PageTitle>
+
+<h1 class="page-title">Grupo WhatsApp de producción</h1>
+<p class="page-subtitle">Los diseñadores envían archivos para imprimir a este grupo. Juanita lo abre desde el pedido tras aceptarlo.</p>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert-success">@message</div>
+}
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert-error">@error</div>
+}
+
+<section class="panel-section">
+    <h2>Enlace del grupo</h2>
+    <p class="field-hint">
+        Pegue el enlace de invitación de WhatsApp (Info del grupo → Invitar mediante enlace).
+        Ejemplo: <code>https://chat.whatsapp.com/AbCdEf...</code>
+    </p>
+    <div class="form-grid">
+        <div class="form-group">
+            <label>Nombre del grupo (visible en producción)</label>
+            <InputText @bind-value="model.GroupName" class="form-control" placeholder="Grupo Producción SubliSport" />
+        </div>
+        <div class="form-group form-group-full">
+            <label>Enlace de invitación del grupo</label>
+            <InputText @bind-value="model.GroupInviteUrl" class="form-control" placeholder="https://chat.whatsapp.com/..." />
+        </div>
+        <div class="form-group">
+            <label>Teléfono de respaldo (opcional)</label>
+            <InputText @bind-value="model.FallbackPhone" class="form-control" placeholder="960 840 874" />
+            <span class="field-hint">Se usa solo si aún no hay enlace de grupo. Formato Perú: 9 dígitos o 51...</span>
+        </div>
+        <div class="form-group form-group-full">
+            <label>Notas internas (opcional)</label>
+            <InputTextArea @bind-value="model.Notes" class="form-control" rows="2" placeholder="Instrucciones para el equipo..." />
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(model.GroupInviteUrl) || !string.IsNullOrWhiteSpace(model.FallbackPhone))
+    {
+        <div class="panel-highlight" style="margin-top:16px;padding:12px;">
+            <strong>Vista previa</strong>
+            @if (previewUrl is not null)
+            {
+                <p style="margin:8px 0 0">
+                    <a href="@previewUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link">
+                        📲 Abrir @(string.IsNullOrWhiteSpace(model.GroupName) ? "grupo WhatsApp" : model.GroupName)
+                    </a>
+                </p>
+            }
+            else
+            {
+                <p class="text-muted" style="margin:8px 0 0">Configure un enlace de grupo o un teléfono válido.</p>
+            }
+        </div>
+    }
+
+    <div class="form-actions">
+        <button type="button" class="btn-primary" @onclick="SaveAsync">Guardar configuración</button>
+    </div>
+</section>
+
+@code {
+    [Inject] private ProductionConfigurationService ProductionConfig { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private ProductionSettingsData model = ProductionSettingsData.CreateDefault();
+    private string? message;
+    private string? error;
+    private string? previewUrl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        model = await ProductionConfig.GetSettingsAsync();
+        UpdatePreview();
+    }
+
+    private void UpdatePreview() =>
+        previewUrl = WhatsAppHelper.ResolveProductionGroupUrl(model.GroupInviteUrl, model.FallbackPhone);
+
+    private async Task SaveAsync()
+    {
+        error = null;
+        message = null;
+
+        if (!string.IsNullOrWhiteSpace(model.GroupInviteUrl) &&
+            !model.GroupInviteUrl.Trim().StartsWith("https://chat.whatsapp.com/", StringComparison.OrdinalIgnoreCase))
+        {
+            error = "El enlace del grupo debe comenzar con https://chat.whatsapp.com/";
+            return;
+        }
+
+        try
+        {
+            var auth = await AuthState;
+            var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? throw new InvalidOperationException("Sesión inválida.");
+
+            await ProductionConfig.SaveSettingsAsync(model, userId);
+            model = await ProductionConfig.GetSettingsAsync();
+            UpdatePreview();
+            message = "Configuración de WhatsApp guardada.";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+}

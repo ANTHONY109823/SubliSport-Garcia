@@ -10,6 +10,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
     public DbSet<PricingConfiguration> PricingConfigurations => Set<PricingConfiguration>();
+    public DbSet<ProductionConfiguration> ProductionConfigurations => Set<ProductionConfiguration>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -75,6 +76,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         });
 
         builder.Entity<PricingConfiguration>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.JsonData).IsRequired();
+        });
+
+        builder.Entity<ProductionConfiguration>(entity =>
         {
             entity.HasKey(p => p.Id);
             entity.Property(p => p.JsonData).IsRequired();

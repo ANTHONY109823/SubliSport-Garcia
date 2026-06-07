@@ -126,6 +126,7 @@ input[type="date"].form-control::-webkit-calendar-picker-indicator {
 }
 
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.form-group-full { grid-column: 1 / -1; }
 .form-panel { max-width: 900px; }
 .form-inline { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 

@@ -39,4 +39,14 @@ public static class WhatsAppHelper
         var designerPart = string.IsNullOrWhiteSpace(designerName) ? string.Empty : $" · diseño: {designerName}";
         return $"Pedido {orderNumber} ({clientName}){designerPart}. Busco el archivo para imprimir en WhatsApp.";
     }
+
+    public static string? ResolveProductionGroupUrl(string? groupInviteUrl, string? fallbackPhone, string? prefilledMessage = null)
+    {
+        if (!string.IsNullOrWhiteSpace(groupInviteUrl))
+        {
+            return groupInviteUrl.Trim();
+        }
+
+        return BuildChatUrl(fallbackPhone, prefilledMessage);
+    }
 }
