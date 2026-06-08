@@ -80,19 +80,16 @@ else if (isAdmin)
                     <tbody>
                         @foreach (var order in activeTracking.Take(8))
                         {
-                            var last = order.StatusHistory.OrderByDescending(h => h.ChangedAt).FirstOrDefault();
+                            var milestones = OrderJourneyHelper.BuildMilestones(order);
+                            var last = milestones.LastOrDefault();
                             <tr>
                                 <td>@order.OrderNumber</td>
                                 <td>@order.ClientName</td>
-                                <td>@OrderStatusHelper.GetLabel(order.Status)</td>
+                                <td>@OrderDisplayHelper.GetStatusLabel(order)</td>
                                 <td>
                                     @if (last is not null)
                                     {
-                                        <span>@last.ChangedAt.ToLocalTime().ToString("dd/MM HH:mm")</span>
-                                        @if (!string.IsNullOrWhiteSpace(last.Comment))
-                                        {
-                                            <span class="text-muted"> · @last.Comment</span>
-                                        }
+                                        <span>@last.Area · @last.At.ToLocalTime().ToString("dd/MM HH:mm")</span>
                                     }
                                     else
                                     {

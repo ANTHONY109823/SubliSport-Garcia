@@ -44,6 +44,9 @@
         <button type="button" class="filter-tab @(filter == AdminFilter.Delivered ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.Delivered)">
             Entregados (@deliveredCount)
         </button>
+        <button type="button" class="filter-tab @(filter == AdminFilter.WaitingClient ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.WaitingClient)">
+            Pendiente cliente (@waitingClientCount)
+        </button>
     </div>
 }
 else if (isDesigner)
@@ -60,6 +63,9 @@ else if (isDesigner)
         </button>
         <button type="button" class="filter-tab @(designerFilter == DesignerFilter.Completed ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.Completed)">
             Culminados (@completedCount)
+        </button>
+        <button type="button" class="filter-tab @(designerFilter == DesignerFilter.WaitingClient ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.WaitingClient)">
+            Pendiente cliente (@waitingClientCount)
         </button>
     </div>
 }
@@ -80,7 +86,7 @@ else if (isDesigner)
                         <strong>@order.OrderNumber</strong>
                         <span class="badge priority-@order.Priority.ToString().ToLower()">@OrderStatusHelper.GetPriorityLabel(order.Priority)</span>
                     </div>
-                    <span class="badge stage-badge">@DesignerOrderHelper.GetDesignerStageLabel(order)</span>
+                    <span class="badge stage-badge">@OrderDisplayHelper.GetStatusLabel(order)</span>
                 </div>
                 <div class="order-card-body">
                     <p><span>Cliente</span> @order.ClientName</p>
@@ -127,7 +133,7 @@ else
                         <td>@order.GarmentType</td>
                         <td><span class="badge priority-@order.Priority.ToString().ToLower()">@OrderStatusHelper.GetPriorityLabel(order.Priority)</span></td>
                         <td>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</td>
-                        <td>@OrderStatusHelper.GetLabel(order.Status)</td>
+                        <td>@OrderDisplayHelper.GetStatusLabel(order)</td>
                         <td>
                             @if (needsAssign)
                             {
@@ -154,8 +160,8 @@ else
     [Inject] private OrderService OrderService { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
-    private enum AdminFilter { All, Unassigned, Urgent, New, InProduction, Delivered }
-    private enum DesignerFilter { Pending, ToAccept, InProgress, Completed }
+    private enum AdminFilter { All, Unassigned, Urgent, New, InProduction, Delivered, WaitingClient }
+    private enum DesignerFilter { Pending, ToAccept, InProgress, Completed, WaitingClient }
 
     private List<Order> orders = [];
     private List<Order> filteredOrders = [];
@@ -172,6 +178,7 @@ else
     private int toAcceptCount;
     private int inProgressCount;
     private int completedCount;
+    private int waitingClientCount;
 
     protected override async Task OnInitializedAsync()
     {
@@ -194,6 +201,7 @@ else
             inProductionCount = orders.Count(o => o.Status is OrderStatus.DisenoAprobado or OrderStatus.EnImpresion
                 or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion or OrderStatus.ListoEntrega);
             deliveredCount = orders.Count(o => o.Status == OrderStatus.Entregado);
+            waitingClientCount = orders.Count(DesignerOrderHelper.IsPendingClientApproval);
             ApplyAdminFilter();
         }
         else if (isDesigner)
@@ -209,6 +217,7 @@ else
         toAcceptCount = orders.Count(DesignerOrderHelper.CanAccept);
         inProgressCount = orders.Count(o => o.Status == OrderStatus.EnDiseno || DesignerOrderHelper.CanStart(o));
         completedCount = orders.Count(DesignerOrderHelper.IsDesignPhaseComplete);
+        waitingClientCount = orders.Count(DesignerOrderHelper.IsPendingClientApproval);
     }
 
     private void SetAdminFilter(AdminFilter newFilter)
@@ -245,6 +254,9 @@ else
             AdminFilter.Delivered => orders
                 .Where(o => o.Status == OrderStatus.Entregado)
                 .ToList(),
+            AdminFilter.WaitingClient => orders
+                .Where(DesignerOrderHelper.IsPendingClientApproval)
+                .ToList(),
             _ => orders
         };
 
@@ -262,6 +274,7 @@ else
                 .Where(o => o.Status == OrderStatus.EnDiseno || DesignerOrderHelper.CanStart(o))
                 .ToList(),
             DesignerFilter.Completed => orders.Where(DesignerOrderHelper.IsDesignPhaseComplete).ToList(),
+            DesignerFilter.WaitingClient => orders.Where(DesignerOrderHelper.IsPendingClientApproval).ToList(),
             _ => orders.Where(DesignerOrderHelper.IsPending).ToList()
         };
 
@@ -273,6 +286,7 @@ else
 
     private static string GetDesignerCardClass(Order order)
     {
+        if (DesignerOrderHelper.IsPendingClientApproval(order)) return "card-waiting";
         if (DesignerOrderHelper.CanAccept(order)) return "card-new";
         if (order.Status == OrderStatus.EnDiseno) return "card-active";
         if (DesignerOrderHelper.IsDesignPhaseComplete(order)) return "card-done";

@@ -16,6 +16,7 @@ public class OrderService(AppDbContext db)
 
     public async Task<List<Order>> GetOrdersForUserAsync(string userId, IEnumerable<string> roles)
     {
+        db.ChangeTracker.Clear();
         var query = db.Orders
             .Include(o => o.AssignedDesigner)
             .Include(o => o.CreatedByUser)
@@ -152,6 +153,7 @@ public class OrderService(AppDbContext db)
 
         await AddHistoryAsync(order, order.Status, order.Status, designerId, DesignerOrderHelper.AcceptedComment);
         await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
     }
 
     public async Task DesignerStartAsync(Guid orderId, string designerId)
@@ -166,6 +168,7 @@ public class OrderService(AppDbContext db)
         order.Status = OrderStatus.EnDiseno;
         await AddHistoryAsync(order, previous, OrderStatus.EnDiseno, designerId, DesignerOrderHelper.StartedComment);
         await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
     }
 
     public async Task DesignerFinishAsync(Guid orderId, string designerId)
@@ -178,8 +181,38 @@ public class OrderService(AppDbContext db)
 
         var previous = order.Status;
         order.Status = OrderStatus.DisenoAprobado;
+        order.ClientApprovalPendingAt = null;
         await AddHistoryAsync(order, previous, OrderStatus.DisenoAprobado, designerId, DesignerOrderHelper.FinishedComment);
         await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+    }
+
+    public async Task DesignerMarkPendingClientApprovalAsync(Guid orderId, string designerId)
+    {
+        var order = await GetDesignerOrderAsync(orderId, designerId);
+        if (!DesignerOrderHelper.CanMarkPendingClientApproval(order))
+        {
+            throw new InvalidOperationException("Solo puede marcar pendiente de cliente un diseño en curso.");
+        }
+
+        order.ClientApprovalPendingAt = DateTime.UtcNow;
+        await AddHistoryAsync(order, order.Status, order.Status, designerId, DesignerOrderHelper.PendingClientComment);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+    }
+
+    public async Task DesignerResumeAfterClientAsync(Guid orderId, string designerId)
+    {
+        var order = await GetDesignerOrderAsync(orderId, designerId);
+        if (!DesignerOrderHelper.CanResumeAfterClient(order))
+        {
+            throw new InvalidOperationException("El pedido no está pendiente de aprobación del cliente.");
+        }
+
+        order.ClientApprovalPendingAt = null;
+        await AddHistoryAsync(order, order.Status, order.Status, designerId, DesignerOrderHelper.ClientRespondedComment);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
     }
 
     public async Task DesignerReturnAsync(Guid orderId, string designerId, string comment)
@@ -198,8 +231,10 @@ public class OrderService(AppDbContext db)
         var previous = order.Status;
         order.Status = OrderStatus.EnRevision;
         order.AssignedDesignerId = null;
+        order.ClientApprovalPendingAt = null;
         await AddHistoryAsync(order, previous, OrderStatus.EnRevision, designerId, $"Devuelto a administración: {comment.Trim()}");
         await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
     }
 
     public async Task DesignerUpdateDetailsAsync(Guid orderId, string designerId, string? sizeRange, string? notes)

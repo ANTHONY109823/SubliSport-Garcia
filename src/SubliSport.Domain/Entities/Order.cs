@@ -30,6 +30,8 @@ public class Order
     public string? ProductionAcceptedByUserId { get; set; }
     public ProductionSubStage ProductionSubStage { get; set; } = ProductionSubStage.None;
 
+    public DateTime? ClientApprovalPendingAt { get; set; }
+
     public int? FabricTypeId { get; set; }
     public string? FabricTypeName { get; set; }
     public int? FabricTypeRipId { get; set; }

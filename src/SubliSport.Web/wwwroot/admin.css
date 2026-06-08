@@ -509,6 +509,7 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
     gap: 12px;
 }
 .order-card.card-new { border-color: rgba(100,149,237,0.5); }
+.order-card.card-waiting { border-color: rgba(255,193,7,0.55); }
 .order-card.card-active { border-color: rgba(240,165,0,0.45); }
 .order-card.card-done { opacity: 0.85; border-color: rgba(110,231,160,0.35); }
 .order-card-header {
@@ -553,6 +554,11 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 .journey-status { color: rgba(255,255,255,0.9); margin-bottom: 4px; }
 .journey-comment { color: var(--gray); font-size: 0.86rem; }
 .subsection-title { font-size: 0.95rem; margin: 16px 0 10px; color: var(--gold); }
+.order-journey-compact .journey-step-compact { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.order-journey-compact .journey-area { font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; letter-spacing: 1px; text-transform: uppercase; color: var(--white); }
+.order-journey-compact .journey-meta { display: flex; align-items: center; gap: 12px; font-size: 0.82rem; color: var(--gray); }
+.order-journey-compact .journey-meta time { color: var(--gold); font-weight: 600; }
+.order-journey-compact .journey-step-current .journey-area { color: var(--gold); }
 
 @media (max-width: 768px) {
     .admin-shell { flex-direction: column; }

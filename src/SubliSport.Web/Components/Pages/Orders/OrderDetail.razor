@@ -16,7 +16,7 @@ else
             <h1 class="page-title">@order.OrderNumber</h1>
             <p class="page-subtitle">
                 @order.ClientName
-                · <span class="badge status-@order.Status.ToString().ToLower()">@(isDesignerView ? DesignerOrderHelper.GetDesignerStageLabel(order) : OrderStatusHelper.GetLabel(order.Status))</span>
+                · <span class="badge status-@order.Status.ToString().ToLower()">@OrderDisplayHelper.GetStatusLabel(order)</span>
                 · <span class="badge priority-@order.Priority.ToString().ToLower()">@OrderStatusHelper.GetPriorityLabel(order.Priority)</span>
             </p>
         </div>
@@ -94,8 +94,8 @@ else
 
         <AuthorizeView Roles="Admin">
             <section class="panel-section panel-highlight">
-                <h2>Recorrido del pedido</h2>
-                <p class="field-hint">Línea de tiempo con horas entre cada etapa.</p>
+                <h2>Recorrido por áreas</h2>
+                <p class="field-hint">Área, fecha y tiempo entre etapas.</p>
                 <OrderTimeline Order="order" />
             </section>
 
@@ -168,6 +168,14 @@ else
                         {
                             <button type="button" class="btn-action btn-edit btn-action-lg" @onclick="StartOrder">▶ Iniciar pedido</button>
                         }
+                        @if (DesignerOrderHelper.CanMarkPendingClientApproval(order))
+                        {
+                            <button type="button" class="btn-action btn-warn btn-action-lg" @onclick="MarkPendingClientAsync">⏳ Pendiente aprobación del cliente</button>
+                        }
+                        @if (DesignerOrderHelper.CanResumeAfterClient(order))
+                        {
+                            <button type="button" class="btn-action btn-edit btn-action-lg" @onclick="ResumeAfterClientAsync">▶ Cliente respondió — continuar</button>
+                        }
                         @if (DesignerOrderHelper.CanFinish(order))
                         {
                             <button type="button" class="btn-action btn-primary-action btn-action-lg" @onclick="FinishDesign">✔ Diseño finalizado — enviar a producción</button>
@@ -188,7 +196,7 @@ else
         @if (isDesignerView)
         {
             <section class="panel-section">
-                <h2>Historial (con hora)</h2>
+                <h2>Recorrido por áreas</h2>
                 <OrderTimeline Order="order" />
             </section>
         }
@@ -308,6 +316,30 @@ else
             await OrderService.DesignerFinishAsync(order.Id, currentUserId);
             await LoadOrderAsync();
             message = "Diseño finalizado. El pedido fue enviado a producción.";
+        }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task MarkPendingClientAsync()
+    {
+        if (order is null || currentUserId is null) return;
+        try
+        {
+            await OrderService.DesignerMarkPendingClientApprovalAsync(order.Id, currentUserId);
+            await LoadOrderAsync();
+            message = "Marcado como pendiente de aprobación del cliente.";
+        }
+        catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task ResumeAfterClientAsync()
+    {
+        if (order is null || currentUserId is null) return;
+        try
+        {
+            await OrderService.DesignerResumeAfterClientAsync(order.Id, currentUserId);
+            await LoadOrderAsync();
+            message = "Cliente respondió. Puede continuar el diseño.";
         }
         catch (Exception ex) { error = ex.Message; }
     }
