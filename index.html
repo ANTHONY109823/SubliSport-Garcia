@@ -216,7 +216,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     <li><a href="#catalogo">Catálogo</a></li>
     <li><a href="#cotizar">Cotizar</a></li>
     <li><a href="#proceso">Proceso</a></li>
-    <li><a href="/login" target="_blank" rel="noopener noreferrer" class="nav-login">🔐 INGRESAR</a></li>
+    <li><a href="#" data-panel-login target="_blank" rel="noopener noreferrer" class="nav-login">🔐 INGRESAR</a></li>
     <li><a href="#cotizar" class="nav-cta">📲 WhatsApp</a></li>
   </ul>
   <button class="hamburger" id="hamburger" onclick="toggleMenu()">
@@ -520,6 +520,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
   </div>
 </footer>
 
+<script src="panel-config.js"></script>
 <script>
 const cursor = document.getElementById('cursor');
 const ring = document.getElementById('cursorRing');
