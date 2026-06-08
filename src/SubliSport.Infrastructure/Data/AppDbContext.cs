@@ -12,6 +12,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<PricingConfiguration> PricingConfigurations => Set<PricingConfiguration>();
     public DbSet<ProductionConfiguration> ProductionConfigurations => Set<ProductionConfiguration>();
     public DbSet<LandingConfiguration> LandingConfigurations => Set<LandingConfiguration>();
+    public DbSet<PanelUiConfiguration> PanelUiConfigurations => Set<PanelUiConfiguration>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -89,6 +90,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         });
 
         builder.Entity<LandingConfiguration>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.JsonData).IsRequired();
+        });
+
+        builder.Entity<PanelUiConfiguration>(entity =>
         {
             entity.HasKey(p => p.Id);
             entity.Property(p => p.JsonData).IsRequired();

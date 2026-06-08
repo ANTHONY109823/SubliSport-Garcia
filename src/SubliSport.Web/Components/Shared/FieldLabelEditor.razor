@@ -1,0 +1,21 @@
+@using SubliSport.Domain.Ui
+
+<div class="table-wrap">
+    <table class="data-table">
+        <thead><tr><th>Campo interno</th><th>Etiqueta visible</th><th>Mostrar</th></tr></thead>
+        <tbody>
+            @foreach (var field in Fields)
+            {
+                <tr>
+                    <td><code>@field.Key</code></td>
+                    <td><input @bind="field.Label" class="form-control form-control-sm" /></td>
+                    <td><input type="checkbox" @bind="field.Visible" /></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter] public List<UiFieldSetting> Fields { get; set; } = [];
+}

@@ -36,31 +36,58 @@ else
         <section class="panel-section">
             <h2>Datos del pedido</h2>
             <dl class="detail-list">
-                <div><dt>Cliente</dt><dd>@order.ClientName</dd></div>
-                <div>
-                    <dt>WhatsApp</dt>
-                    <dd>
-                        @if (whatsappUrl is not null)
-                        {
-                            <a href="@whatsappUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link">
-                                📱 @WhatsAppHelper.FormatDisplayPhone(order.ClientPhone)
-                            </a>
-                        }
-                        else
-                        {
-                            <span class="text-muted">Sin número registrado</span>
-                        }
-                    </dd>
-                </div>
-                <div><dt>Prenda</dt><dd>@order.GarmentType</dd></div>
-                <div><dt>Deporte</dt><dd>@order.Sport</dd></div>
-                <div><dt>Cantidad</dt><dd>@order.Quantity uds.</dd></div>
-                <div><dt>Tallas</dt><dd class="@(string.IsNullOrWhiteSpace(order.SizeRange) ? "text-muted" : "")">@(string.IsNullOrWhiteSpace(order.SizeRange) ? "Pendiente" : order.SizeRange)</dd></div>
-                <div><dt>Entrega acordada</dt><dd>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</dd></div>
-                <div><dt>Notas admin</dt><dd>@(order.Notes ?? "—")</dd></div>
-                @if (!isDesignerView)
+                @{
+                    var panelKey = isDesignerView ? UiPanelKeys.DesignerOrderDetail : UiPanelKeys.AdminOrderDetail;
+                }
+                @if (UiLabelHelper.IsVisible(ui, panelKey, "clientName"))
                 {
-                    <div><dt>Diseñador</dt><dd>@(order.AssignedDesigner?.FullName ?? "Sin asignar")</dd></div>
+                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "clientName", "Cliente")</dt><dd>@order.ClientName</dd></div>
+                }
+                @if (UiLabelHelper.IsVisible(ui, panelKey, "clientPhone"))
+                {
+                    <div>
+                        <dt>@UiLabelHelper.Label(ui, panelKey, "clientPhone", "WhatsApp")</dt>
+                        <dd>
+                            @if (whatsappUrl is not null)
+                            {
+                                <a href="@whatsappUrl" target="_blank" rel="noopener noreferrer" class="whatsapp-link">
+                                    📱 @WhatsAppHelper.FormatDisplayPhone(order.ClientPhone)
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Sin número registrado</span>
+                            }
+                        </dd>
+                    </div>
+                }
+                @if (UiLabelHelper.IsVisible(ui, panelKey, "garmentType"))
+                {
+                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "garmentType", "Prenda")</dt><dd>@order.GarmentType</dd></div>
+                }
+                @if (UiLabelHelper.IsVisible(ui, panelKey, "sport"))
+                {
+                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "sport", "Deporte")</dt><dd>@order.Sport</dd></div>
+                }
+                @if (UiLabelHelper.IsVisible(ui, panelKey, "quantity"))
+                {
+                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "quantity", "Cantidad")</dt><dd>@order.Quantity uds.</dd></div>
+                }
+                @if (UiLabelHelper.IsVisible(ui, panelKey, "sizeRange"))
+                {
+                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "sizeRange", "Tallas")</dt><dd class="@(string.IsNullOrWhiteSpace(order.SizeRange) ? "text-muted" : "")">@(string.IsNullOrWhiteSpace(order.SizeRange) ? "Pendiente" : order.SizeRange)</dd></div>
+                }
+                @if (UiLabelHelper.IsVisible(ui, panelKey, "agreedDeliveryDate"))
+                {
+                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "agreedDeliveryDate", "Entrega acordada")</dt><dd>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</dd></div>
+                }
+                @if (UiLabelHelper.IsVisible(ui, panelKey, "notes"))
+                {
+                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "notes", "Notas admin")</dt><dd>@(order.Notes ?? "—")</dd></div>
+                }
+                @if (!isDesignerView && UiLabelHelper.IsVisible(ui, panelKey, "assignedDesigner"))
+                {
+                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "assignedDesigner", "Diseñador")</dt><dd>@(order.AssignedDesigner?.FullName ?? "Sin asignar")</dd></div>
                 }
             </dl>
         </section>
@@ -97,6 +124,17 @@ else
             {
                 <section class="panel-section">
                     <a href="/produccion/@order.Id" class="quick-link">Ver en producción →</a>
+                </section>
+            }
+
+            @if (ProduccionOrderHelper.CanMarkDelivered(order))
+            {
+                <section class="panel-section panel-highlight">
+                    <h2>Entrega al cliente</h2>
+                    <p class="field-hint">El pedido está listo para recoger. Regístrelo cuando el cliente lo retire.</p>
+                    <button type="button" class="btn-action btn-success btn-action-lg" disabled="@isBusy" @onclick="MarkDeliveredAsync">
+                        ✓ Registrar entrega al cliente
+                    </button>
                 </section>
             }
         </AuthorizeView>
@@ -181,11 +219,14 @@ else
     [Parameter] public Guid OrderId { get; set; }
 
     [Inject] private OrderService OrderService { get; set; } = default!;
+    [Inject] private PanelUiConfigurationService PanelUiConfig { get; set; } = default!;
     [Inject] private UserManagementService UserManagementService { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
+    private PanelUiSettingsData ui = PanelUiSettingsData.CreateDefault();
     private Order? order;
+    private bool isBusy;
     private List<ApplicationUser> designers = [];
     private Dictionary<string, int> designerLoads = new();
     private string? selectedDesignerId;
@@ -203,6 +244,7 @@ else
 
     private async Task LoadOrderAsync()
     {
+        ui = await PanelUiConfig.GetSettingsAsync();
         order = await OrderService.GetByIdAsync(OrderId);
         if (order is null) return;
 
@@ -299,5 +341,24 @@ else
             Navigation.NavigateTo("/pedidos");
         }
         catch (Exception ex) { error = ex.Message; }
+    }
+
+    private async Task MarkDeliveredAsync()
+    {
+        if (order is null || currentUserId is null || isBusy) return;
+        isBusy = true;
+        error = null;
+        message = null;
+        try
+        {
+            await OrderService.MarkDeliveredAsync(order.Id, currentUserId);
+            await LoadOrderAsync();
+            message = "Pedido registrado como entregado.";
+        }
+        catch (Exception ex) { error = ex.Message; }
+        finally
+        {
+            isBusy = false;
+        }
     }
 }

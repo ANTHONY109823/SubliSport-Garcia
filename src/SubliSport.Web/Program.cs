@@ -66,12 +66,13 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/login";
     options.AccessDeniedPath = "/login";
     options.SlidingExpiration = true;
-    options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    options.ExpireTimeSpan = TimeSpan.FromDays(2);
 });
 
 builder.Services.AddScoped<PricingConfigurationService>();
 builder.Services.AddScoped<ProductionConfigurationService>();
 builder.Services.AddScoped<LandingConfigurationService>();
+builder.Services.AddScoped<PanelUiConfigurationService>();
 
 builder.Services.AddCors(options =>
 {
@@ -144,6 +145,7 @@ using (var scope = app.Services.CreateScope())
     await scope.ServiceProvider.GetRequiredService<PricingConfigurationService>().EnsureSeedAsync();
     await scope.ServiceProvider.GetRequiredService<ProductionConfigurationService>().EnsureSeedAsync();
     await scope.ServiceProvider.GetRequiredService<LandingConfigurationService>().EnsureSeedAsync();
+    await scope.ServiceProvider.GetRequiredService<PanelUiConfigurationService>().EnsureSeedAsync();
 }
 
 app.Run();

@@ -13,6 +13,7 @@ public static class ProduccionOrderHelper
     public const string ConfeccionStartedComment = "Confección iniciada";
     public const string ConfeccionFinishedComment = "Confección finalizada";
     public const string ReadyPickupComment = "Pedido listo para entrega — pendiente por recoger";
+    public const string DeliveredComment = "Pedido entregado al cliente";
 
     public static bool RequiresConfection(Order order) =>
         order.IncludesConfection && !order.ServiceOnlyPrintPress;
@@ -84,6 +85,9 @@ public static class ProduccionOrderHelper
         RequiresConfection(order)
         && order.Status == OrderStatus.EnConfeccion
         && GetEffectiveSubStage(order) == ProductionSubStage.ConfeccionEnCurso;
+
+    public static bool CanMarkDelivered(Order order) =>
+        order.Status == OrderStatus.ListoEntrega;
 
     public static bool CanMarkReadyForPickup(Order order)
     {

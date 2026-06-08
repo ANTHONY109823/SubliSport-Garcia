@@ -333,6 +333,27 @@ public class OrderService(AppDbContext db)
         db.ChangeTracker.Clear();
     }
 
+    public async Task MarkDeliveredAsync(Guid orderId, string userId)
+    {
+        var order = await db.Orders
+            .Include(o => o.StatusHistory)
+            .FirstOrDefaultAsync(o => o.Id == orderId)
+            ?? throw new InvalidOperationException("Pedido no encontrado.");
+
+        if (!ProduccionOrderHelper.CanMarkDelivered(order))
+        {
+            throw new InvalidOperationException("Solo puede marcar entregado un pedido pendiente por recoger.");
+        }
+
+        var previous = order.Status;
+        order.Status = OrderStatus.Entregado;
+        order.DeliveredAt = DateTime.UtcNow;
+        order.ProductionSubStage = ProductionSubStage.None;
+        await AddHistoryAsync(order, previous, OrderStatus.Entregado, userId, ProduccionOrderHelper.DeliveredComment);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+    }
+
     public async Task SaveOrderPricingAsync(
         Guid orderId,
         string userId,

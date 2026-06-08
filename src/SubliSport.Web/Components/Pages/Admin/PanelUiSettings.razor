@@ -1,0 +1,82 @@
+@page "/configuracion/panel"
+@layout AdminLayout
+@attribute [Authorize(Roles = "SuperAdmin")]
+@rendermode InteractiveServer
+@using SubliSport.Domain.Ui
+
+<PageTitle>Etiquetas del panel - SUBLISPORT GARCIA</PageTitle>
+
+<h1 class="page-title">Etiquetas y campos del panel</h1>
+<p class="page-subtitle">Personalice los nombres visibles y oculte campos en Admin, Diseño y Producción. También edite las opciones al registrar pedidos.</p>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert-success">@message</div>
+}
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert-error">@error</div>
+}
+
+<section class="panel-section">
+    <h2>Admin — registrar pedido</h2>
+    <p class="field-hint">Opciones del selector de prenda y deporte. «Medias» = medias deportivas, no medios de comunicación.</p>
+    <h3 class="subsection-title">Tipos de prenda</h3>
+    <StringOptionEditor Items="model.AdminCreateOrder.GarmentTypes" AddLabel="+ Agregar prenda" DefaultNew="Nueva opción" />
+    <h3 class="subsection-title">Deportes</h3>
+    <StringOptionEditor Items="model.AdminCreateOrder.Sports" AddLabel="+ Agregar deporte" DefaultNew="Nuevo deporte" />
+    <h3 class="subsection-title">Etiquetas del formulario</h3>
+    <FieldLabelEditor Fields="model.AdminCreateOrder.Fields" />
+</section>
+
+<section class="panel-section">
+    <h2>Admin — ver pedido (Wilber)</h2>
+    <FieldLabelEditor Fields="model.AdminOrderDetail.Fields" />
+</section>
+
+<section class="panel-section">
+    <h2>Diseñador — ver pedido</h2>
+    <FieldLabelEditor Fields="model.DesignerOrderDetail.Fields" />
+</section>
+
+<section class="panel-section">
+    <h2>Producción — ver pedido (Juanita)</h2>
+    <FieldLabelEditor Fields="model.ProductionOrderDetail.Fields" />
+</section>
+
+<div class="form-actions-sticky">
+    <button type="button" class="btn-primary btn-primary-lg" @onclick="SaveAsync">Guardar etiquetas</button>
+</div>
+
+@code {
+    [Inject] private PanelUiConfigurationService PanelUiConfig { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private PanelUiSettingsData model = PanelUiSettingsData.CreateDefault();
+    private string? message;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        model = await PanelUiConfig.GetSettingsAsync();
+    }
+
+    private async Task SaveAsync()
+    {
+        error = null;
+        message = null;
+        try
+        {
+            var auth = await AuthState;
+            var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? throw new InvalidOperationException("Sesión inválida.");
+            await PanelUiConfig.SaveSettingsAsync(model, userId);
+            model = await PanelUiConfig.GetSettingsAsync();
+            message = "Etiquetas guardadas. Los usuarios verán los cambios al recargar.";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+}

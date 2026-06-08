@@ -24,12 +24,12 @@
         <h2>1. Cliente</h2>
         <div class="form-grid form-grid-2">
             <div class="form-group form-group-span2">
-                <label>Nombre del cliente *</label>
+                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "clientName", "Nombre del cliente") *</label>
                 <InputText @bind-value="model.ClientName" class="form-control" placeholder="Ej. Club Deportivo Lima" />
                 <ValidationMessage For="() => model.ClientName" />
             </div>
             <div class="form-group">
-                <label>Teléfono / WhatsApp</label>
+                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "clientPhone", "Teléfono / WhatsApp")</label>
                 <InputText @bind-value="model.ClientPhone" class="form-control" placeholder="999 999 999" />
             </div>
         </div>
@@ -39,9 +39,9 @@
         <h2>2. Pedido</h2>
         <div class="form-grid">
             <div class="form-group">
-                <label>Tipo de prenda *</label>
+                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "garmentType", "Tipo de prenda") *</label>
                 <InputSelect @bind-value="model.GarmentType" class="form-control">
-                    @foreach (var type in OrderFormOptions.GarmentTypes)
+                    @foreach (var type in UiLabelHelper.GarmentTypes(ui))
                     {
                         <option value="@type">@type</option>
                     }
@@ -52,9 +52,9 @@
                 }
             </div>
             <div class="form-group">
-                <label>Deporte *</label>
+                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "sport", "Deporte") *</label>
                 <InputSelect @bind-value="model.Sport" class="form-control">
-                    @foreach (var sport in OrderFormOptions.Sports)
+                    @foreach (var sport in UiLabelHelper.Sports(ui))
                     {
                         <option value="@sport">@sport</option>
                     }
@@ -65,18 +65,18 @@
                 }
             </div>
             <div class="form-group">
-                <label>Cantidad (aprox.) *</label>
+                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "quantity", "Cantidad (aprox.)") *</label>
                 <InputNumber @bind-value="model.Quantity" class="form-control" />
                 <ValidationMessage For="() => model.Quantity" />
             </div>
             <div class="form-group">
-                <label>Fecha de entrega *</label>
+                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "agreedDeliveryDate", "Fecha de entrega") *</label>
                 <InputDate @bind-value="model.AgreedDeliveryDate" class="form-control" />
             </div>
         </div>
 
         <div class="form-group">
-            <label>Prioridad</label>
+            <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "priority", "Prioridad")</label>
             <div class="priority-chips">
                 @foreach (var p in OrderFormOptions.PriorityQuick)
                 {
@@ -90,7 +90,7 @@
         </div>
 
         <div class="form-group">
-            <label>Nota breve (opcional)</label>
+            <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "notes", "Nota breve (opcional)")</label>
             <InputText @bind-value="model.Notes" class="form-control" placeholder="Ej. Uniforme titular + suplente, colores rojo/negro" />
         </div>
     </section>
@@ -128,11 +128,13 @@
 
 @code {
     [Inject] private OrderService OrderService { get; set; } = default!;
+    [Inject] private PanelUiConfigurationService PanelUiConfig { get; set; } = default!;
     [Inject] private UserManagementService UserManagementService { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
     private readonly CreateOrderModel model = new();
+    private PanelUiSettingsData ui = PanelUiSettingsData.CreateDefault();
     private List<ApplicationUser> designers = [];
     private Dictionary<string, int> designerLoads = new();
     private bool isSaving;
@@ -141,6 +143,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        ui = await PanelUiConfig.GetSettingsAsync();
         designers = await UserManagementService.GetDesignersAsync();
         var activeDesigners = designers.Where(d => d.IsActive).ToList();
         designers = activeDesigners;

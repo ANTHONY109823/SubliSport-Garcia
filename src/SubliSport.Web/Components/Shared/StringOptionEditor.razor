@@ -1,0 +1,23 @@
+<div class="table-wrap">
+    <table class="data-table">
+        <tbody>
+            @for (var i = 0; i < Items.Count; i++)
+            {
+                var index = i;
+                <tr>
+                    <td><input @bind="Items[index]" class="form-control form-control-sm" /></td>
+                    <td><button type="button" class="btn-action btn-danger" @onclick="() => Items.RemoveAt(index)">×</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<button type="button" class="btn-secondary" @onclick="Add">@AddLabel</button>
+
+@code {
+    [Parameter] public List<string> Items { get; set; } = [];
+    [Parameter] public string AddLabel { get; set; } = "+ Agregar";
+    [Parameter] public string DefaultNew { get; set; } = "Nueva opción";
+
+    private void Add() => Items.Add(DefaultNew);
+}
