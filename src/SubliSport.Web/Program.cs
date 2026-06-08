@@ -101,38 +101,6 @@ app.UseAuthorization();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 
-app.MapGet("/panel-config.js", (HttpContext ctx) =>
-{
-    var baseUrl = Environment.GetEnvironmentVariable("PUBLIC_APP_URL")?.Trim();
-    if (string.IsNullOrWhiteSpace(baseUrl))
-    {
-        var railwayDomain = Environment.GetEnvironmentVariable("RAILWAY_PUBLIC_DOMAIN")?.Trim();
-        baseUrl = !string.IsNullOrWhiteSpace(railwayDomain)
-            ? $"https://{railwayDomain}"
-            : $"{ctx.Request.Scheme}://{ctx.Request.Host}";
-    }
-
-    baseUrl = baseUrl.TrimEnd('/');
-    var js = $"""
-        window.SUBLISPORT_PANEL_URL = '{baseUrl}';
-        (function () {{
-          function panelLoginUrl() {{
-            var base = (window.SUBLISPORT_PANEL_URL || '').replace(/\\/$/, '');
-            var host = window.location.hostname;
-            if ((host.endsWith('github.io') || host.endsWith('github.dev')) && base) return base + '/login';
-            return '/login';
-          }}
-          function wire() {{
-            document.querySelectorAll('[data-panel-login]').forEach(function (el) {{ el.href = panelLoginUrl(); }});
-          }}
-          if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire);
-          else wire();
-        }})();
-        """;
-
-    return Results.Content(js, "application/javascript; charset=utf-8");
-}).AllowAnonymous();
-
 app.MapAccountEndpoints();
 app.MapProductionEndpoints();
 
