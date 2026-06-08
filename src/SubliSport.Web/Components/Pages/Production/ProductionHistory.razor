@@ -1,0 +1,127 @@
+@page "/produccion/historial"
+@layout AdminLayout
+@attribute [Authorize(Roles = "Production")]
+@rendermode InteractiveServer
+
+<PageTitle>Historial producción - SUBLISPORT GARCIA</PageTitle>
+
+<div class="page-header-row">
+    <div>
+        <h1 class="page-title">Historial de trabajos</h1>
+        <p class="page-subtitle">Pedidos listos o entregados — datos para registrar boleta / cobro</p>
+    </div>
+    <a href="/produccion" class="btn-outline">← Cola activa</a>
+</div>
+
+<div class="filter-tabs">
+    <button type="button" class="filter-tab @(filter == HistoryFilter.All ? "active" : "")" @onclick="() => SetFilter(HistoryFilter.All)">
+        Todos (@orders.Count)
+    </button>
+    <button type="button" class="filter-tab @(filter == HistoryFilter.Ready ? "active" : "")" @onclick="() => SetFilter(HistoryFilter.Ready)">
+        Por recoger (@readyCount)
+    </button>
+    <button type="button" class="filter-tab @(filter == HistoryFilter.Delivered ? "active" : "")" @onclick="() => SetFilter(HistoryFilter.Delivered)">
+        Entregados (@deliveredCount)
+    </button>
+    <button type="button" class="filter-tab @(filter == HistoryFilter.WithCharge ? "active" : "")" @onclick="() => SetFilter(HistoryFilter.WithCharge)">
+        Con cobro (@chargedCount)
+    </button>
+</div>
+
+@if (filteredOrders.Count == 0)
+{
+    <p class="empty-state">No hay pedidos en este historial.</p>
+}
+else
+{
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Cliente</th>
+                    <th>Prenda</th>
+                    <th>Estado</th>
+                    <th>Cobro</th>
+                    <th>Entrega / cobro</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in filteredOrders)
+                {
+                    <tr>
+                        <td>@order.OrderNumber</td>
+                        <td>@order.ClientName</td>
+                        <td>@order.GarmentType · @order.Quantity uds.</td>
+                        <td><span class="badge stage-badge">@ProduccionOrderHelper.GetStageLabel(order)</span></td>
+                        <td>
+                            @if (order.ChargeAmount > 0)
+                            {
+                                <strong class="price-tag">S/ @order.ChargeAmount.ToString("N2")</strong>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Sin cobro</span>
+                            }
+                        </td>
+                        <td>
+                            @if (order.DeliveredAt.HasValue)
+                            {
+                                <span>Entregado @order.DeliveredAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                            }
+                            else if (order.PricingUpdatedAt.HasValue)
+                            {
+                                <span>Cobro @order.PricingUpdatedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                            }
+                            else
+                            {
+                                <span>—</span>
+                            }
+                        </td>
+                        <td><a href="/produccion/@order.Id" class="btn-action btn-edit">Ver detalle</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Inject] private OrderService OrderService { get; set; } = default!;
+
+    private enum HistoryFilter { All, Ready, Delivered, WithCharge }
+
+    private List<Order> orders = [];
+    private List<Order> filteredOrders = [];
+    private HistoryFilter filter = HistoryFilter.All;
+    private int readyCount;
+    private int deliveredCount;
+    private int chargedCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        orders = await OrderService.GetProductionHistoryAsync();
+        readyCount = orders.Count(o => o.Status == OrderStatus.ListoEntrega);
+        deliveredCount = orders.Count(o => o.Status == OrderStatus.Entregado);
+        chargedCount = orders.Count(o => o.ChargeAmount > 0);
+        ApplyFilter();
+    }
+
+    private void SetFilter(HistoryFilter f)
+    {
+        filter = f;
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        filteredOrders = filter switch
+        {
+            HistoryFilter.Ready => orders.Where(o => o.Status == OrderStatus.ListoEntrega).ToList(),
+            HistoryFilter.Delivered => orders.Where(o => o.Status == OrderStatus.Entregado).ToList(),
+            HistoryFilter.WithCharge => orders.Where(o => o.ChargeAmount > 0).ToList(),
+            _ => orders
+        };
+    }
+}

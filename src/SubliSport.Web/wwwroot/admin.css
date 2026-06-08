@@ -546,6 +546,13 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 .toggle-row { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
 .history-timeline time { color: var(--gold); font-weight: 600; }
 .history-timeline li { font-size: 0.88rem; }
+.order-journey .journey-step { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.order-journey .journey-step-current { background: rgba(240,165,0,0.05); margin: 0 -12px; padding: 14px 12px; border-radius: 8px; }
+.journey-step-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+.journey-elapsed { color: var(--gold); font-size: 0.82rem; font-weight: 600; }
+.journey-status { color: rgba(255,255,255,0.9); margin-bottom: 4px; }
+.journey-comment { color: var(--gray); font-size: 0.86rem; }
+.subsection-title { font-size: 0.95rem; margin: 16px 0 10px; color: var(--gold); }
 
 @media (max-width: 768px) {
     .admin-shell { flex-direction: column; }

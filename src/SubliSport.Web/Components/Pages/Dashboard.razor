@@ -64,12 +64,55 @@ else if (isAdmin)
         </section>
     }
 
+    @if (activeTracking.Count > 0)
+    {
+        <section class="panel-section panel-highlight">
+            <div class="section-header-row">
+                <h2>Seguimiento de pedidos (@activeTracking.Count)</h2>
+                <a href="/pedidos" class="quick-link">Ver todos</a>
+            </div>
+            <p class="field-hint">Recorrido por horas — abra un pedido para ver el historial completo.</p>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>N°</th><th>Cliente</th><th>Estado</th><th>Último movimiento</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in activeTracking.Take(8))
+                        {
+                            var last = order.StatusHistory.OrderByDescending(h => h.ChangedAt).FirstOrDefault();
+                            <tr>
+                                <td>@order.OrderNumber</td>
+                                <td>@order.ClientName</td>
+                                <td>@OrderStatusHelper.GetLabel(order.Status)</td>
+                                <td>
+                                    @if (last is not null)
+                                    {
+                                        <span>@last.ChangedAt.ToLocalTime().ToString("dd/MM HH:mm")</span>
+                                        @if (!string.IsNullOrWhiteSpace(last.Comment))
+                                        {
+                                            <span class="text-muted"> · @last.Comment</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td><a href="/pedidos/@order.Id" class="btn-action btn-edit">Seguimiento</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+
     <section class="panel-section">
         <h2>Accesos rápidos</h2>
         <div class="quick-links">
             <a href="/pedidos/nuevo" class="quick-link">+ Registrar pedido</a>
-            <a href="/pedidos" class="quick-link">Ver pedidos</a>
-            <a href="/produccion" class="quick-link">Cola de producción</a>
+            <a href="/pedidos" class="quick-link">Seguimiento de pedidos</a>
         </div>
     </section>
 }
@@ -168,12 +211,14 @@ else if (isProduccion)
         <div class="stat-card"><span>En trabajo</span><strong>@inProgressImp</strong></div>
         <div class="stat-card"><span>Pendiente por recoger</span><strong>@readyImp</strong></div>
         <div class="stat-card"><span>Cobros registrados</span><strong>S/ @totalChargedImp.ToString("N2")</strong></div>
+        <div class="stat-card"><span>En historial</span><strong>@historyCount</strong></div>
     </div>
 
     <section class="panel-section">
         <h2>Accesos rápidos</h2>
         <div class="quick-links">
-            <a href="/produccion" class="quick-link">Ver cola de producción</a>
+            <a href="/produccion" class="quick-link">Cola activa</a>
+            <a href="/produccion/historial" class="quick-link">Historial y boletas</a>
         </div>
     </section>
 }
@@ -193,6 +238,7 @@ else
 
     private List<Order> orders = [];
     private List<Order> pendingAssignment = [];
+    private List<Order> activeTracking = [];
     private List<Order> urgentOrders = [];
     private SystemMetrics? metrics;
     private DesignerPersonalMetrics? designerMetrics;
@@ -205,6 +251,7 @@ else
     private int toAcceptImp;
     private int inProgressImp;
     private int readyImp;
+    private int historyCount;
     private decimal totalChargedImp;
     private decimal totalBilled;
 
@@ -229,6 +276,10 @@ else
         if (isAdmin)
         {
             orders = await OrderService.GetOrdersForUserAsync(userId, roles);
+            activeTracking = orders
+                .Where(o => o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToList();
             pendingAssignment = orders
                 .Where(o => o.AssignedDesignerId is null &&
                             o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
@@ -255,10 +306,12 @@ else
         if (isProduccion)
         {
             orders = await OrderService.GetOrdersForUserAsync(userId, roles);
+            var history = await OrderService.GetProductionHistoryAsync();
             toAcceptImp = orders.Count(ProduccionOrderHelper.CanAccept);
             inProgressImp = orders.Count(o => o.Status is OrderStatus.EnImpresion or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion);
             readyImp = orders.Count(o => o.Status == OrderStatus.ListoEntrega);
-            totalChargedImp = orders.Where(o => o.ChargeAmount > 0).Sum(o => o.ChargeAmount);
+            historyCount = history.Count;
+            totalChargedImp = history.Where(o => o.ChargeAmount > 0).Sum(o => o.ChargeAmount);
             return;
         }
 

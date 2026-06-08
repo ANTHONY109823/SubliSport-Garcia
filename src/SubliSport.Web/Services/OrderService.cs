@@ -24,6 +24,7 @@ public class OrderService(AppDbContext db)
         if (roles.Contains(AppRoles.Admin))
         {
             return await query
+                .Include(o => o.StatusHistory)
                 .OrderByDescending(o => o.Priority)
                 .ThenBy(o => o.AgreedDeliveryDate)
                 .ThenBy(o => o.CreatedAt)
@@ -60,6 +61,17 @@ public class OrderService(AppDbContext db)
         }
 
         return [];
+    }
+
+    public async Task<List<Order>> GetProductionHistoryAsync()
+    {
+        return await db.Orders
+            .AsNoTracking()
+            .Include(o => o.StatusHistory)
+            .Include(o => o.AssignedDesigner)
+            .Where(o => o.Status == OrderStatus.ListoEntrega || o.Status == OrderStatus.Entregado)
+            .OrderByDescending(o => o.DeliveredAt ?? o.PricingUpdatedAt ?? o.CreatedAt)
+            .ToListAsync();
     }
 
     public async Task<Order?> GetByIdAsync(Guid id)

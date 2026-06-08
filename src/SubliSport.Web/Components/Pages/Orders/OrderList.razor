@@ -35,6 +35,15 @@
         <button type="button" class="filter-tab @(filter == AdminFilter.Urgent ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.Urgent)">
             Urgentes (@urgentCount)
         </button>
+        <button type="button" class="filter-tab @(filter == AdminFilter.New ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.New)">
+            Recién creados (@newCount)
+        </button>
+        <button type="button" class="filter-tab @(filter == AdminFilter.InProduction ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.InProduction)">
+            En producción (@inProductionCount)
+        </button>
+        <button type="button" class="filter-tab @(filter == AdminFilter.Delivered ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.Delivered)">
+            Entregados (@deliveredCount)
+        </button>
     </div>
 }
 else if (isDesigner)
@@ -131,7 +140,7 @@ else
                         </td>
                         <td>
                             <a href="/pedidos/@order.Id" class="@(needsAssign ? "btn-action btn-edit" : "")">
-                                @(needsAssign ? "Asignar" : "Ver")
+                                @(needsAssign ? "Asignar" : "Seguimiento")
                             </a>
                         </td>
                     </tr>
@@ -145,7 +154,7 @@ else
     [Inject] private OrderService OrderService { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
-    private enum AdminFilter { All, Unassigned, Urgent }
+    private enum AdminFilter { All, Unassigned, Urgent, New, InProduction, Delivered }
     private enum DesignerFilter { Pending, ToAccept, InProgress, Completed }
 
     private List<Order> orders = [];
@@ -156,6 +165,9 @@ else
     private bool isDesigner;
     private int unassignedCount;
     private int urgentCount;
+    private int newCount;
+    private int inProductionCount;
+    private int deliveredCount;
     private int pendingCount;
     private int toAcceptCount;
     private int inProgressCount;
@@ -178,6 +190,10 @@ else
                                                 o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado);
             urgentCount = orders.Count(o => o.Priority == OrderPriority.Urgente &&
                                             o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado);
+            newCount = orders.Count(o => o.Status is OrderStatus.CotizacionRecibida or OrderStatus.EnRevision);
+            inProductionCount = orders.Count(o => o.Status is OrderStatus.DisenoAprobado or OrderStatus.EnImpresion
+                or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion or OrderStatus.ListoEntrega);
+            deliveredCount = orders.Count(o => o.Status == OrderStatus.Entregado);
             ApplyAdminFilter();
         }
         else if (isDesigner)
@@ -219,8 +235,22 @@ else
                 .Where(o => o.Priority == OrderPriority.Urgente &&
                             o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
                 .ToList(),
+            AdminFilter.New => orders
+                .Where(o => o.Status is OrderStatus.CotizacionRecibida or OrderStatus.EnRevision)
+                .ToList(),
+            AdminFilter.InProduction => orders
+                .Where(o => o.Status is OrderStatus.DisenoAprobado or OrderStatus.EnImpresion
+                    or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion or OrderStatus.ListoEntrega)
+                .ToList(),
+            AdminFilter.Delivered => orders
+                .Where(o => o.Status == OrderStatus.Entregado)
+                .ToList(),
             _ => orders
         };
+
+        filteredOrders = filteredOrders
+            .OrderByDescending(o => o.CreatedAt)
+            .ToList();
     }
 
     private void ApplyDesignerFilter()

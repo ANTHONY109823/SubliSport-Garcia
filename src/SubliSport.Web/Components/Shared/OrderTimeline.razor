@@ -1,0 +1,65 @@
+@if (Order.StatusHistory.Count == 0)
+{
+    <p class="empty-state">Sin movimientos registrados.</p>
+}
+else
+{
+    var steps = Order.StatusHistory.OrderBy(h => h.ChangedAt).ToList();
+    <ul class="history-list history-timeline order-journey">
+        @for (var i = 0; i < steps.Count; i++)
+        {
+            var item = steps[i];
+            var isLast = i == steps.Count - 1;
+            var elapsed = isLast
+                ? DateTime.UtcNow - item.ChangedAt
+                : steps[i + 1].ChangedAt - item.ChangedAt;
+            var elapsedLabel = FormatElapsed(elapsed);
+
+            <li class="journey-step @(isLast ? "journey-step-current" : "")">
+                <div class="journey-step-head">
+                    <time datetime="@item.ChangedAt.ToString("O")">
+                        @item.ChangedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")
+                    </time>
+                    @if (!isLast || Order.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
+                    {
+                        <span class="journey-elapsed">@elapsedLabel</span>
+                    }
+                </div>
+                @if (item.FromStatus != item.ToStatus)
+                {
+                    <div class="journey-status">
+                        @OrderStatusHelper.GetLabel(item.FromStatus) → <strong>@OrderStatusHelper.GetLabel(item.ToStatus)</strong>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(item.Comment))
+                {
+                    <div class="journey-comment">@item.Comment</div>
+                }
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter, EditorRequired] public Order Order { get; set; } = default!;
+
+    private static string FormatElapsed(TimeSpan span)
+    {
+        if (span.TotalMinutes < 1)
+        {
+            return "— inmediato";
+        }
+
+        if (span.TotalHours < 1)
+        {
+            return $"→ {Math.Round(span.TotalMinutes)} min";
+        }
+
+        if (span.TotalDays < 1)
+        {
+            return $"→ {span.TotalHours:F1} h";
+        }
+
+        return $"→ {span.TotalDays:F1} días";
+    }
+}

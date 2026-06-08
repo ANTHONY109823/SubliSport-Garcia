@@ -33,13 +33,13 @@
                 <AuthorizeView Roles="Admin">
                     <NavLink href="/pedidos">Pedidos</NavLink>
                     <NavLink href="/pedidos/nuevo">Nuevo pedido</NavLink>
-                    <NavLink href="/produccion">Producción</NavLink>
                 </AuthorizeView>
                 <AuthorizeView Roles="Designer">
                     <NavLink href="/pedidos">Mis diseños</NavLink>
                 </AuthorizeView>
                 <AuthorizeView Roles="Production">
-                    <NavLink href="/produccion">Producción</NavLink>
+                    <NavLink href="/produccion">Cola activa</NavLink>
+                    <NavLink href="/produccion/historial">Historial</NavLink>
                 </AuthorizeView>
             }
         </nav>

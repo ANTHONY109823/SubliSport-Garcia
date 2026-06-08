@@ -1,7 +1,7 @@
 @page "/produccion/{OrderId:guid}"
 @page "/impresion/{OrderId:guid}"
 @layout AdminLayout
-@attribute [Authorize(Roles = "Admin,Production")]
+@attribute [Authorize(Roles = "Production")]
 @rendermode InteractiveServer
 
 <PageTitle>Producción pedido - SUBLISPORT GARCIA</PageTitle>
@@ -21,7 +21,13 @@ else
                 · <span class="badge priority-@order.Priority.ToString().ToLower()">@OrderStatusHelper.GetPriorityLabel(order.Priority)</span>
             </p>
         </div>
-        <a href="/produccion" class="btn-outline">← Volver</a>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <a href="/produccion" class="btn-outline">← Cola activa</a>
+            @if (ProduccionOrderHelper.IsCompleted(order))
+            {
+                <a href="/produccion/historial" class="btn-outline">Historial</a>
+            }
+        </div>
     </div>
 
     @if (!string.IsNullOrEmpty(message))
@@ -188,9 +194,9 @@ else
             </section>
         }
 
-        @if ((canDoProductionActions || isAdminView) && !ProduccionOrderHelper.IsCompleted(order))
+        @if (canDoProductionActions && !ProduccionOrderHelper.IsCompleted(order))
         {
-            <OrderPricingCalculator Order="order" OnSaved="ReloadAsync" ReadOnly="@isAdminView" />
+            <OrderPricingCalculator Order="order" OnSaved="ReloadAsync" ReadOnly="false" />
         }
         else if (order.ChargeAmount > 0 || order.CalculatedTotal > 0)
         {
@@ -198,32 +204,8 @@ else
         }
 
         <section class="panel-section">
-            <h2>Historial (con hora)</h2>
-            @if (order.StatusHistory.Count == 0)
-            {
-                <p class="empty-state">Sin movimientos.</p>
-            }
-            else
-            {
-                <ul class="history-list history-timeline">
-                    @foreach (var item in order.StatusHistory.OrderByDescending(h => h.ChangedAt))
-                    {
-                        <li>
-                            <time datetime="@item.ChangedAt.ToString("O")">
-                                @item.ChangedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")
-                            </time>
-                            @if (item.FromStatus != item.ToStatus)
-                            {
-                                <span> — @OrderStatusHelper.GetLabel(item.FromStatus) → @OrderStatusHelper.GetLabel(item.ToStatus)</span>
-                            }
-                            @if (!string.IsNullOrWhiteSpace(item.Comment))
-                            {
-                                <span> · @item.Comment</span>
-                            }
-                        </li>
-                    }
-                </ul>
-            }
+            <h2>Recorrido del pedido</h2>
+            <OrderTimeline Order="order" />
         </section>
     </div>
 }
@@ -240,7 +222,6 @@ else
     private Order? order;
     private string? clientWhatsAppUrl;
     private bool canDoProductionActions;
-    private bool isAdminView;
     private bool isBusy;
     private string? message;
     private string? error;
@@ -279,7 +260,6 @@ else
         var auth = await AuthState;
         var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
         canDoProductionActions = roles.Contains(AppRoles.Production);
-        isAdminView = roles.Contains(AppRoles.Admin) && !canDoProductionActions;
     }
 
     private async Task RunAction(Func<Task> action, string success)

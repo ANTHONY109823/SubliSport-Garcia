@@ -94,6 +94,12 @@ else
 
         <AuthorizeView Roles="Admin">
             <section class="panel-section panel-highlight">
+                <h2>Recorrido del pedido</h2>
+                <p class="field-hint">Línea de tiempo con horas entre cada etapa.</p>
+                <OrderTimeline Order="order" />
+            </section>
+
+            <section class="panel-section panel-highlight">
                 <h2>Asignar diseñador</h2>
                 <div class="designer-picker">
                     @foreach (var designer in designers)
@@ -118,13 +124,6 @@ else
             @if (order.ChargeAmount > 0 || order.CalculatedTotal > 0)
             {
                 <OrderPricingCalculator Order="order" ReadOnly="true" />
-            }
-
-            @if (order.Status is OrderStatus.DisenoAprobado or OrderStatus.EnImpresion or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion or OrderStatus.ListoEntrega)
-            {
-                <section class="panel-section">
-                    <a href="/produccion/@order.Id" class="quick-link">Ver en producción →</a>
-                </section>
             }
 
             @if (ProduccionOrderHelper.CanMarkDelivered(order))
@@ -186,32 +185,13 @@ else
             }
         </AuthorizeView>
 
-        <section class="panel-section">
-            <h2>Historial (con hora)</h2>
-            @if (order.StatusHistory.Count == 0)
-            {
-                <p class="empty-state">Sin movimientos registrados.</p>
-            }
-            else
-            {
-                <ul class="history-list history-timeline">
-                    @foreach (var item in order.StatusHistory.OrderByDescending(h => h.ChangedAt))
-                    {
-                        <li>
-                            <time>@item.ChangedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</time>
-                            @if (item.FromStatus != item.ToStatus)
-                            {
-                                <span> — @OrderStatusHelper.GetLabel(item.FromStatus) → @OrderStatusHelper.GetLabel(item.ToStatus)</span>
-                            }
-                            @if (!string.IsNullOrWhiteSpace(item.Comment))
-                            {
-                                <span> · @item.Comment</span>
-                            }
-                        </li>
-                    }
-                </ul>
-            }
-        </section>
+        @if (isDesignerView)
+        {
+            <section class="panel-section">
+                <h2>Historial (con hora)</h2>
+                <OrderTimeline Order="order" />
+            </section>
+        }
     </div>
 }
 
