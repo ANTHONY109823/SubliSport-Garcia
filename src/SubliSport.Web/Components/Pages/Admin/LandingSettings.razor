@@ -1,0 +1,202 @@
+@page "/configuracion/landing"
+@layout AdminLayout
+@attribute [Authorize(Roles = "SuperAdmin")]
+@rendermode InteractiveServer
+@using SubliSport.Domain.Landing
+
+<PageTitle>Página web - SUBLISPORT GARCIA</PageTitle>
+
+<h1 class="page-title">Página web pública</h1>
+<p class="page-subtitle">Edita el catálogo de imágenes y los datos del formulario de cotización en index.html (GitHub Pages y Railway).</p>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert-success">@message</div>
+}
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert-error">@error</div>
+}
+
+<section class="panel-section">
+    <h2>Catálogo — modelos de referencia</h2>
+    <p class="field-hint">Pegue la URL de cada imagen (Pinterest, Drive público, etc.). El slider de la landing se actualiza al guardar.</p>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Vista previa</th>
+                    <th>URL imagen</th>
+                    <th>Título</th>
+                    <th>Subtítulo</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in model.Catalog)
+                {
+                    <tr>
+                        <td style="width:72px">
+                            @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                            {
+                                <img src="@item.ImageUrl" alt="@item.Title" style="width:56px;height:56px;object-fit:contain;border-radius:6px;background:#1a1a1a" />
+                            }
+                        </td>
+                        <td><input @bind="item.ImageUrl" class="form-control form-control-sm" placeholder="https://..." /></td>
+                        <td><input @bind="item.Title" class="form-control form-control-sm" /></td>
+                        <td><input @bind="item.Subtitle" class="form-control form-control-sm" /></td>
+                        <td><button type="button" class="btn-action btn-danger" @onclick="() => RemoveCatalogItem(item)">×</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <button type="button" class="btn-secondary" @onclick="AddCatalogItem">+ Agregar imagen</button>
+</section>
+
+<section class="panel-section">
+    <h2>Cotización — WhatsApp y textos</h2>
+    <div class="form-grid form-grid-2">
+        <div class="form-group">
+            <label>Teléfono WhatsApp (solo números, Perú)</label>
+            <InputText @bind-value="model.Quote.WhatsAppPhone" class="form-control" placeholder="51960840874" />
+            <span class="field-hint">Se usa al enviar la cotización desde la landing.</span>
+        </div>
+        <div class="form-group form-group-full">
+            <label>Nota bajo el botón de cotización</label>
+            <InputText @bind-value="model.Quote.ResponseNote" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Placeholder cantidad</label>
+            <InputText @bind-value="model.Quote.QuantityPlaceholder" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label>Placeholder nombre/club</label>
+            <InputText @bind-value="model.Quote.NamePlaceholder" class="form-control" />
+        </div>
+        <div class="form-group form-group-full">
+            <label>Placeholder detalles</label>
+            <InputText @bind-value="model.Quote.ExtraPlaceholder" class="form-control" />
+        </div>
+    </div>
+</section>
+
+<section class="panel-section">
+    <h2>Tipo de prenda</h2>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Etiqueta visible</th><th>Texto en WhatsApp</th><th>Icono (Font Awesome)</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var g in model.Quote.Garments)
+                {
+                    <tr>
+                        <td><input @bind="g.Label" class="form-control form-control-sm" /></td>
+                        <td><input @bind="g.Value" class="form-control form-control-sm" /></td>
+                        <td><input @bind="g.IconClass" class="form-control form-control-sm" placeholder="fas fa-tshirt" /></td>
+                        <td><button type="button" class="btn-action btn-danger" @onclick="() => model.Quote.Garments.Remove(g)">×</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <button type="button" class="btn-secondary" @onclick="AddGarment">+ Agregar tipo de prenda</button>
+</section>
+
+<section class="panel-section">
+    <h2>Deportes</h2>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Etiqueta visible</th><th>Valor en WhatsApp</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var s in model.Quote.Sports)
+                {
+                    <tr>
+                        <td><input @bind="s.Label" class="form-control form-control-sm" placeholder="⚽ Fútbol" /></td>
+                        <td><input @bind="s.Value" class="form-control form-control-sm" /></td>
+                        <td><button type="button" class="btn-action btn-danger" @onclick="() => model.Quote.Sports.Remove(s)">×</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <button type="button" class="btn-secondary" @onclick="AddSport">+ Agregar deporte</button>
+</section>
+
+<section class="panel-section">
+    <h2>Tallas (selector)</h2>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>Etiqueta</th><th>Valor</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var sz in model.Quote.Sizes)
+                {
+                    <tr>
+                        <td><input @bind="sz.Label" class="form-control form-control-sm" /></td>
+                        <td><input @bind="sz.Value" class="form-control form-control-sm" /></td>
+                        <td><button type="button" class="btn-action btn-danger" @onclick="() => model.Quote.Sizes.Remove(sz)">×</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <button type="button" class="btn-secondary" @onclick="AddSize">+ Agregar talla</button>
+</section>
+
+<div class="form-actions-sticky">
+    <button type="button" class="btn-primary btn-primary-lg" @onclick="SaveAsync">Guardar página web</button>
+</div>
+
+@code {
+    [Inject] private LandingConfigurationService LandingConfig { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private LandingSettingsData model = LandingSettingsData.CreateDefault();
+    private string? message;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        model = await LandingConfig.GetSettingsAsync();
+    }
+
+    private void AddCatalogItem() =>
+        model.Catalog.Add(new LandingCatalogItem { Title = "Nuevo modelo", Subtitle = "Sublimado" });
+
+    private void RemoveCatalogItem(LandingCatalogItem item) => model.Catalog.Remove(item);
+
+    private void AddGarment() =>
+        model.Quote.Garments.Add(new LandingGarmentOption { Label = "Nueva prenda", Value = "Nueva prenda" });
+
+    private void AddSport() =>
+        model.Quote.Sports.Add(new LandingSportOption { Label = "🏅 Otro", Value = "Otro" });
+
+    private void AddSize() =>
+        model.Quote.Sizes.Add(new LandingSizeOption { Label = "Nueva talla", Value = "Nueva talla" });
+
+    private async Task SaveAsync()
+    {
+        error = null;
+        message = null;
+
+        if (string.IsNullOrWhiteSpace(model.Quote.WhatsAppPhone))
+        {
+            error = "Indique el teléfono de WhatsApp.";
+            return;
+        }
+
+        try
+        {
+            var auth = await AuthState;
+            var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                         ?? throw new InvalidOperationException("Sesión inválida.");
+
+            await LandingConfig.SaveSettingsAsync(model, userId);
+            model = await LandingConfig.GetSettingsAsync();
+            message = "Página web actualizada. Los cambios se verán en la landing al recargar.";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+}

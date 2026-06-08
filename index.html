@@ -234,73 +234,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
   </div>
 
   <div class="jerseys-slider-wrap reveal" style="margin-bottom:40px;">
-    <div class="jerseys-track">
-      <div class="jersey-card">
-        <img src="https://i.pinimg.com/736x/bf/c5/89/bfc589c46649a1c6978872470d1a8850.jpg" alt="Real Madrid">
-        <div class="jersey-card-info"><h4>Real Madrid</h4><p>La Liga · España</p></div>
-      </div>
-      <div class="jersey-card">
-        <img src="https://i1-c.pinimg.com/1200x/8f/32/5a/8f325a52478201b47be4a79bbf12db1d.jpg" alt="Barcelona">
-        <div class="jersey-card-info"><h4>FC Barcelona</h4><p>La Liga · España</p></div>
-      </div>
-      <div class="jersey-card">
-        <img src="https://i.pinimg.com/736x/82/20/a4/8220a40857ff8088154d5a3c87ff5c51.jpg" alt="Estilo Europeo">
-        <div class="jersey-card-info"><h4>Estilo Europeo</h4><p>Sublimado Premium</p></div>
-      </div>
-      <div class="jersey-card">
-        <img src="https://i1-c.pinimg.com/736x/ff/eb/1d/ffeb1db96f8bb8dc3728543407c493a5.jpg" alt="Diseño Especial">
-        <div class="jersey-card-info"><h4>Diseño Especial</h4><p>Full Color</p></div>
-      </div>
-      <div class="jersey-card">
-        <img src="https://i.pinimg.com/originals/cb/56/71/cb5671893cf9c11517b2f14441822d0d.png" alt="Alianza Lima">
-        <div class="jersey-card-info"><h4>Alianza Lima</h4><p>Liga 1 · Perú</p></div>
-      </div>
-      <div class="jersey-card">
-        <img src="https://i.pinimg.com/736x/ec/97/d9/ec97d997bd4a823f6076ad7cd5f6e2c2.jpg" alt="Universitario">
-        <div class="jersey-card-info"><h4>Universitario</h4><p>Liga 1 · Perú</p></div>
-      </div>
-      <div class="jersey-card">
-        <img src="https://i1-c.pinimg.com/1200x/e9/59/34/e9593407ed67eef379b5153c46f02cbc.jpg" alt="Sporting Cristal">
-        <div class="jersey-card-info"><h4>Sporting Cristal</h4><p>Liga 1 · Perú</p></div>
-      </div>
-      <div class="jersey-card">
-        <img src="https://i1-c.pinimg.com/1200x/fa/48/1a/fa481a192b539477798fc8614ca4a23b.jpg" alt="Selección Perú">
-        <div class="jersey-card-info"><h4>Selección Perú</h4><p>Blanquirroja</p></div>
-      </div>
-      <!-- DUPLICADO PARA LOOP INFINITO -->
-      <div class="jersey-card">
-        <img src="https://i.pinimg.com/736x/bf/c5/89/bfc589c46649a1c6978872470d1a8850.jpg" alt="Real Madrid">
-        <div class="jersey-card-info"><h4>Real Madrid</h4><p>La Liga · España</p></div>
-      </div>
-      <div class="jersey-card">
-        <img src="https://i1-c.pinimg.com/1200x/8f/32/5a/8f325a52478201b47be4a79bbf12db1d.jpg" alt="Barcelona">
-        <div class="jersey-card-info"><h4>FC Barcelona</h4><p>La Liga · España</p></div>
-      </div>
-      <div class="jersey-card">
-        <img src="https://i.pinimg.com/736x/82/20/a4/8220a40857ff8088154d5a3c87ff5c51.jpg" alt="Estilo Europeo">
-        <div class="jersey-card-info"><h4>Estilo Europeo</h4><p>Sublimado Premium</p></div>
-      </div>
-      <div class="jersey-card">
-        <img src="https://i1-c.pinimg.com/736x/ff/eb/1d/ffeb1db96f8bb8dc3728543407c493a5.jpg" alt="Diseño Especial">
-        <div class="jersey-card-info"><h4>Diseño Especial</h4><p>Full Color</p></div>
-      </div>
-      <div class="jersey-card">
-        <img src="https://i.pinimg.com/originals/cb/56/71/cb5671893cf9c11517b2f14441822d0d.png" alt="Alianza Lima">
-        <div class="jersey-card-info"><h4>Alianza Lima</h4><p>Liga 1 · Perú</p></div>
-      </div>
-      <div class="jersey-card">
-        <img src="https://i.pinimg.com/736x/ec/97/d9/ec97d997bd4a823f6076ad7cd5f6e2c2.jpg" alt="Universitario">
-        <div class="jersey-card-info"><h4>Universitario</h4><p>Liga 1 · Perú</p></div>
-      </div>
-      <div class="jersey-card">
-        <img src="https://i1-c.pinimg.com/1200x/e9/59/34/e9593407ed67eef379b5153c46f02cbc.jpg" alt="Sporting Cristal">
-        <div class="jersey-card-info"><h4>Sporting Cristal</h4><p>Liga 1 · Perú</p></div>
-      </div>
-      <div class="jersey-card">
-        <img src="https://i1-c.pinimg.com/1200x/fa/48/1a/fa481a192b539477798fc8614ca4a23b.jpg" alt="Selección Perú">
-        <div class="jersey-card-info"><h4>Selección Perú</h4><p>Blanquirroja</p></div>
-      </div>
-    </div><!-- FIN jerseys-track -->
+    <div class="jerseys-track" id="catalogTrack"></div>
   </div><!-- FIN jerseys-slider-wrap -->
 </section><!-- FIN catalogo -->
 
@@ -310,36 +244,16 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
   <h2 class="section-title reveal reveal-delay-1">SOLICITA TU <span>COTIZACIÓN</span></h2>
   <div class="quote-wrap reveal">
     <span class="control-label">Tipo de prenda</span>
-    <div class="prenda-opts">
-      <div class="prenda-opt active" onclick="setPrenda(this,'Conjunto completo (camiseta + short + medias)')">
-        <i class="fas fa-tshirt"></i><span>Conjunto Completo</span>
-      </div>
-      <div class="prenda-opt" onclick="setPrenda(this,'Solo camiseta')">
-        <i class="fas fa-circle-dot"></i><span>Solo Camiseta</span>
-      </div>
-      <div class="prenda-opt" onclick="setPrenda(this,'Short deportivo')">
-        <i class="fas fa-person-running"></i><span>Solo Short</span>
-      </div>
-    </div>
+    <div class="prenda-opts" id="garmentOpts"></div>
 
     <span class="control-label">Deporte</span>
-    <div class="sport-tabs">
-      <div class="sport-tab active" onclick="setSport(this,'Fútbol')">⚽ Fútbol</div>
-      <div class="sport-tab" onclick="setSport(this,'Vóley')">🏐 Vóley</div>
-      <div class="sport-tab" onclick="setSport(this,'Básquet')">🏀 Básquet</div>
-      <div class="sport-tab" onclick="setSport(this,'Ciclismo')">🚴 Ciclismo</div>
-      <div class="sport-tab" onclick="setSport(this,'Otro')">🏅 Otro</div>
-    </div>
+    <div class="sport-tabs" id="sportTabs"></div>
 
     <span class="control-label">Datos del pedido</span>
     <div class="quote-grid">
       <input type="number" id="quantity" class="form-field" placeholder="Cantidad de prendas" min="1">
       <select id="sizeRange" class="form-field">
         <option value="" style="background:#111">Tallas...</option>
-        <option value="XS / S" style="background:#111">XS / S</option>
-        <option value="M / L" style="background:#111">M / L</option>
-        <option value="XL / XXL" style="background:#111">XL / XXL</option>
-        <option value="Tallas mixtas" style="background:#111">Tallas mixtas</option>
       </select>
     </div>
 
@@ -351,7 +265,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
       <i class="fab fa-whatsapp" style="font-size:1.3rem;"></i>
       ENVIAR COTIZACIÓN POR WHATSAPP
     </button>
-    <p style="text-align:center;color:var(--gray);font-size:0.78rem;margin-top:10px;letter-spacing:1px;">
+    <p id="quoteResponseNote" style="text-align:center;color:var(--gray);font-size:0.78rem;margin-top:10px;letter-spacing:1px;">
       <i class="fas fa-clock" style="color:var(--gold)"></i> Respuesta en menos de 2 horas · La Victoria, Lima
     </p>
   </div>
@@ -396,7 +310,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
       <div class="social-links">
         <a href="https://www.facebook.com/wilber.garcia.902" target="_blank" class="social-link"><i class="fab fa-facebook-f"></i></a>
         <a href="https://www.tiktok.com/@cayarino.sport" target="_blank" class="social-link"><i class="fab fa-tiktok"></i></a>
-        <a href="https://wa.me/51960840874" target="_blank" class="social-link"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://wa.me/51960840874" data-wa-contact target="_blank" class="social-link"><i class="fab fa-whatsapp"></i></a>
       </div>
     </div>
     <div class="footer-col">
@@ -421,7 +335,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     <div class="footer-col">
       <h4>Contacto</h4>
       <ul>
-        <li><a href="https://wa.me/51960840874">📱 960 840 874</a></li>
+        <li><a href="https://wa.me/51960840874" data-wa-contact>📱 960 840 874</a></li>
         <li><a href="https://www.facebook.com/wilber.garcia.902">📘 Facebook</a></li>
         <li><a href="https://www.tiktok.com/@cayarino.sport"><i class="fab fa-tiktok"></i> TikTok</a></li>
         <li><a href="#" style="color:var(--gray);pointer-events:none;">📍 Av. Aviación 697, Galería Llancama Int. 311 y 320, La Victoria</a></li>
@@ -435,6 +349,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
 </footer>
 
 <script src="panel-config.js"></script>
+<script src="landing-config.js"></script>
 <script>
 const cursor = document.getElementById('cursor');
 const ring = document.getElementById('cursorRing');
@@ -451,26 +366,6 @@ function toggleMenu(){ document.getElementById('navLinks').classList.toggle('ope
 document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')));
 const obs = new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.1});
 document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
-let selectedPrenda = 'Conjunto completo (camiseta + short + medias)';
-function setPrenda(el,p){ document.querySelectorAll('.prenda-opt').forEach(d=>d.classList.remove('active')); el.classList.add('active'); selectedPrenda=p; }
-let selectedSport = 'Fútbol';
-function setSport(el,s){ document.querySelectorAll('.sport-tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); selectedSport=s; }
-function sendToWhatsApp(){
-  const phone = '51960840874';
-  const qty = document.getElementById('quantity').value;
-  const size = document.getElementById('sizeRange').value;
-  const name = document.getElementById('clientName').value;
-  const extra = document.getElementById('extraMsg').value;
-  let msg = `🏅 *COTIZACIÓN - SUBLISPORT GARCIA*\n\n`;
-  msg += `👕 *Prenda:* ${selectedPrenda}\n`;
-  msg += `⚽ *Deporte:* ${selectedSport}\n`;
-  if(qty) msg += `📦 *Cantidad:* ${qty} prendas\n`;
-  if(size) msg += `📏 *Tallas:* ${size}\n`;
-  if(name) msg += `👤 *Nombre/Club:* ${name}\n`;
-  if(extra) msg += `📝 *Detalles:* ${extra}\n`;
-  msg += `\n¡Hola! Me gustaría recibir cotización. 😊`;
-  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,'_blank');
-}
 </script>
 </body>
 </html>

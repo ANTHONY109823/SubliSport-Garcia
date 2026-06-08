@@ -71,6 +71,31 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddScoped<PricingConfigurationService>();
 builder.Services.AddScoped<ProductionConfigurationService>();
+builder.Services.AddScoped<LandingConfigurationService>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("LandingPublic", policy =>
+        policy.SetIsOriginAllowed(origin =>
+            {
+                if (string.IsNullOrWhiteSpace(origin))
+                {
+                    return true;
+                }
+
+                if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                {
+                    return false;
+                }
+
+                return uri.Host.EndsWith("github.io", StringComparison.OrdinalIgnoreCase)
+                       || uri.Host.EndsWith("github.dev", StringComparison.OrdinalIgnoreCase)
+                       || uri.Host.Contains("railway.app", StringComparison.OrdinalIgnoreCase)
+                       || uri.Host is "localhost" or "127.0.0.1";
+            })
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<UserManagementService>();
@@ -98,11 +123,13 @@ app.UseAntiforgery();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseCors("LandingPublic");
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 
 app.MapAccountEndpoints();
 app.MapProductionEndpoints();
+app.MapLandingEndpoints();
 
 app.UseDefaultFiles();
 app.MapStaticAssets();
@@ -116,6 +143,7 @@ using (var scope = app.Services.CreateScope())
 {
     await scope.ServiceProvider.GetRequiredService<PricingConfigurationService>().EnsureSeedAsync();
     await scope.ServiceProvider.GetRequiredService<ProductionConfigurationService>().EnsureSeedAsync();
+    await scope.ServiceProvider.GetRequiredService<LandingConfigurationService>().EnsureSeedAsync();
 }
 
 app.Run();
