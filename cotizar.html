@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solicitar Cotización | SUBLISPORT GARCIA</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --gold: #F0A500;
+  --gold-light: #FFD166;
+  --black: #060606;
+  --dark: #0E0E0E;
+  --card: #141414;
+  --border: rgba(240,165,0,0.18);
+  --white: #FFFFFF;
+  --gray: #888;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; overflow-x: hidden; cursor: none; }
+.cursor { width:12px; height:12px; background:var(--gold); border-radius:50%; position:fixed; top:0; left:0; pointer-events:none; z-index:99999; transition:transform 0.1s; mix-blend-mode:difference; }
+.cursor-ring { width:36px; height:36px; border:1.5px solid var(--gold); border-radius:50%; position:fixed; top:0; left:0; pointer-events:none; z-index:99998; transition:all 0.15s ease; opacity:0.6; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
+
+.navbar { display:flex; justify-content:space-between; align-items:center; padding:0 6%; height:70px; background:rgba(6,6,6,0.96); backdrop-filter:blur(12px); position:fixed; width:100%; z-index:1000; border-bottom:1px solid var(--border); }
+.navbar.scrolled { box-shadow: 0 4px 40px rgba(240,165,0,0.08); }
+.logo { font-family:'Bebas Neue'; font-size:1.7rem; letter-spacing:3px; color:var(--white); text-decoration:none; }
+.logo span { color:var(--gold); }
+.nav-links { display:flex; list-style:none; gap:28px; align-items:center; }
+.nav-links a { color:rgba(255,255,255,0.7); text-decoration:none; font-family:'Barlow Condensed'; font-size:0.9rem; letter-spacing:2px; text-transform:uppercase; transition:color 0.25s; }
+.nav-links a:hover { color:var(--white); }
+.nav-links a.active { color:var(--gold); }
+.nav-cta { background:var(--gold)!important; color:var(--black)!important; padding:7px 20px!important; border-radius:4px; font-weight:700!important; }
+.nav-login { border:1.5px solid rgba(240,165,0,0.5)!important; color:var(--gold)!important; padding:7px 18px!important; border-radius:4px; font-weight:600!important; }
+.hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; }
+.hamburger span { width:24px; height:2px; background:var(--white); display:block; }
+
+.quote-page-hero { padding:110px 6% 36px; text-align:center; position:relative; }
+.quote-page-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 70% 80% at 50% 0%,rgba(240,165,0,0.12) 0%,transparent 65%); pointer-events:none; }
+.section-tag { font-family:'Barlow Condensed'; font-size:0.78rem; letter-spacing:4px; color:var(--gold); text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:14px; }
+.section-tag::before { content:''; width:28px; height:1.5px; background:var(--gold); }
+.section-title { font-family:'Bebas Neue'; font-size:clamp(2rem,4vw,3.5rem); letter-spacing:3px; line-height:1; margin-bottom:12px; }
+.section-title span { color:var(--gold); }
+.quote-page-sub { color:var(--gray); font-size:0.95rem; max-width:520px; margin:0 auto; line-height:1.6; }
+.quote-back-link { display:inline-flex; align-items:center; gap:8px; color:var(--gray); text-decoration:none; font-family:'Barlow Condensed'; font-size:0.82rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:28px; transition:color 0.25s; }
+.quote-back-link:hover { color:var(--gold); }
+.quote-page-section { padding:0 6% 60px; }
+
+.quote-wrap { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:48px; max-width:920px; margin:0 auto; }
+.quote-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-field { width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--white); padding:13px 16px; border-radius:8px; font-family:'Barlow'; font-size:0.93rem; outline:none; }
+.form-field:focus { border-color:var(--gold); }
+.form-field::placeholder { color:rgba(255,255,255,0.25); }
+.control-label { font-family:'Barlow Condensed'; font-size:0.76rem; letter-spacing:2.5px; text-transform:uppercase; color:var(--gray); margin-bottom:10px; display:block; margin-top:14px; }
+.prenda-opts { display:flex; gap:10px; }
+.prenda-opt { flex:1; padding:14px 10px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:8px; text-align:center; cursor:pointer; transition:all 0.25s; }
+.prenda-opt.active, .prenda-opt:hover { background:rgba(240,165,0,0.1); border-color:var(--gold); color:var(--gold); }
+.prenda-opt i { display:block; font-size:1.4rem; margin-bottom:6px; color:var(--gold); }
+.prenda-opt span { font-family:'Barlow Condensed'; font-size:0.82rem; letter-spacing:1.5px; text-transform:uppercase; }
+.sport-tabs { display:flex; gap:8px; flex-wrap:wrap; }
+.sport-tab { padding:7px 16px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:6px; font-family:'Barlow Condensed'; font-size:0.8rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); cursor:pointer; transition:all 0.25s; }
+.sport-tab.active, .sport-tab:hover { background:rgba(240,165,0,0.1); border-color:var(--gold); color:var(--gold); }
+.btn-whatsapp { width:100%; background:#25D366; color:white; padding:15px 32px; border:none; border-radius:10px; cursor:pointer; font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:2px; text-transform:uppercase; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; margin-top:20px; transition:all 0.3s; }
+.btn-whatsapp:hover { background:#1ab555; transform:translateY(-2px); }
+.quote-send-options { margin-top:20px; }
+.quote-preview { margin-top:14px; padding:14px; background:rgba(0,0,0,0.35); border:1px solid var(--border); border-radius:10px; color:var(--gray); font-size:0.75rem; white-space:pre-wrap; max-height:220px; overflow:auto; }
+.roster-table-wrap { overflow-x:auto; margin:10px 0 12px; border:1px solid var(--border); border-radius:10px; }
+.roster-table { width:100%; border-collapse:collapse; min-width:480px; }
+.roster-table th { font-family:'Barlow Condensed'; font-size:0.72rem; letter-spacing:2px; text-transform:uppercase; color:var(--gold); padding:10px 8px; text-align:left; border-bottom:1px solid var(--border); }
+.roster-table td { padding:6px; border-bottom:1px solid rgba(255,255,255,0.04); }
+.roster-table input { width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--white); padding:8px 10px; border-radius:6px; font-size:0.88rem; outline:none; }
+.btn-roster-add { background:rgba(255,255,255,0.05); border:1px dashed var(--border); color:var(--gray); padding:8px 14px; border-radius:8px; cursor:pointer; font-family:'Barlow Condensed'; letter-spacing:1.5px; text-transform:uppercase; font-size:0.78rem; }
+.btn-roster-del { background:transparent; border:none; color:#ff8080; cursor:pointer; }
+.photo-upload-zone { border:2px dashed var(--border); border-radius:12px; padding:24px; text-align:center; cursor:pointer; margin-top:8px; position:relative; }
+.photo-upload-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.photo-preview { max-width:100%; max-height:220px; border-radius:8px; margin-top:12px; display:none; }
+.photo-preview.visible { display:block; margin:12px auto 0; }
+.quote-status { text-align:center; font-size:0.85rem; margin-top:12px; min-height:1.2em; }
+.quote-status.ok { color:#6ee7a0; }
+.quote-status.err { color:#ff8080; }
+.quote-hint { font-size:0.78rem; color:var(--gray); margin-top:6px; line-height:1.5; }
+
+footer { background:var(--dark); border-top:1px solid var(--border); padding:28px 6%; text-align:center; }
+footer p { color:var(--gray); font-size:0.82rem; }
+footer a { color:var(--gold); text-decoration:none; }
+
+.reveal { opacity:0; transform:translateY(24px); transition:opacity 0.6s, transform 0.6s; }
+.reveal.visible { opacity:1; transform:translateY(0); }
+
+@media(max-width:768px){
+  body{cursor:auto;}
+  .cursor,.cursor-ring{display:none;}
+  .nav-links{display:none;flex-direction:column;position:fixed;top:70px;left:0;right:0;background:rgba(6,6,6,0.99);padding:28px 6%;gap:22px;border-bottom:1px solid var(--border);}
+  .nav-links.open{display:flex;}
+  .hamburger{display:flex;}
+  .quote-wrap{padding:28px 20px;}
+  .quote-grid{grid-template-columns:1fr;}
+  .prenda-opts{flex-wrap:wrap;}
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav class="navbar" id="navbar">
+  <a href="index.html" class="logo">SUBLISPORT <span>GARCIA</span></a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">Inicio</a></li>
+    <li><a href="cotizar.html" class="active">Cotizar</a></li>
+    <li><a href="https://sublisport-garcia-production.up.railway.app/login" data-panel-login target="_blank" rel="noopener noreferrer" class="nav-login">🔐 INGRESAR</a></li>
+    <li><a href="https://wa.me/51960840874" data-wa-contact target="_blank" rel="noopener noreferrer" class="nav-cta">📲 WhatsApp</a></li>
+  </ul>
+  <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menú">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<section class="quote-page-section">
+  <div class="quote-page-hero">
+    <a href="index.html" class="quote-back-link"><i class="fas fa-arrow-left"></i> Volver al inicio</a>
+    <div class="section-tag reveal">Contáctanos</div>
+    <h1 class="section-title reveal">SOLICITA TU <span>COTIZACIÓN</span></h1>
+    <p class="quote-page-sub reveal">Cotización automática · Registro en panel · Envío por WhatsApp</p>
+  </div>
+
+  <div class="quote-wrap reveal">
+    <span class="control-label">Tipo de prenda</span>
+    <div class="prenda-opts" id="garmentOpts"></div>
+
+    <span class="control-label">Deporte</span>
+    <div class="sport-tabs" id="sportTabs"></div>
+
+    <span class="control-label">Datos del pedido</span>
+    <div class="quote-grid">
+      <input type="number" id="quantity" class="form-field" placeholder="Cantidad de prendas" min="1">
+      <select id="fabricType" class="form-field">
+        <option value="dry_fit" style="background:#111">DRY FIT / WIN FRESCH</option>
+        <option value="poly_exagonal" style="background:#111">POLY EXAGONAL</option>
+        <option value="puma" style="background:#111">PUMA</option>
+        <option value="gota_sig_sag" style="background:#111">GOTA / SIG SAG</option>
+        <option value="marathon_micro" style="background:#111">MARATON / MICRO NIKE</option>
+        <option value="labrado_brillo" style="background:#111">LABRADO CON BRILLO</option>
+      </select>
+      <select id="sizeRange" class="form-field">
+        <option value="" style="background:#111">Rango de tallas general...</option>
+      </select>
+      <input type="tel" id="clientPhone" class="form-field" placeholder="Tu WhatsApp (9 dígitos) *">
+      <input type="text" id="clientName" class="form-field" placeholder="Tu nombre o club *">
+    </div>
+
+    <span class="control-label">Bordado (opcional)</span>
+    <div class="quote-grid">
+      <input type="number" id="embroideryInsignia" class="form-field" placeholder="Bordado insignia (uds.)" min="0" value="0">
+      <input type="number" id="embroideryBrand" class="form-field" placeholder="Bordado marca (uds.)" min="0" value="0">
+    </div>
+    <p class="quote-hint">Insignia S/ 3.00 c/u · Marca S/ 2.00 c/u · Precios desde una docena (sin IGV).</p>
+
+    <span class="control-label">Lista por jugador / prenda (nombre · talla · número)</span>
+    <p class="quote-hint">Opcional pero recomendado para equipos.</p>
+    <div class="roster-table-wrap">
+      <table class="roster-table">
+        <thead><tr><th>Nombre</th><th>Talla</th><th>Número</th><th></th></tr></thead>
+        <tbody id="rosterBody"></tbody>
+      </table>
+    </div>
+    <button type="button" class="btn-roster-add" id="btnAddRoster">+ Agregar fila</button>
+
+    <span class="control-label" style="margin-top:18px;">Foto del modelo de referencia</span>
+    <div class="photo-upload-zone" id="photoZone">
+      <input type="file" id="referencePhoto" accept="image/jpeg,image/png,image/webp,image/*">
+      <i class="fas fa-camera" style="font-size:2rem;color:var(--gold);margin-bottom:8px;"></i>
+      <p style="color:var(--gray);font-size:0.9rem;">Toque para subir diseño o boceto</p>
+      <p class="quote-hint">JPG o PNG · máx. 4 MB</p>
+      <img id="photoPreview" class="photo-preview" alt="Vista previa">
+    </div>
+
+    <span class="control-label" style="margin-top:18px;">Detalles adicionales</span>
+    <textarea id="extraMsg" class="form-field" rows="2" style="margin-top:8px;resize:none;" placeholder="Colores, diseño, fecha de entrega, escudo..."></textarea>
+
+    <div class="quote-send-options">
+      <p class="quote-hint">Al enviar, calculamos su cotización, la registramos en el panel y abrimos WhatsApp con el mensaje listo.</p>
+      <button type="button" class="btn-whatsapp" id="btnSendQuote">
+        <i class="fab fa-whatsapp" style="font-size:1.3rem;"></i>
+        ENVIAR COTIZACIÓN
+      </button>
+      <p id="quoteStatus" class="quote-status"></p>
+      <pre id="quotePreview" class="quote-preview" style="display:none;"></pre>
+    </div>
+    <p id="quoteResponseNote" style="text-align:center;color:var(--gray);font-size:0.78rem;margin-top:10px;">
+      <i class="fas fa-clock" style="color:var(--gold)"></i> Respuesta en menos de 2 horas · La Victoria, Lima
+    </p>
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 SUBLISPORT GARCIA · <a href="index.html">Volver al inicio</a></p>
+</footer>
+
+<script src="panel-config.js"></script>
+<script src="landing-config.js"></script>
+<script>
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX-6+'px'; cursor.style.top = e.clientY-6+'px';
+  ring.style.left = e.clientX-18+'px'; ring.style.top = e.clientY-18+'px';
+});
+document.querySelectorAll('a,button,.prenda-opt,.sport-tab').forEach(el => {
+  el.addEventListener('mouseenter',()=>{cursor.style.transform='scale(2)';ring.style.transform='scale(1.4)';ring.style.opacity='1';});
+  el.addEventListener('mouseleave',()=>{cursor.style.transform='scale(1)';ring.style.transform='scale(1)';ring.style.opacity='0.6';});
+});
+window.addEventListener('scroll',()=>document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>20));
+function toggleMenu(){ document.getElementById('navLinks').classList.toggle('open'); }
+document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')));
+const obs = new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>

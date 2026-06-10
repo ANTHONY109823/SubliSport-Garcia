@@ -19,20 +19,16 @@
 }
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior: smooth; }
-body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; overflow-x: hidden; }
-
-body { cursor: none; }
+body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; overflow-x: hidden; cursor: none; }
 .cursor { width:12px; height:12px; background:var(--gold); border-radius:50%; position:fixed; top:0; left:0; pointer-events:none; z-index:99999; transition:transform 0.1s; mix-blend-mode:difference; }
 .cursor-ring { width:36px; height:36px; border:1.5px solid var(--gold); border-radius:50%; position:fixed; top:0; left:0; pointer-events:none; z-index:99998; transition:all 0.15s ease; opacity:0.6; }
-
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--black); }
 ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
 
-/* NAVBAR */
 .navbar { display:flex; justify-content:space-between; align-items:center; padding:0 6%; height:70px; background:rgba(6,6,6,0.96); backdrop-filter:blur(12px); position:fixed; width:100%; z-index:1000; border-bottom:1px solid var(--border); transition:0.3s; }
 .navbar.scrolled { box-shadow: 0 4px 40px rgba(240,165,0,0.08); }
-.logo { font-family:'Bebas Neue'; font-size:1.7rem; letter-spacing:3px; color:var(--white); }
+.logo { font-family:'Bebas Neue'; font-size:1.7rem; letter-spacing:3px; color:var(--white); text-decoration:none; }
 .logo span { color:var(--gold); }
 .nav-links { display:flex; list-style:none; gap:28px; align-items:center; }
 .nav-links a { color:rgba(255,255,255,0.7); text-decoration:none; font-family:'Barlow Condensed'; font-size:0.9rem; letter-spacing:2px; text-transform:uppercase; transition:color 0.25s; position:relative; padding-bottom:4px; }
@@ -45,25 +41,9 @@ body { cursor: none; }
 .nav-login { border:1.5px solid rgba(240,165,0,0.5)!important; color:var(--gold)!important; padding:7px 18px!important; border-radius:4px; font-weight:600!important; letter-spacing:1.5px!important; }
 .nav-login::after { display:none!important; }
 .nav-login:hover { background:rgba(240,165,0,0.12)!important; color:var(--gold-light)!important; }
-.nav-page-tabs { display:flex; gap:4px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:6px; padding:3px; }
-.nav-page-tab { color:rgba(255,255,255,0.55)!important; text-decoration:none; font-family:'Barlow Condensed'; font-size:0.82rem; letter-spacing:2px; text-transform:uppercase; padding:6px 16px!important; border-radius:4px; transition:all 0.25s; }
-.nav-page-tab::after { display:none!important; }
-.nav-page-tab:hover { color:var(--white)!important; background:rgba(255,255,255,0.04); }
-.nav-page-tab.active { background:var(--gold)!important; color:var(--black)!important; font-weight:700!important; }
-.site-page { display:none; }
-.site-page.active { display:block; }
-.quote-page-hero { padding:110px 6% 36px; text-align:center; position:relative; overflow:hidden; }
-.quote-page-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 70% 80% at 50% 0%,rgba(240,165,0,0.12) 0%,transparent 65%); pointer-events:none; }
-.quote-page-hero .section-tag { justify-content:center; }
-.quote-page-hero .section-title { margin-bottom:12px; }
-.quote-page-sub { color:var(--gray); font-size:0.95rem; max-width:520px; margin:0 auto 8px; line-height:1.6; }
-.quote-back-link { display:inline-flex; align-items:center; gap:8px; color:var(--gray); text-decoration:none; font-family:'Barlow Condensed'; font-size:0.82rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:28px; transition:color 0.25s; }
-.quote-back-link:hover { color:var(--gold); }
-.quote-page-section { padding:0 6% 90px; }
 .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; }
 .hamburger span { width:24px; height:2px; background:var(--white); transition:0.3s; display:block; }
 
-/* HERO */
 .hero { height:100vh; display:flex; align-items:center; justify-content:center; text-align:center; position:relative; overflow:hidden; }
 .hero-bg { position:absolute; inset:0; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(240,165,0,0.13) 0%, transparent 60%), linear-gradient(180deg,#060606 0%,#0a0a0a 100%); }
 .field-lines { position:absolute; inset:0; opacity:0.04; background-image: linear-gradient(90deg,rgba(255,255,255,0.8) 1px,transparent 1px), linear-gradient(rgba(255,255,255,0.8) 1px,transparent 1px); background-size:80px 80px; }
@@ -85,14 +65,12 @@ body { cursor: none; }
 .scroll-line { width:1px; height:50px; background:linear-gradient(to bottom,var(--gold),transparent); animation:scrollPulse 2s infinite; }
 .scroll-text { font-family:'Barlow Condensed'; font-size:0.68rem; letter-spacing:3px; color:var(--gray); text-transform:uppercase; }
 
-/* SECCIONES */
 .section { padding:90px 6%; }
 .section-tag { font-family:'Barlow Condensed'; font-size:0.78rem; letter-spacing:4px; color:var(--gold); text-transform:uppercase; display:flex; align-items:center; gap:12px; margin-bottom:14px; }
 .section-tag::before { content:''; width:28px; height:1.5px; background:var(--gold); }
 .section-title { font-family:'Bebas Neue'; font-size:clamp(2rem,4vw,3.5rem); letter-spacing:3px; line-height:1; margin-bottom:50px; }
 .section-title span { color:var(--gold); }
 
-/* SLIDER */
 .catalog-intro { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:40px; flex-wrap:wrap; gap:16px; }
 .jerseys-slider-wrap { overflow:hidden; position:relative; }
 .jerseys-slider-wrap::before, .jerseys-slider-wrap::after { content:''; position:absolute; top:0; bottom:0; width:80px; z-index:2; pointer-events:none; }
@@ -102,56 +80,12 @@ body { cursor: none; }
 .jerseys-track:hover { animation-play-state:paused; }
 .jersey-card { width:200px; flex-shrink:0; background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; transition:all 0.35s; cursor:pointer; }
 .jersey-card:hover { border-color:rgba(240,165,0,0.45); transform:translateY(-6px); box-shadow:0 16px 40px rgba(0,0,0,0.5); }
-/* FIX: altura fija para imagen y object-fit contain para no cortar */
 .jersey-card img { width:100%; height:220px; object-fit:contain; object-position:center; display:block; background:#1a1a1a; transition:transform 0.4s; }
 .jersey-card:hover img { transform:scale(1.05); }
 .jersey-card-info { padding:14px 16px; }
 .jersey-card-info h4 { font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:1px; text-transform:uppercase; margin-bottom:3px; }
 .jersey-card-info p { font-size:0.78rem; color:var(--gold); letter-spacing:1px; }
 
-/* COTIZACIÓN */
-.quote-wrap { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:48px; max-width:920px; margin:0 auto; }
-.quote-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-.form-field { width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--white); padding:13px 16px; border-radius:8px; font-family:'Barlow'; font-size:0.93rem; transition:border 0.25s; outline:none; }
-.form-field:focus { border-color:var(--gold); }
-.form-field::placeholder { color:rgba(255,255,255,0.25); }
-.control-label { font-family:'Barlow Condensed'; font-size:0.76rem; letter-spacing:2.5px; text-transform:uppercase; color:var(--gray); margin-bottom:10px; display:block; margin-top:14px; }
-.prenda-opts { display:flex; gap:10px; margin-bottom:0; }
-.prenda-opt { flex:1; padding:14px 10px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:8px; text-align:center; cursor:pointer; transition:all 0.25s; }
-.prenda-opt.active, .prenda-opt:hover { background:rgba(240,165,0,0.1); border-color:var(--gold); color:var(--gold); }
-.prenda-opt i { display:block; font-size:1.4rem; margin-bottom:6px; color:var(--gold); }
-.prenda-opt span { font-family:'Barlow Condensed'; font-size:0.82rem; letter-spacing:1.5px; text-transform:uppercase; }
-.sport-tabs { display:flex; gap:8px; flex-wrap:wrap; }
-.sport-tab { padding:7px 16px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:6px; font-family:'Barlow Condensed'; font-size:0.8rem; letter-spacing:1.5px; text-transform:uppercase; color:var(--gray); cursor:pointer; transition:all 0.25s; }
-.sport-tab.active, .sport-tab:hover { background:rgba(240,165,0,0.1); border-color:var(--gold); color:var(--gold); }
-.btn-whatsapp { width:100%; background:#25D366; color:white; padding:15px 32px; border:none; border-radius:10px; cursor:pointer; font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:2px; text-transform:uppercase; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; transition:all 0.3s; margin-top:20px; }
-.btn-whatsapp:hover { background:#1ab555; transform:translateY(-2px); box-shadow:0 8px 30px rgba(37,211,102,0.3); }
-.btn-quote-panel { width:100%; background:rgba(240,165,0,0.15); color:var(--gold); padding:14px 24px; border:2px solid var(--gold); border-radius:10px; cursor:pointer; font-family:'Barlow Condensed'; font-size:0.95rem; letter-spacing:2px; text-transform:uppercase; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; transition:all 0.3s; margin-top:10px; }
-.btn-quote-panel:hover { background:var(--gold); color:var(--black); transform:translateY(-2px); }
-.btn-quote-both { width:100%; background:transparent; color:var(--white); padding:12px 24px; border:1px solid var(--border); border-radius:10px; cursor:pointer; font-family:'Barlow Condensed'; font-size:0.85rem; letter-spacing:1.5px; text-transform:uppercase; margin-top:8px; transition:all 0.25s; }
-.btn-quote-both:hover { border-color:var(--gold); color:var(--gold); }
-.quote-send-options { margin-top:20px; }
-.quote-preview { margin-top:14px; padding:14px; background:rgba(0,0,0,0.35); border:1px solid var(--border); border-radius:10px; color:var(--gray); font-size:0.75rem; white-space:pre-wrap; max-height:220px; overflow:auto; }
-.roster-table-wrap { overflow-x:auto; margin:10px 0 12px; border:1px solid var(--border); border-radius:10px; }
-.roster-table { width:100%; border-collapse:collapse; min-width:480px; }
-.roster-table th { font-family:'Barlow Condensed'; font-size:0.72rem; letter-spacing:2px; text-transform:uppercase; color:var(--gold); padding:10px 8px; text-align:left; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.02); }
-.roster-table td { padding:6px 6px; border-bottom:1px solid rgba(255,255,255,0.04); }
-.roster-table input { width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--white); padding:8px 10px; border-radius:6px; font-size:0.88rem; outline:none; }
-.roster-table input:focus { border-color:var(--gold); }
-.btn-roster-add { background:rgba(255,255,255,0.05); border:1px dashed var(--border); color:var(--gray); padding:8px 14px; border-radius:8px; cursor:pointer; font-family:'Barlow Condensed'; letter-spacing:1.5px; text-transform:uppercase; font-size:0.78rem; transition:0.25s; }
-.btn-roster-add:hover { border-color:var(--gold); color:var(--gold); }
-.btn-roster-del { background:transparent; border:none; color:#ff8080; cursor:pointer; font-size:1rem; padding:4px 8px; }
-.photo-upload-zone { border:2px dashed var(--border); border-radius:12px; padding:24px; text-align:center; cursor:pointer; transition:0.25s; margin-top:8px; position:relative; }
-.photo-upload-zone:hover, .photo-upload-zone.has-file { border-color:var(--gold); background:rgba(240,165,0,0.05); }
-.photo-upload-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; }
-.photo-preview { max-width:100%; max-height:220px; border-radius:8px; margin-top:12px; display:none; }
-.photo-preview.visible { display:block; margin:12px auto 0; }
-.quote-status { text-align:center; font-size:0.85rem; margin-top:12px; min-height:1.2em; }
-.quote-status.ok { color:#6ee7a0; }
-.quote-status.err { color:#ff8080; }
-.quote-hint { font-size:0.78rem; color:var(--gray); margin-top:6px; line-height:1.5; }
-
-/* PROCESO */
 .process-section { padding:90px 6%; background:var(--dark); }
 .steps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:0; position:relative; }
 .steps-grid::before { content:''; position:absolute; top:34px; left:10%; right:10%; height:1px; background:linear-gradient(90deg,transparent,var(--border),var(--border),var(--border),transparent); }
@@ -161,7 +95,6 @@ body { cursor: none; }
 .step h3 { font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; }
 .step p { color:var(--gray); font-size:0.86rem; line-height:1.6; }
 
-/* FOOTER */
 footer { background:var(--dark); border-top:1px solid var(--border); padding:50px 6% 28px; }
 .footer-top { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:44px; margin-bottom:44px; }
 .footer-brand .logo { font-size:1.4rem; margin-bottom:14px; display:block; }
@@ -178,7 +111,6 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
 .footer-bottom p { color:var(--gray); font-size:0.8rem; }
 .footer-bottom a { color:var(--gold); text-decoration:none; }
 
-/* ANIMACIONES */
 @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
 @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
 @keyframes scrollPulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
@@ -188,9 +120,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
 .reveal-delay-1 { transition-delay:0.1s; }
 .reveal-delay-2 { transition-delay:0.2s; }
 .reveal-delay-3 { transition-delay:0.3s; }
-.reveal-delay-4 { transition-delay:0.4s; }
 
-/* RESPONSIVE */
 @media(max-width:1024px){
   .steps-grid{grid-template-columns:repeat(2,1fr);gap:36px;}
   .steps-grid::before{display:none;}
@@ -201,15 +131,11 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
   .cursor,.cursor-ring{display:none;}
   .nav-links{display:none;flex-direction:column;position:fixed;top:70px;left:0;right:0;background:rgba(6,6,6,0.99);padding:28px 6%;gap:22px;border-bottom:1px solid var(--border);}
   .nav-links.open{display:flex;}
-  .nav-page-tabs{width:100%;justify-content:center;}
   .hamburger{display:flex;}
   .hero-stats{gap:24px;}
   .stat-num{font-size:2rem;}
-  .quote-wrap{padding:28px 20px;}
-  .quote-grid{grid-template-columns:1fr;}
   .steps-grid{grid-template-columns:1fr 1fr;}
   .footer-top{grid-template-columns:1fr;gap:28px;}
-  .prenda-opts{flex-wrap:wrap;}
 }
 @media(max-width:480px){
   .steps-grid{grid-template-columns:1fr;}
@@ -223,27 +149,21 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
 
-<!-- NAVBAR -->
 <nav class="navbar" id="navbar">
-  <div class="logo">SUBLISPORT <span>GARCIA</span></div>
+  <a href="index.html" class="logo">SUBLISPORT <span>GARCIA</span></a>
   <ul class="nav-links" id="navLinks">
-    <li class="nav-page-tabs">
-      <a href="#inicio" class="nav-page-tab active" data-page="inicio">Inicio</a>
-      <a href="#cotizar" class="nav-page-tab" data-page="cotizar">Cotizar</a>
-    </li>
-    <li><a href="#catalogo" data-page-link="inicio">Catálogo</a></li>
-    <li><a href="#proceso" data-page-link="inicio">Proceso</a></li>
+    <li><a href="#inicio">Inicio</a></li>
+    <li><a href="#catalogo">Catálogo</a></li>
+    <li><a href="cotizar.html" target="_blank" rel="noopener noreferrer">Cotizar</a></li>
+    <li><a href="#proceso">Proceso</a></li>
     <li><a href="https://sublisport-garcia-production.up.railway.app/login" data-panel-login target="_blank" rel="noopener noreferrer" class="nav-login">🔐 INGRESAR</a></li>
-    <li><a href="#cotizar" class="nav-cta" data-page="cotizar">📲 Cotización</a></li>
+    <li><a href="cotizar.html" target="_blank" rel="noopener noreferrer" class="nav-cta">📲 Cotización</a></li>
   </ul>
   <button class="hamburger" id="hamburger" onclick="toggleMenu()">
     <span></span><span></span><span></span>
   </button>
 </nav>
 
-<div id="page-inicio" class="site-page active">
-
-<!-- HERO -->
 <section id="inicio" class="hero">
   <div class="hero-bg"></div>
   <div class="field-lines"></div>
@@ -252,7 +172,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     <h1>SUBLISPORT<br><em>GARCIA</em></h1>
     <p>Diseños únicos, sublimación premium y uniformes deportivos que marcan la diferencia.</p>
     <div class="hero-btns">
-      <a href="#cotizar" class="btn-main" data-page="cotizar"><i class="fab fa-whatsapp"></i> PEDIR COTIZACIÓN</a>
+      <a href="cotizar.html" target="_blank" rel="noopener noreferrer" class="btn-main"><i class="fab fa-whatsapp"></i> PEDIR COTIZACIÓN</a>
       <a href="#catalogo" class="btn-outline"><i class="fas fa-images"></i> VER TRABAJOS</a>
     </div>
     <div class="hero-stats">
@@ -267,22 +187,19 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
   </div>
 </section>
 
-<!-- CATÁLOGO -->
 <section id="catalogo" class="section" style="padding-top:0;">
   <div class="catalog-intro">
     <div>
       <div class="section-tag reveal">Portafolio</div>
       <h2 class="section-title reveal reveal-delay-1" style="margin-bottom:0;">MODELOS <span>DE REFERENCIA</span></h2>
     </div>
-    <a href="#cotizar" class="btn-outline reveal" data-page="cotizar">Pedir el tuyo <i class="fas fa-arrow-right"></i></a>
+    <a href="cotizar.html" target="_blank" rel="noopener noreferrer" class="btn-outline reveal">Pedir el tuyo <i class="fas fa-arrow-right"></i></a>
   </div>
-
   <div class="jerseys-slider-wrap reveal" style="margin-bottom:40px;">
     <div class="jerseys-track" id="catalogTrack"></div>
-  </div><!-- FIN jerseys-slider-wrap -->
-</section><!-- FIN catalogo -->
+  </div>
+</section>
 
-<!-- PROCESO -->
 <section id="proceso" class="process-section">
   <div style="padding:0 0 70px;">
     <div class="section-tag reveal">Cómo trabajamos</div>
@@ -292,7 +209,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     <div class="step reveal">
       <div class="step-num">01</div>
       <h3>Cotiza gratis</h3>
-      <p>Complete el formulario y reciba su proforma automática por WhatsApp.</p>
+      <p><a href="cotizar.html" target="_blank" rel="noopener noreferrer" style="color:var(--gold);text-decoration:none;">Abra el formulario</a> y reciba su proforma automática por WhatsApp.</p>
     </div>
     <div class="step reveal reveal-delay-1">
       <div class="step-num">02</div>
@@ -312,95 +229,6 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
   </div>
 </section>
 
-</div><!-- FIN page-inicio -->
-
-<div id="page-cotizar" class="site-page">
-
-<!-- COTIZACIÓN -->
-<section id="cotizar" class="quote-page-section">
-  <div class="quote-page-hero">
-    <a href="#inicio" class="quote-back-link" data-page="inicio"><i class="fas fa-arrow-left"></i> Volver al inicio</a>
-    <div class="section-tag reveal">Contáctanos</div>
-    <h2 class="section-title reveal reveal-delay-1">SOLICITA TU <span>COTIZACIÓN</span></h2>
-    <p class="quote-page-sub reveal reveal-delay-2">Cotización automática con precios vigentes · Registro en panel · Envío por WhatsApp</p>
-  </div>
-  <div class="quote-wrap reveal">
-    <span class="control-label">Tipo de prenda</span>
-    <div class="prenda-opts" id="garmentOpts"></div>
-
-    <span class="control-label">Deporte</span>
-    <div class="sport-tabs" id="sportTabs"></div>
-
-    <span class="control-label">Datos del pedido</span>
-    <div class="quote-grid">
-      <input type="number" id="quantity" class="form-field" placeholder="Cantidad de prendas" min="1">
-      <select id="fabricType" class="form-field">
-        <option value="dry_fit" style="background:#111">DRY FIT / WIN FRESCH</option>
-        <option value="poly_exagonal" style="background:#111">POLY EXAGONAL</option>
-        <option value="puma" style="background:#111">PUMA</option>
-        <option value="gota_sig_sag" style="background:#111">GOTA / SIG SAG</option>
-        <option value="marathon_micro" style="background:#111">MARATON / MICRO NIKE</option>
-        <option value="labrado_brillo" style="background:#111">LABRADO CON BRILLO</option>
-      </select>
-      <select id="sizeRange" class="form-field">
-        <option value="" style="background:#111">Rango de tallas general...</option>
-      </select>
-      <input type="tel" id="clientPhone" class="form-field" placeholder="Tu WhatsApp (9 dígitos) *">
-      <input type="text" id="clientName" class="form-field" placeholder="Tu nombre o club *">
-    </div>
-
-    <span class="control-label">Bordado (opcional)</span>
-    <div class="quote-grid">
-      <input type="number" id="embroideryInsignia" class="form-field" placeholder="Bordado insignia (uds.)" min="0" value="0">
-      <input type="number" id="embroideryBrand" class="form-field" placeholder="Bordado marca (uds.)" min="0" value="0">
-    </div>
-    <p class="quote-hint">Insignia S/ 3.00 c/u · Marca S/ 2.00 c/u · Precios desde una docena (sin IGV).</p>
-
-    <span class="control-label">Lista por jugador / prenda (nombre · talla · número)</span>
-    <p class="quote-hint">Opcional pero recomendado para equipos. Agregue una fila por cada persona o prenda.</p>
-    <div class="roster-table-wrap">
-      <table class="roster-table">
-        <thead>
-          <tr><th>Nombre</th><th>Talla</th><th>Número</th><th></th></tr>
-        </thead>
-        <tbody id="rosterBody"></tbody>
-      </table>
-    </div>
-    <button type="button" class="btn-roster-add" id="btnAddRoster">+ Agregar fila</button>
-
-    <span class="control-label" style="margin-top:18px;">Foto del modelo de referencia</span>
-    <div class="photo-upload-zone" id="photoZone">
-      <input type="file" id="referencePhoto" accept="image/jpeg,image/png,image/webp,image/*">
-      <i class="fas fa-camera" style="font-size:2rem;color:var(--gold);margin-bottom:8px;"></i>
-      <p style="color:var(--gray);font-size:0.9rem;">Toque para subir diseño, camiseta ejemplo o boceto</p>
-      <p class="quote-hint">JPG o PNG · máx. 4 MB</p>
-      <img id="photoPreview" class="photo-preview" alt="Vista previa modelo">
-    </div>
-
-    <span class="control-label" style="margin-top:18px;">Detalles adicionales</span>
-    <textarea id="extraMsg" class="form-field" rows="2" style="margin-top:8px;resize:none;" placeholder="Colores, diseño, fecha de entrega, escudo..."></textarea>
-
-    <div class="quote-send-options">
-      <p class="quote-hint">
-        Al enviar, calculamos su cotización automática con los precios vigentes, la registramos en el panel de Wilber
-        y abrimos WhatsApp con el mensaje listo. Wilber verificará y le enviará la proforma final.
-      </p>
-      <button type="button" class="btn-whatsapp" id="btnSendQuote">
-        <i class="fab fa-whatsapp" style="font-size:1.3rem;"></i>
-        ENVIAR COTIZACIÓN
-      </button>
-      <p id="quoteStatus" class="quote-status"></p>
-      <pre id="quotePreview" class="quote-preview" style="display:none;"></pre>
-    </div>
-    <p id="quoteResponseNote" style="text-align:center;color:var(--gray);font-size:0.78rem;margin-top:10px;letter-spacing:1px;">
-      <i class="fas fa-clock" style="color:var(--gold)"></i> Respuesta en menos de 2 horas · La Victoria, Lima
-    </p>
-  </div>
-</section>
-
-</div><!-- FIN page-cotizar -->
-
-<!-- FOOTER -->
 <footer>
   <div class="footer-top">
     <div class="footer-brand">
@@ -415,20 +243,20 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     <div class="footer-col">
       <h4>Navegación</h4>
       <ul>
-        <li><a href="#inicio" data-page="inicio">Inicio</a></li>
-        <li><a href="#catalogo" data-page-link="inicio">Catálogo</a></li>
-        <li><a href="#cotizar" data-page="cotizar">Cotizar</a></li>
-        <li><a href="#proceso" data-page-link="inicio">Proceso</a></li>
+        <li><a href="#inicio">Inicio</a></li>
+        <li><a href="#catalogo">Catálogo</a></li>
+        <li><a href="cotizar.html" target="_blank" rel="noopener noreferrer">Cotizar</a></li>
+        <li><a href="#proceso">Proceso</a></li>
       </ul>
     </div>
     <div class="footer-col">
       <h4>Deportes</h4>
       <ul>
-        <li><a href="#cotizar" data-page="cotizar">Fútbol</a></li>
-        <li><a href="#cotizar" data-page="cotizar">Vóley</a></li>
-        <li><a href="#cotizar" data-page="cotizar">Básquet</a></li>
-        <li><a href="#cotizar" data-page="cotizar">Ciclismo</a></li>
-        <li><a href="#cotizar" data-page="cotizar">Atletismo</a></li>
+        <li><a href="cotizar.html" target="_blank" rel="noopener noreferrer">Fútbol</a></li>
+        <li><a href="cotizar.html" target="_blank" rel="noopener noreferrer">Vóley</a></li>
+        <li><a href="cotizar.html" target="_blank" rel="noopener noreferrer">Básquet</a></li>
+        <li><a href="cotizar.html" target="_blank" rel="noopener noreferrer">Ciclismo</a></li>
+        <li><a href="cotizar.html" target="_blank" rel="noopener noreferrer">Atletismo</a></li>
       </ul>
     </div>
     <div class="footer-col">
@@ -456,79 +284,13 @@ document.addEventListener('mousemove', e => {
   cursor.style.left = e.clientX-6+'px'; cursor.style.top = e.clientY-6+'px';
   ring.style.left = e.clientX-18+'px'; ring.style.top = e.clientY-18+'px';
 });
-document.querySelectorAll('a,button,.prenda-opt,.sport-tab,.jersey-card').forEach(el => {
+document.querySelectorAll('a,button,.jersey-card').forEach(el => {
   el.addEventListener('mouseenter',()=>{cursor.style.transform='scale(2)';ring.style.transform='scale(1.4)';ring.style.opacity='1';});
   el.addEventListener('mouseleave',()=>{cursor.style.transform='scale(1)';ring.style.transform='scale(1)';ring.style.opacity='0.6';});
 });
 window.addEventListener('scroll',()=>{ document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>20); });
 function toggleMenu(){ document.getElementById('navLinks').classList.toggle('open'); }
-
-(function pageRouter(){
-  var pages = { inicio: document.getElementById('page-inicio'), cotizar: document.getElementById('page-cotizar') };
-  var tabs = document.querySelectorAll('.nav-page-tab[data-page]');
-  var revealObs = new IntersectionObserver(function(entries){
-    entries.forEach(function(e){ if(e.isIntersecting) e.target.classList.add('visible'); });
-  }, { threshold: 0.08 });
-
-  function observeReveals(root){
-    (root || document).querySelectorAll('.reveal:not(.visible)').forEach(function(el){ revealObs.observe(el); });
-  }
-
-  function showPage(name, scrollTarget){
-    var page = pages[name] || pages.inicio;
-    Object.keys(pages).forEach(function(key){
-      if(pages[key]) pages[key].classList.toggle('active', pages[key] === page);
-    });
-    tabs.forEach(function(tab){
-      tab.classList.toggle('active', tab.getAttribute('data-page') === name);
-    });
-    window.scrollTo(0, 0);
-    observeReveals(page);
-    if(scrollTarget && name === 'inicio'){
-      var el = document.querySelector(scrollTarget);
-      if(el) setTimeout(function(){ el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
-    }
-    document.getElementById('navLinks').classList.remove('open');
-  }
-
-  function handleNavClick(e){
-    var link = e.currentTarget;
-    var page = link.getAttribute('data-page');
-    var pageLink = link.getAttribute('data-page-link');
-    var href = link.getAttribute('href') || '';
-    if(page){
-      e.preventDefault();
-      var hash = href.indexOf('#') >= 0 ? href.slice(href.indexOf('#')) : '#'+page;
-      history.pushState(null, '', hash);
-      showPage(page);
-      return;
-    }
-    if(pageLink === 'inicio'){
-      e.preventDefault();
-      var target = href.indexOf('#') >= 0 ? href.slice(href.indexOf('#')) : '#inicio';
-      history.pushState(null, '', target);
-      showPage('inicio', target);
-    }
-  }
-
-  document.querySelectorAll('[data-page],[data-page-link]').forEach(function(a){
-    a.addEventListener('click', handleNavClick);
-  });
-
-  document.querySelectorAll('.nav-links a:not([data-page]):not([data-page-link])').forEach(function(a){
-    a.addEventListener('click', function(){ document.getElementById('navLinks').classList.remove('open'); });
-  });
-
-  function routeFromHash(){
-    var hash = (location.hash || '#inicio').toLowerCase();
-    if(hash === '#cotizar') showPage('cotizar');
-    else showPage('inicio', hash === '#inicio' ? null : hash);
-  }
-
-  window.addEventListener('hashchange', routeFromHash);
-  routeFromHash();
-})();
-
+document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')));
 const obs = new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.1});
 document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 </script>
