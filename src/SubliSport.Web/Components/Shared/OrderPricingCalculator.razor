@@ -2,58 +2,60 @@
 
 @if (ReadOnly)
 {
-    <section class="panel-section">
-        <h2>Cobro e impresión</h2>
-        @if (order.ChargeAmount <= 0 && order.CalculatedTotal <= 0)
-        {
-            <p class="empty-state">Sin registro de cobro aún.</p>
-        }
-        else
-        {
-            <dl class="detail-list pricing-summary">
-                @if (order.FabricMeters.HasValue)
-                {
-                    <div><dt>Metraje</dt><dd>@order.FabricMeters.Value.ToString("N2") m @if (!order.ClientOwnFabric && order.FabricTypeName != null){<text>· @order.FabricTypeName</text>} @if (order.ClientOwnFabric){<text>· Tela del cliente</text>}</dd></div>
-                }
-                @if (order.FabricMetersRip is > 0)
-                {
-                    <div><dt>RIP</dt><dd>@order.FabricMetersRip.Value.ToString("N2") m @(order.FabricTypeRipName != null ? $"· {order.FabricTypeRipName}" : "")</dd></div>
-                }
-                @if (order.IncludesLaserCut && order.CalculatedLaserCost > 0)
-                {
-                    <div><dt>Corte láser</dt><dd>S/ @order.CalculatedLaserCost.Value.ToString("N2")</dd></div>
-                }
-                @if (order.CalculatedPrintPressCost > 0)
-                {
-                    <div><dt>Impresión + planchado</dt><dd>S/ @order.CalculatedPrintPressCost.Value.ToString("N2")</dd></div>
-                }
-                @if (order.CalculatedFabricCost > 0)
-                {
-                    <div><dt>Tela</dt><dd>S/ @order.CalculatedFabricCost.Value.ToString("N2")</dd></div>
-                }
-                @if (order.CalculatedConfectionCost > 0)
-                {
-                    <div><dt>Confección</dt><dd>S/ @order.CalculatedConfectionCost.Value.ToString("N2")</dd></div>
-                }
-                <div><dt>Subtotal calculado</dt><dd>S/ @order.CalculatedTotal.ToString("N2")</dd></div>
-                @if (order.IncludesIgv)
-                {
-                    <div><dt>IGV (18%)</dt><dd>S/ @PricingDisplayHelper.CalculateIgv(order.CalculatedTotal).ToString("N2")</dd></div>
-                }
-                <div><dt>Precio a cobrar</dt><dd><strong class="price-tag">S/ @order.ChargeAmount.ToString("N2")</strong> @(order.IncludesIgv ? "(con IGV)" : "")</dd></div>
-                @if (!string.IsNullOrWhiteSpace(order.PricingNotes))
-                {
-                    <div><dt>Notas cobro</dt><dd>@order.PricingNotes</dd></div>
-                }
-            </dl>
-        }
-    </section>
+    @if (ProductionMode)
+    {
+        <section class="panel-section charge-mini-section">
+            <h2>Cobro al cliente</h2>
+            @if (order.ChargeAmount > 0)
+            {
+                <div class="charge-mini-box">
+                    <span class="charge-mini-label">Total a cobrar</span>
+                    <strong class="charge-mini-amount">S/ @order.ChargeAmount.ToString("N2")</strong>
+                    @if (order.IncludesIgv)
+                    {
+                        <span class="charge-mini-hint">incl. IGV</span>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="empty-state">Sin monto registrado aún.</p>
+            }
+        </section>
+    }
+    else
+    {
+        <section class="panel-section">
+            <h2>Cobro e impresión</h2>
+            @if (order.ChargeAmount <= 0 && order.CalculatedTotal <= 0)
+            {
+                <p class="empty-state">Sin registro de cobro aún.</p>
+            }
+            else
+            {
+                <dl class="detail-list pricing-summary">
+                    @if (order.FabricMeters.HasValue)
+                    {
+                        <div><dt>Metraje</dt><dd>@order.FabricMeters.Value.ToString("N2") m @if (!order.ClientOwnFabric && order.FabricTypeName != null){<text>· @order.FabricTypeName</text>} @if (order.ClientOwnFabric){<text>· Tela del cliente</text>}</dd></div>
+                    }
+                    @if (order.CalculatedPrintPressCost > 0)
+                    {
+                        <div><dt>Impresión + planchado</dt><dd>S/ @order.CalculatedPrintPressCost.Value.ToString("N2")</dd></div>
+                    }
+                    <div><dt>Precio a cobrar</dt><dd><strong class="price-tag">S/ @order.ChargeAmount.ToString("N2")</strong></dd></div>
+                </dl>
+            }
+        </section>
+    }
 }
 else
 {
     <section class="panel-section panel-highlight">
-        <h2>Calculadora de cobro</h2>
-        <p class="field-hint">Impresión + planchado = metraje × S/ @settings.PrintPressPricePerMeter.ToString("N2")/m (configurable por SuperAdmin).</p>
+        <h2>@(ProductionMode ? "Calculadora de cobro" : "Calculadora de cobro")</h2>
+        @if (!ProductionMode)
+        {
+            <p class="field-hint">Impresión + planchado = metraje × S/ @settings.PrintPressPricePerMeter.ToString("N2")/m (configurable por SuperAdmin).</p>
+        }
 
         <div class="form-grid">
             @if (!clientOwnFabric)
@@ -73,7 +75,7 @@ else
                 <input type="number" step="0.01" @bind="fabricMeters" @bind:after="Recalculate" class="form-control" />
             </div>
             <div class="form-group">
-                <label>Tela RIP (opcional — consultar)</label>
+                <label>Tela RIP (opcional)</label>
                 <select @bind="fabricRipIdStr" @bind:after="Recalculate" class="form-control">
                     <option value="">— Sin RIP —</option>
                     @foreach (var f in settings.Fabrics)
@@ -81,7 +83,6 @@ else
                         <option value="@f.Id">@f.Name</option>
                     }
                 </select>
-                <p class="field-hint">El RIP se cotiza aparte según cantidad mínima.</p>
             </div>
             <div class="form-group">
                 <label>Metraje RIP (m)</label>
@@ -96,7 +97,7 @@ else
             </label>
             <label class="checkbox-row">
                 <input type="checkbox" @bind="clientOwnFabric" @bind:after="OnClientOwnFabricChanged" />
-                Cliente trae tela propia (solo impresión + planchado)
+                Cliente trae tela propia
             </label>
             <label class="checkbox-row">
                 <input type="checkbox" @bind="includesIgv" @bind:after="Recalculate" />
@@ -110,74 +111,62 @@ else
                 </label>
                 <label class="checkbox-row">
                     <input type="checkbox" @bind="serviceOnlyPrintPress" @bind:after="OnServiceOnlyChanged" />
-                    Solo impresión + planchado (sin tela ni confección)
+                    Solo impresión + planchado
                 </label>
             }
         </div>
 
-        @if (clientOwnFabric)
-        {
-            <p class="field-hint">Con tela del cliente no se cobra tela ni confección: solo impresión y planchado sobre el metraje indicado.</p>
-        }
-
-        @if (result is not null && fabricMeters > 0)
+        @if (!ProductionMode && result is not null && fabricMeters > 0)
         {
             <div class="pricing-breakdown">
-                @if (!clientOwnFabric && !serviceOnlyPrintPress)
-                {
-                    <div class="rrow"><span>Kilos tela (@result.FabricName)</span><strong>@result.KilosMain.ToString("N3") kg</strong></div>
-                }
                 @if (!clientOwnFabric && !serviceOnlyPrintPress && result.FabricCost > 0)
                 {
                     <div class="rrow"><span>Costo tela</span><strong>S/ @result.FabricCost.ToString("N2")</strong></div>
                 }
                 @if (result.FabricRipCost > 0)
                 {
-                    <div class="rrow"><span>Tela RIP (@result.FabricRipName)</span><strong>S/ @result.FabricRipCost.ToString("N2")</strong></div>
+                    <div class="rrow"><span>Tela RIP</span><strong>S/ @result.FabricRipCost.ToString("N2")</strong></div>
                 }
-                <div class="rrow"><span>Impresión + planchado (@fabricMeters.ToString("N2") m × S/ @settings.PrintPressPricePerMeter.ToString("N2"))</span><strong>S/ @result.PrintPressCost.ToString("N2")</strong></div>
-                @if (includesLaserCut && result.LaserCost > 0)
-                {
-                    <div class="rrow"><span>Corte láser</span><strong>S/ @result.LaserCost.ToString("N2")</strong></div>
-                }
-                @if (result.ExtraMeterCost > 0)
-                {
-                    <div class="rrow"><span>Costos extra/m</span><strong>S/ @result.ExtraMeterCost.ToString("N2")</strong></div>
-                }
+                <div class="rrow"><span>Impresión + planchado</span><strong>S/ @result.PrintPressCost.ToString("N2")</strong></div>
                 @if (result.ConfectionCost > 0)
                 {
                     <div class="rrow"><span>Confección</span><strong>S/ @result.ConfectionCost.ToString("N2")</strong></div>
                 }
                 <div class="rrow rrow-total"><span>Subtotal sugerido</span><strong>S/ @result.SuggestedTotal.ToString("N2")</strong></div>
-                @if (includesIgv)
-                {
-                    <div class="rrow"><span>IGV 18%</span><strong>S/ @PricingDisplayHelper.CalculateIgv(result.SuggestedTotal).ToString("N2")</strong></div>
-                    <div class="rrow rrow-total"><span>Total con IGV</span><strong>S/ @PricingDisplayHelper.TotalWithIgv(result.SuggestedTotal, true).ToString("N2")</strong></div>
-                }
             </div>
         }
 
-        <div class="form-group">
+        @if (ProductionMode && result is not null && fabricMeters > 0)
+        {
+            <p class="field-hint charge-suggested-hint">
+                Sugerido: S/ @PricingDisplayHelper.TotalWithIgv(result.SuggestedTotal, includesIgv).ToString("N2")
+                @(includesIgv ? " (con IGV)" : "")
+            </p>
+        }
+
+        <div class="@(ProductionMode ? "charge-mini-edit" : "form-group")">
             <label>Precio a cobrar (S/) *</label>
-            <input type="number" step="0.01" @bind="chargeAmount" class="form-control price-input" />
-        </div>
-        <div class="form-group">
-            <label>Notas de cobro</label>
-            <InputTextArea @bind-value="pricingNotes" class="form-control" rows="2" placeholder="Abono, forma de pago, observaciones..." />
+            <input type="number" step="0.01" @bind="chargeAmount" class="form-control @(ProductionMode ? "charge-mini-input" : "price-input")" />
         </div>
 
-        @if (!ReadOnly)
+        @if (!ProductionMode)
         {
-            <button type="button" class="btn-primary" @onclick="SavePricing" disabled="@(fabricMeters <= 0 || chargeAmount <= 0)">
-                Guardar cobro del pedido
-            </button>
+            <div class="form-group">
+                <label>Notas de cobro</label>
+                <InputTextArea @bind-value="pricingNotes" class="form-control" rows="2" placeholder="Abono, forma de pago, observaciones..." />
+            </div>
         }
+
+        <button type="button" class="btn-primary" @onclick="SavePricing" disabled="@(fabricMeters <= 0 || chargeAmount <= 0)">
+            Guardar cobro
+        </button>
     </section>
 }
 
 @code {
     [Parameter, EditorRequired] public Order Order { get; set; } = default!;
     [Parameter] public bool ReadOnly { get; set; }
+    [Parameter] public bool ProductionMode { get; set; }
     [Parameter] public EventCallback OnSaved { get; set; }
 
     [Inject] private PricingConfigurationService PricingConfig { get; set; } = default!;
@@ -217,7 +206,7 @@ else
             includesLaserCut = order.IncludesLaserCut;
             includesIgv = order.IncludesIgv;
             chargeAmount = order.ChargeAmount > 0 ? order.ChargeAmount : order.CalculatedTotal;
-            pricingNotes = order.PricingNotes;
+            pricingNotes = ProductionMode ? null : order.PricingNotes;
 
             if (clientOwnFabric)
             {
@@ -315,7 +304,7 @@ else
             input,
             result,
             chargeAmount,
-            pricingNotes,
+            ProductionMode ? null : pricingNotes,
             includesConfection,
             serviceOnlyPrintPress,
             clientOwnFabric,

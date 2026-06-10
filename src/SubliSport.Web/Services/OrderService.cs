@@ -482,7 +482,10 @@ public class OrderService(AppDbContext db)
         order.CalculatedConfectionCost = result.ConfectionCost;
         order.CalculatedTotal = result.SuggestedTotal;
         order.ChargeAmount = chargeAmount;
-        order.PricingNotes = pricingNotes;
+        if (pricingNotes is not null)
+        {
+            order.PricingNotes = pricingNotes;
+        }
         order.PricingUpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();

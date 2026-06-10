@@ -206,11 +206,11 @@ else
 
         @if (canDoProductionActions && !ProduccionOrderHelper.IsCompleted(order))
         {
-            <OrderPricingCalculator Order="order" OnSaved="ReloadAsync" ReadOnly="false" />
+            <OrderPricingCalculator Order="order" ProductionMode="true" OnSaved="ReloadAsync" ReadOnly="false" />
         }
-        else if (order.ChargeAmount > 0 || order.CalculatedTotal > 0)
+        else if (order.ChargeAmount > 0)
         {
-            <OrderPricingCalculator Order="order" ReadOnly="true" />
+            <OrderPricingCalculator Order="order" ProductionMode="true" ReadOnly="true" />
         }
 
         <section class="panel-section">

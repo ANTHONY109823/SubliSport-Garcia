@@ -624,6 +624,25 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 .stage-badge { font-size: 0.72rem; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
 
 .price-tag { color: var(--gold); font-weight: 700; }
+
+.charge-mini-section h2 { font-size: 0.95rem; margin-bottom: 10px; }
+.charge-mini-box {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 10px 16px;
+    border: 2px solid var(--gold);
+    border-radius: 8px;
+    background: rgba(240, 165, 0, 0.08);
+    max-width: 200px;
+}
+.charge-mini-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray); }
+.charge-mini-amount { font-size: 1.35rem; color: var(--gold); font-weight: 800; }
+.charge-mini-hint { font-size: 0.7rem; color: var(--gray); }
+.charge-mini-edit { max-width: 160px; margin: 12px 0; }
+.charge-mini-input { font-size: 1.1rem; font-weight: 700; text-align: center; }
+.charge-suggested-hint { margin: 8px 0 0; font-size: 0.82rem; }
 .pricing-breakdown {
     background: rgba(255,255,255,0.03);
     border: 1px solid var(--border);

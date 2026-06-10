@@ -41,6 +41,22 @@
     color: #444;
 }
 
+.confection-summary-compact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin: 0 0 16px;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: #333;
+    border-bottom: 1px solid #ddd;
+}
+
+.confection-summary-compact span {
+    white-space: nowrap;
+}
+
 .confection-meta {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
