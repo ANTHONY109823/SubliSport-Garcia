@@ -95,7 +95,7 @@ body { cursor: none; }
 .jersey-card-info p { font-size:0.78rem; color:var(--gold); letter-spacing:1px; }
 
 /* COTIZACIÓN */
-.quote-wrap { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:48px; max-width:680px; margin:0 auto; }
+.quote-wrap { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:48px; max-width:920px; margin:0 auto; }
 .quote-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 .form-field { width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--white); padding:13px 16px; border-radius:8px; font-family:'Barlow'; font-size:0.93rem; transition:border 0.25s; outline:none; }
 .form-field:focus { border-color:var(--gold); }
@@ -111,6 +111,29 @@ body { cursor: none; }
 .sport-tab.active, .sport-tab:hover { background:rgba(240,165,0,0.1); border-color:var(--gold); color:var(--gold); }
 .btn-whatsapp { width:100%; background:#25D366; color:white; padding:15px 32px; border:none; border-radius:10px; cursor:pointer; font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:2px; text-transform:uppercase; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; transition:all 0.3s; margin-top:20px; }
 .btn-whatsapp:hover { background:#1ab555; transform:translateY(-2px); box-shadow:0 8px 30px rgba(37,211,102,0.3); }
+.btn-quote-panel { width:100%; background:rgba(240,165,0,0.15); color:var(--gold); padding:14px 24px; border:2px solid var(--gold); border-radius:10px; cursor:pointer; font-family:'Barlow Condensed'; font-size:0.95rem; letter-spacing:2px; text-transform:uppercase; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; transition:all 0.3s; margin-top:10px; }
+.btn-quote-panel:hover { background:var(--gold); color:var(--black); transform:translateY(-2px); }
+.btn-quote-both { width:100%; background:transparent; color:var(--white); padding:12px 24px; border:1px solid var(--border); border-radius:10px; cursor:pointer; font-family:'Barlow Condensed'; font-size:0.85rem; letter-spacing:1.5px; text-transform:uppercase; margin-top:8px; transition:all 0.25s; }
+.btn-quote-both:hover { border-color:var(--gold); color:var(--gold); }
+.quote-send-options { margin-top:20px; }
+.roster-table-wrap { overflow-x:auto; margin:10px 0 12px; border:1px solid var(--border); border-radius:10px; }
+.roster-table { width:100%; border-collapse:collapse; min-width:480px; }
+.roster-table th { font-family:'Barlow Condensed'; font-size:0.72rem; letter-spacing:2px; text-transform:uppercase; color:var(--gold); padding:10px 8px; text-align:left; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.02); }
+.roster-table td { padding:6px 6px; border-bottom:1px solid rgba(255,255,255,0.04); }
+.roster-table input { width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--white); padding:8px 10px; border-radius:6px; font-size:0.88rem; outline:none; }
+.roster-table input:focus { border-color:var(--gold); }
+.btn-roster-add { background:rgba(255,255,255,0.05); border:1px dashed var(--border); color:var(--gray); padding:8px 14px; border-radius:8px; cursor:pointer; font-family:'Barlow Condensed'; letter-spacing:1.5px; text-transform:uppercase; font-size:0.78rem; transition:0.25s; }
+.btn-roster-add:hover { border-color:var(--gold); color:var(--gold); }
+.btn-roster-del { background:transparent; border:none; color:#ff8080; cursor:pointer; font-size:1rem; padding:4px 8px; }
+.photo-upload-zone { border:2px dashed var(--border); border-radius:12px; padding:24px; text-align:center; cursor:pointer; transition:0.25s; margin-top:8px; position:relative; }
+.photo-upload-zone:hover, .photo-upload-zone.has-file { border-color:var(--gold); background:rgba(240,165,0,0.05); }
+.photo-upload-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.photo-preview { max-width:100%; max-height:220px; border-radius:8px; margin-top:12px; display:none; }
+.photo-preview.visible { display:block; margin:12px auto 0; }
+.quote-status { text-align:center; font-size:0.85rem; margin-top:12px; min-height:1.2em; }
+.quote-status.ok { color:#6ee7a0; }
+.quote-status.err { color:#ff8080; }
+.quote-hint { font-size:0.78rem; color:var(--gray); margin-top:6px; line-height:1.5; }
 
 /* PROCESO */
 .process-section { padding:90px 6%; background:var(--dark); }
@@ -253,18 +276,56 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     <div class="quote-grid">
       <input type="number" id="quantity" class="form-field" placeholder="Cantidad de prendas" min="1">
       <select id="sizeRange" class="form-field">
-        <option value="" style="background:#111">Tallas...</option>
+        <option value="" style="background:#111">Rango de tallas general...</option>
       </select>
+      <input type="tel" id="clientPhone" class="form-field" placeholder="Tu WhatsApp (9 dígitos)">
+      <input type="text" id="clientName" class="form-field" placeholder="Tu nombre o club *">
     </div>
 
-    <span class="control-label">Tu nombre y mensaje (opcional)</span>
-    <input type="text" id="clientName" class="form-field" placeholder="Tu nombre o club">
-    <textarea id="extraMsg" class="form-field" rows="2" style="margin-top:12px;resize:none;" placeholder="Colores, diseño, fecha de entrega, escudo..."></textarea>
+    <span class="control-label">Lista por jugador / prenda (nombre · talla · número)</span>
+    <p class="quote-hint">Opcional pero recomendado para equipos. Agregue una fila por cada persona o prenda.</p>
+    <div class="roster-table-wrap">
+      <table class="roster-table">
+        <thead>
+          <tr><th>Nombre</th><th>Talla</th><th>Número</th><th></th></tr>
+        </thead>
+        <tbody id="rosterBody"></tbody>
+      </table>
+    </div>
+    <button type="button" class="btn-roster-add" id="btnAddRoster">+ Agregar fila</button>
 
-    <button class="btn-whatsapp" onclick="sendToWhatsApp()">
-      <i class="fab fa-whatsapp" style="font-size:1.3rem;"></i>
-      ENVIAR COTIZACIÓN POR WHATSAPP
-    </button>
+    <span class="control-label" style="margin-top:18px;">Foto del modelo de referencia</span>
+    <div class="photo-upload-zone" id="photoZone">
+      <input type="file" id="referencePhoto" accept="image/jpeg,image/png,image/webp,image/*">
+      <i class="fas fa-camera" style="font-size:2rem;color:var(--gold);margin-bottom:8px;"></i>
+      <p style="color:var(--gray);font-size:0.9rem;">Toque para subir diseño, camiseta ejemplo o boceto</p>
+      <p class="quote-hint">JPG o PNG · máx. 4 MB</p>
+      <img id="photoPreview" class="photo-preview" alt="Vista previa modelo">
+    </div>
+
+    <span class="control-label" style="margin-top:18px;">Detalles adicionales</span>
+    <textarea id="extraMsg" class="form-field" rows="2" style="margin-top:8px;resize:none;" placeholder="Colores, diseño, fecha de entrega, escudo..."></textarea>
+
+    <div class="quote-send-options">
+      <span class="control-label">Enviar cotización — elija una opción</span>
+      <p class="quote-hint">
+        <strong>WhatsApp:</strong> abre el chat con el mensaje listo (adjunte la foto si no registró en el panel).<br>
+        <strong>Registrar en SubliSport:</strong> crea el pedido en el panel de Wilber con lista y foto.<br>
+        <strong>Ambos:</strong> registra y luego abre WhatsApp (recomendado).
+      </p>
+      <button type="button" class="btn-whatsapp" id="btnSendWhatsApp">
+        <i class="fab fa-whatsapp" style="font-size:1.3rem;"></i>
+        ENVIAR POR WHATSAPP
+      </button>
+      <button type="button" class="btn-quote-panel" id="btnSendPanel">
+        <i class="fas fa-clipboard-list"></i>
+        REGISTRAR SOLICITUD EN EL PANEL
+      </button>
+      <button type="button" class="btn-quote-both" id="btnSendBoth">
+        WhatsApp + registrar en panel (recomendado)
+      </button>
+      <p id="quoteStatus" class="quote-status"></p>
+    </div>
     <p id="quoteResponseNote" style="text-align:center;color:var(--gray);font-size:0.78rem;margin-top:10px;letter-spacing:1px;">
       <i class="fas fa-clock" style="color:var(--gold)"></i> Respuesta en menos de 2 horas · La Victoria, Lima
     </p>

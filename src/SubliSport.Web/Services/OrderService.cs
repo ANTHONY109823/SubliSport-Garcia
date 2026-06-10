@@ -85,7 +85,7 @@ public class OrderService(AppDbContext db)
             .FirstOrDefaultAsync(o => o.Id == id);
     }
 
-    public async Task<Order> CreateManualOrderAsync(Order order, string createdByUserId)
+    public async Task<Order> CreateManualOrderAsync(Order order, string createdByUserId, string? registrationComment = null)
     {
         order.Id = Guid.NewGuid();
         order.OrderNumber = await GenerateOrderNumberAsync();
@@ -104,7 +104,7 @@ public class OrderService(AppDbContext db)
             FromStatus = OrderStatus.CotizacionRecibida,
             ToStatus = OrderStatus.CotizacionRecibida,
             ChangedByUserId = createdByUserId,
-            Comment = "Pedido registrado manualmente"
+            Comment = registrationComment ?? "Pedido registrado manualmente"
         });
 
         await db.SaveChangesAsync();
