@@ -66,7 +66,8 @@ public static class LandingEndpoints
                 }
 
                 var quote = LandingQuoteCalculator.Calculate(request);
-                var referenceImageUrl = await SaveReferenceImageAsync(env, request.ReferenceImageBase64);
+                var referenceImageUrls = await SaveReferenceImagesAsync(env, request, http);
+                var referenceImageUrl = referenceImageUrls.FirstOrDefault();
                 var roster = request.Roster
                     .Where(r => !string.IsNullOrWhiteSpace(r.Name) ||
                                 !string.IsNullOrWhiteSpace(r.Size) ||
@@ -107,12 +108,14 @@ public static class LandingEndpoints
                     mixedJson = MixedGarmentHelper.Serialize(mixedLines);
                 }
 
-                if (referenceImageUrl is not null)
+                if (referenceImageUrls.Count > 0)
                 {
-                    var absolute = $"{http.Request.Scheme}://{http.Request.Host}{referenceImageUrl}";
-                    notes = string.IsNullOrEmpty(notes)
-                        ? $"Foto modelo referencia: {absolute}"
-                        : $"{notes}\n\nFoto modelo referencia: {absolute}";
+                    var photoLines = referenceImageUrls.Select((url, index) =>
+                        referenceImageUrls.Count > 1
+                            ? $"Foto modelo referencia {index + 1}: {url}"
+                            : $"Foto modelo referencia: {url}");
+                    var photoBlock = string.Join("\n", photoLines);
+                    notes = string.IsNullOrEmpty(notes) ? photoBlock : $"{notes}\n\n{photoBlock}";
                 }
 
                 var sizeRange = roster.Count > 0
@@ -152,14 +155,43 @@ public static class LandingEndpoints
                 {
                     OrderId = created.Id,
                     OrderNumber = created.OrderNumber,
-                    ReferenceImageUrl = referenceImageUrl is null
-                        ? null
-                        : $"{http.Request.Scheme}://{http.Request.Host}{referenceImageUrl}",
+                    ReferenceImageUrl = referenceImageUrl,
+                    ReferenceImageUrls = referenceImageUrls,
                     ClientRequestText = quote.ClientRequestText
                 });
             })
             .AllowAnonymous()
             .RequireCors("LandingPublic");
+    }
+
+    private static async Task<List<string>> SaveReferenceImagesAsync(
+        IWebHostEnvironment env,
+        LandingQuoteSubmitRequest request,
+        HttpContext http)
+    {
+        var images = (request.ReferenceImagesBase64 ?? [])
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Take(3)
+            .ToList();
+
+        if (images.Count == 0 && !string.IsNullOrWhiteSpace(request.ReferenceImageBase64))
+        {
+            images.Add(request.ReferenceImageBase64);
+        }
+
+        var saved = new List<string>();
+        foreach (var base64 in images)
+        {
+            var relative = await SaveReferenceImageAsync(env, base64);
+            if (relative is null)
+            {
+                continue;
+            }
+
+            saved.Add($"{http.Request.Scheme}://{http.Request.Host}{relative}");
+        }
+
+        return saved;
     }
 
     private static async Task<string?> SaveReferenceImageAsync(IWebHostEnvironment env, string? base64)

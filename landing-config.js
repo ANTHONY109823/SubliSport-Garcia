@@ -55,7 +55,8 @@
   var rosterRows = [{ name: '', size: '', number: '' }];
   var mixedLines = [{ itemType: 'Conjunto completo', quantity: 1, other: '' }];
   var mixedTypes = DEFAULTS.quote.mixedTypes;
-  var referenceImageBase64 = null;
+  var referenceImagesBase64 = [null, null, null];
+  var MAX_REFERENCE_PHOTOS = 3;
   var isSubmitting = false;
 
   function apiBase() {
@@ -317,29 +318,54 @@
     reader.readAsDataURL(file);
   }
 
-  function setupPhotoUpload() {
-    var input = $('referencePhoto');
-    var preview = $('photoPreview');
-    var zone = $('photoZone');
-    if (!input) return;
+  function getReferenceImages() {
+    return referenceImagesBase64.filter(function (img) { return !!img; });
+  }
 
-    input.addEventListener('change', function () {
-      var file = input.files && input.files[0];
-      if (!file) return;
-      if (file.size > 4 * 1024 * 1024) {
-        setStatus('La imagen supera 4 MB. Elija otra.', 'err');
-        input.value = '';
-        return;
-      }
-      compressImage(file, function (dataUrl) {
-        referenceImageBase64 = dataUrl;
-        if (preview) {
-          preview.src = dataUrl;
-          preview.classList.add('visible');
+  function photoStatusMessage(count) {
+    if (!count) return '';
+    return count + ' foto' + (count === 1 ? '' : 's') + ' lista' + (count === 1 ? '' : 's') + ' para enviar.';
+  }
+
+  function setupPhotoUpload() {
+    var slots = document.querySelectorAll('.photo-slot');
+    if (!slots.length) return;
+
+    slots.forEach(function (slot) {
+      var input = slot.querySelector('.photo-slot-input');
+      var preview = slot.querySelector('.photo-slot-preview');
+      var removeBtn = slot.querySelector('.photo-slot-remove');
+      var idx = parseInt(slot.getAttribute('data-slot'), 10);
+      if (!input || idx < 0 || idx >= MAX_REFERENCE_PHOTOS) return;
+
+      input.addEventListener('change', function () {
+        var file = input.files && input.files[0];
+        if (!file) return;
+        if (file.size > 4 * 1024 * 1024) {
+          setStatus('La imagen supera 4 MB. Elija otra.', 'err');
+          input.value = '';
+          return;
         }
-        if (zone) zone.classList.add('has-file');
-        setStatus('Foto lista para enviar.', 'ok');
+        compressImage(file, function (dataUrl) {
+          referenceImagesBase64[idx] = dataUrl;
+          if (preview) preview.src = dataUrl;
+          slot.classList.add('has-photo');
+          setStatus(photoStatusMessage(getReferenceImages().length), 'ok');
+        });
       });
+
+      if (removeBtn) {
+        removeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          e.preventDefault();
+          referenceImagesBase64[idx] = null;
+          input.value = '';
+          if (preview) preview.removeAttribute('src');
+          slot.classList.remove('has-photo');
+          var count = getReferenceImages().length;
+          setStatus(photoStatusMessage(count), count ? 'ok' : '');
+        });
+      }
     });
   }
 
@@ -428,6 +454,56 @@
     });
   }
 
+  function addBusinessDays(fromDate, businessDays) {
+    var d = new Date(fromDate.getTime());
+    var added = 0;
+    while (added < businessDays) {
+      d.setDate(d.getDate() + 1);
+      if (d.getDay() !== 0 && d.getDay() !== 6) added++;
+    }
+    return d;
+  }
+
+  function toIsoDate(d) {
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+
+  function formatDateEs(iso) {
+    if (!iso) return '';
+    var p = iso.split('-');
+    if (p.length !== 3) return iso;
+    return p[2] + '/' + p[1] + '/' + p[0];
+  }
+
+  function setupDeliveryDate() {
+    var input = $('desiredDelivery');
+    var btn = $('btnSuggestDelivery');
+    var hint = $('deliveryHint');
+    if (!input) return;
+
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    input.min = toIsoDate(today);
+
+    var suggested = addBusinessDays(today, 7);
+    var suggestedIso = toIsoDate(suggested);
+
+    if (hint) {
+      hint.innerHTML = 'Recomendamos entrega a partir del <strong style="color:var(--gold);">' +
+        formatDateEs(suggestedIso) + '</strong> (7 días hábiles). Si necesita más tiempo, elija otra fecha en el calendario.';
+    }
+
+    if (btn) {
+      btn.addEventListener('click', function () {
+        input.value = suggestedIso;
+        setStatus('Fecha sugerida aplicada: ' + formatDateEs(suggestedIso), 'ok');
+      });
+    }
+  }
+
   function collectForm() {
     var qty = $('quantity');
     var size = $('sizeRange');
@@ -468,11 +544,14 @@
         ? mixed.reduce(function (s, l) { return s + l.quantity; }, 0)
         : (qty && qty.value ? parseInt(qty.value, 10) || 1 : Math.max(1, roster.length)),
       sizeRangeSummary: size && size.value ? size.value : '',
-      desiredDeliveryDeadline: delivery && delivery.value ? delivery.value.trim() : '',
+      desiredDeliveryDeadline: delivery && delivery.value
+        ? formatDateEs(delivery.value.trim())
+        : '',
       notes: extra && extra.value ? extra.value.trim() : '',
       roster: roster,
       mixedLines: isMixedMode ? mixed : [],
-      referenceImageBase64: referenceImageBase64,
+      referenceImagesBase64: getReferenceImages(),
+      referenceImageBase64: getReferenceImages()[0] || null,
       fabricKey: fabric && fabric.value ? fabric.value : 'dry_fit',
       embroideryEscudo: !!(chkEscudo && chkEscudo.checked),
       embroideryMarca: !!(chkMarca && chkMarca.checked),
@@ -511,10 +590,16 @@
         if (res.orderNumber) {
           waText += '\n\n🧾 *Referencia:* ' + res.orderNumber;
         }
-        if (res.referenceImageUrl) {
-          waText += '\n🖼 *Foto referencia:* ' + res.referenceImageUrl;
-        } else if (referenceImageBase64) {
-          waText += '\n\n📎 *Adjunte la foto de referencia en este chat.*';
+        var refUrls = res.referenceImageUrls && res.referenceImageUrls.length
+          ? res.referenceImageUrls
+          : (res.referenceImageUrl ? [res.referenceImageUrl] : []);
+        if (refUrls.length) {
+          refUrls.forEach(function (url, i) {
+            var label = refUrls.length > 1 ? 'Foto referencia ' + (i + 1) : 'Foto referencia';
+            waText += '\n🖼 *' + label + ':* ' + url;
+          });
+        } else if (getReferenceImages().length) {
+          waText += '\n\n📎 *Adjunte las fotos de referencia en este chat.*';
         }
 
         openBusinessWhatsApp(waText);
@@ -589,6 +674,7 @@
     renderMixedLines();
     setupPhotoUpload();
     setupExcelUpload();
+    setupDeliveryDate();
     wireQuoteButtons();
   }
 

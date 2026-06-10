@@ -27,6 +27,7 @@ public class LandingQuoteSubmitRequest
     public List<LandingQuoteRosterLine> Roster { get; set; } = [];
     public List<LandingQuoteMixedLine> MixedLines { get; set; } = [];
     public string? ReferenceImageBase64 { get; set; }
+    public List<string> ReferenceImagesBase64 { get; set; } = [];
     public string? FabricKey { get; set; }
     public bool EmbroideryEscudo { get; set; }
     public bool EmbroideryMarca { get; set; }
@@ -38,6 +39,7 @@ public class LandingQuoteSubmitResponse
     public string OrderNumber { get; set; } = string.Empty;
     public Guid OrderId { get; set; }
     public string? ReferenceImageUrl { get; set; }
+    public List<string> ReferenceImageUrls { get; set; } = [];
     public string ClientRequestText { get; set; } = string.Empty;
     public string ClientWhatsAppUrl { get; set; } = string.Empty;
 }
