@@ -31,6 +31,10 @@ public static class LandingQuoteNotesHelper
 
     public static string GetInternalSuggestion(string? pricingNotes) => Unpack(pricingNotes).Internal;
 
+    public static bool IsLandingQuote(string? pricingNotes) =>
+        !string.IsNullOrWhiteSpace(pricingNotes) &&
+        pricingNotes.Contains(InternalStart, StringComparison.Ordinal);
+
     private static string Extract(string text, string start, string end)
     {
         var startIdx = text.IndexOf(start, StringComparison.Ordinal);

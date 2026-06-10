@@ -6,10 +6,9 @@ public static class OrderFormOptions
 {
     public static readonly string[] GarmentTypes =
     [
-        "Conjunto completo",
-        "Camiseta",
-        "Short / Pantaloneta",
-        "Medias",
+        "Conjunto completo (camiseta + short + medias)",
+        "Solo camiseta",
+        "Short deportivo",
         "Mixta",
         "Otro"
     ];

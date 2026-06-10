@@ -604,7 +604,7 @@
 
         openBusinessWhatsApp(waText);
         setStatus(
-          '✓ Solicitud ' + (res.orderNumber || '') + ' registrada. Complete el envío en WhatsApp. El asesor le enviará los precios.',
+          '✓ Solicitud ' + (res.orderNumber || '') + ' registrada en el panel de Wilber. Complete el envío por WhatsApp; el asesor le enviará la proforma.',
           'ok'
         );
       })

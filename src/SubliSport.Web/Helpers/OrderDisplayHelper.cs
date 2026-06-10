@@ -23,12 +23,12 @@ public static class OrderDisplayHelper
 
     public static string GetGarmentDisplay(Order order)
     {
-        if (order.GarmentType.Equals("Mixta", StringComparison.OrdinalIgnoreCase))
+        if (GarmentTypeHelper.IsMixed(order.GarmentType))
         {
-            return $"Mixta — {MixedGarmentHelper.FormatSummary(order.MixedGarmentDetails)}";
+            return $"Ambos tipos — {MixedGarmentHelper.FormatSummary(order.MixedGarmentDetails)}";
         }
 
-        return order.GarmentType;
+        return GarmentTypeHelper.GetLabel(order.GarmentType);
     }
 
     public static string FormatFabricMeters(Order order)

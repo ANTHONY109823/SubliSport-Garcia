@@ -44,11 +44,15 @@
             <div class="form-group">
                 <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "garmentType", "Tipo de prenda") *</label>
                 <InputSelect @bind-value="model.GarmentType" class="form-control">
-                    @foreach (var type in UiLabelHelper.GarmentTypes(ui))
+                    @foreach (var type in GarmentTypeHelper.AdminCreateOptions)
                     {
-                        <option value="@type">@type</option>
+                        <option value="@type.Value">@type.Label</option>
                     }
                 </InputSelect>
+                @if (GarmentTypeHelper.IsMixed(model.GarmentType))
+                {
+                    <p class="field-hint">Indique cada prenda y cantidad (ej. 6 conjuntos + 5 polos).</p>
+                }
                 @if (model.GarmentType == "Otro")
                 {
                     <InputText @bind-value="model.GarmentTypeOther" class="form-control form-control-mt" placeholder="Especifique prenda" />
@@ -68,8 +72,8 @@
                 }
             </div>
             <div class="form-group">
-                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "quantity", "Cantidad (aprox.)") @(model.GarmentType == "Mixta" ? "" : "*")</label>
-                @if (model.GarmentType == "Mixta")
+                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "quantity", "Cantidad (aprox.)") @(GarmentTypeHelper.IsMixed(model.GarmentType) ? "" : "*")</label>
+                @if (GarmentTypeHelper.IsMixed(model.GarmentType))
                 {
                     <p class="field-hint">Se calcula automáticamente según el detalle mixto.</p>
                 }
@@ -80,21 +84,22 @@
                 }
             </div>
             <div class="form-group">
-                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "agreedDeliveryDate", "Fecha de entrega") *</label>
-                <InputDate @bind-value="model.AgreedDeliveryDate" class="form-control" />
+                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "receivedAt", "Fecha de ingreso de pedido") *</label>
+                <InputDate @bind-value="model.ReceivedAt" class="form-control" />
+                <span class="field-hint">Día en que ingresó el pedido a la cola de trabajo.</span>
             </div>
             <div class="form-group">
-                <label>Fecha de recepción *</label>
-                <InputDate @bind-value="model.ReceivedAt" class="form-control" />
-                <span class="field-hint">Orden de ingreso en la cola — use la fecha real en que llegó el pedido.</span>
+                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "agreedDeliveryDate", "Fecha de entrega de pedido") *</label>
+                <InputDate @bind-value="model.AgreedDeliveryDate" class="form-control" />
+                <span class="field-hint">Fecha comprometida de entrega al cliente.</span>
             </div>
         </div>
 
-        @if (model.GarmentType == "Mixta")
+        @if (GarmentTypeHelper.IsMixed(model.GarmentType))
         {
             <div class="form-group mixed-garment-section">
-                <label>Detalle pedido mixto *</label>
-                <p class="field-hint">Agregue cada tipo de prenda y cantidad (ej. 10 conjuntos + 5 polos).</p>
+                <label>Detalle — ambos tipos *</label>
+                <p class="field-hint">Agregue cada tipo de prenda y cantidad (ej. 6 conjuntos + 5 polos).</p>
                 @for (var i = 0; i < model.MixedLines.Count; i++)
                 {
                     var line = model.MixedLines[i];
@@ -273,7 +278,7 @@
         string? mixedJson = null;
         var quantity = model.Quantity;
 
-        if (model.GarmentType == "Mixta")
+        if (GarmentTypeHelper.IsMixed(model.GarmentType))
         {
             var validLines = model.MixedLines
                 .Where(l => l.Quantity > 0 && !string.IsNullOrWhiteSpace(l.ItemType))
@@ -299,7 +304,7 @@
 
         if (model.ReceivedAt is null)
         {
-            error = "Indique la fecha de recepción.";
+            error = "Indique la fecha de ingreso de pedido.";
             isSaving = false;
             return;
         }
@@ -347,7 +352,7 @@
 
         public string? ClientPhone { get; set; }
 
-        public string GarmentType { get; set; } = "Conjunto completo";
+        public string GarmentType { get; set; } = GarmentTypeHelper.AdminCreateOptions[0].Value;
         public string? GarmentTypeOther { get; set; }
         public List<MixedGarmentLineModel> MixedLines { get; } = [];
 

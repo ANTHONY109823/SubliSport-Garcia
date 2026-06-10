@@ -66,7 +66,7 @@ else
                 {
                     <div><dt>@UiLabelHelper.Label(ui, panelKey, "garmentType", "Prenda")</dt><dd>@OrderDisplayHelper.GetGarmentDisplay(order)</dd></div>
                 }
-                @if (order.GarmentType.Equals("Mixta", StringComparison.OrdinalIgnoreCase))
+                @if (GarmentTypeHelper.IsMixed(order.GarmentType))
                 {
                     <div>
                         <dt>Detalle mixto</dt>
@@ -96,13 +96,13 @@ else
                 {
                     <div><dt>@UiLabelHelper.Label(ui, panelKey, "sizeRange", "Tallas")</dt><dd class="@(string.IsNullOrWhiteSpace(order.SizeRange) ? "text-muted" : "")">@(string.IsNullOrWhiteSpace(order.SizeRange) ? "Pendiente" : order.SizeRange)</dd></div>
                 }
+                @if (!isDesignerView && UiLabelHelper.IsVisible(ui, panelKey, "receivedAt"))
+                {
+                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "receivedAt", "Fecha de ingreso de pedido")</dt><dd>@order.ReceivedAt.ToLocalTime().ToString("dd/MM/yyyy")</dd></div>
+                }
                 @if (UiLabelHelper.IsVisible(ui, panelKey, "agreedDeliveryDate"))
                 {
-                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "agreedDeliveryDate", "Entrega acordada")</dt><dd>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</dd></div>
-                }
-                @if (!isDesignerView)
-                {
-                    <div><dt>Fecha de recepción</dt><dd>@order.ReceivedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd></div>
+                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "agreedDeliveryDate", "Fecha de entrega de pedido")</dt><dd>@(order.AgreedDeliveryDate?.ToLocalTime().ToString("dd/MM/yyyy") ?? "—")</dd></div>
                 }
                 @if (!isDesignerView && order.FabricMeters is > 0)
                 {
@@ -150,21 +150,30 @@ else
                 </div>
             </section>
 
-            @if (!string.IsNullOrWhiteSpace(internalSuggestion) &&
-                 order.Status is OrderStatus.CotizacionRecibida or OrderStatus.EnRevision)
+            @if (ShowProformaPanel())
             {
                 <section class="panel-section panel-highlight">
-                    <h2>Cotización landing — revisión Wilber</h2>
+                    <h2>Proforma y cotización</h2>
                     <p class="field-hint">
-                        Sugerencia interna según tarifario. Ajuste el monto según tallas, cantidad y dificultad antes de enviar al cliente.
+                        @if (isLandingQuote)
+                        {
+                            <span>Cotización recibida desde <strong>cotizar.html</strong>. Revise, ajuste el precio y envíe la proforma al cliente.</span>
+                        }
+                        else
+                        {
+                            <span>Arme la proforma con los datos del pedido, guarde y descárguela en PDF o envíela por WhatsApp.</span>
+                        }
                         @if (order.FabricTypeName is not null)
                         {
                             <span> · Tela: <strong>@order.FabricTypeName</strong></span>
                         }
                     </p>
 
-                    <h3 class="panel-subtitle">Sugerencia interna (no enviar al cliente)</h3>
-                    <pre class="proforma-preview proforma-internal">@internalSuggestion</pre>
+                    @if (!string.IsNullOrWhiteSpace(internalSuggestion))
+                    {
+                        <h3 class="panel-subtitle">Sugerencia interna (no enviar al cliente)</h3>
+                        <pre class="proforma-preview proforma-internal">@internalSuggestion</pre>
+                    }
 
                     <div class="form-group">
                         <label>Precio a cobrar al cliente (S/) *</label>
@@ -177,6 +186,9 @@ else
                     </div>
 
                     <div class="form-actions">
+                        <button type="button" class="btn-secondary" disabled="@isBusy" @onclick="RegenerateProformaDraft">
+                            Regenerar borrador
+                        </button>
                         <button type="button" class="btn-primary" disabled="@isBusy" @onclick="SaveLandingProformaAsync">
                             Guardar proforma
                         </button>
@@ -347,6 +359,7 @@ else
     private string? whatsappUrl;
     private string? clientProformaWhatsAppUrl;
     private string? internalSuggestion;
+    private bool isLandingQuote;
     private string editClientProforma = string.Empty;
     private decimal editChargeAmount;
     private string? editSizeRange;
@@ -373,10 +386,6 @@ else
         finishFabricMetersRip = order.FabricMetersRip ?? 0;
         finishHasRip = order.FabricMetersRip is > 0 || order.FabricTypeRipId.HasValue;
         whatsappUrl = WhatsAppHelper.BuildChatUrl(order.ClientPhone, WhatsAppHelper.BuildOrderMessage(order.ClientName, order.OrderNumber));
-        internalSuggestion = LandingQuoteNotesHelper.GetInternalSuggestion(order.PricingNotes);
-        editClientProforma = LandingQuoteNotesHelper.GetClientProforma(order.PricingNotes);
-        editChargeAmount = order.ChargeAmount > 0 ? order.ChargeAmount : order.CalculatedTotal;
-        clientProformaWhatsAppUrl = BuildClientProformaWhatsAppUrl();
 
         var auth = await AuthState;
         currentUserId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -385,6 +394,17 @@ else
         var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList();
         isDesignerView = roles.Contains(AppRoles.Designer) && !roles.Contains(AppRoles.Admin);
         isOwnDesignOrder = order.AssignedDesignerId == currentUserId;
+
+        isLandingQuote = LandingQuoteNotesHelper.IsLandingQuote(order.PricingNotes);
+        internalSuggestion = LandingQuoteNotesHelper.GetInternalSuggestion(order.PricingNotes);
+        editClientProforma = LandingQuoteNotesHelper.GetClientProforma(order.PricingNotes);
+        editChargeAmount = order.ChargeAmount > 0 ? order.ChargeAmount : order.CalculatedTotal;
+        if (string.IsNullOrWhiteSpace(editClientProforma) && ShowProformaPanel())
+        {
+            editClientProforma = OrderProformaBuilder.BuildClientDraft(order, editChargeAmount);
+        }
+
+        clientProformaWhatsAppUrl = BuildClientProformaWhatsAppUrl();
 
         if (roles.Contains(AppRoles.Admin))
         {
@@ -398,6 +418,20 @@ else
             var leaderboard = await MetricsService.GetDesignerLeaderboardAsync();
             designerStats = leaderboard.ToDictionary(e => e.DesignerId);
         }
+    }
+
+    private bool ShowProformaPanel() =>
+        order is not null &&
+        !isDesignerView &&
+        (isLandingQuote || order.Status is OrderStatus.CotizacionRecibida or OrderStatus.EnRevision);
+
+    private void RegenerateProformaDraft()
+    {
+        if (order is null) return;
+        editClientProforma = OrderProformaBuilder.BuildClientDraft(order, editChargeAmount);
+        clientProformaWhatsAppUrl = BuildClientProformaWhatsAppUrl();
+        message = "Borrador de proforma actualizado con los datos del pedido.";
+        error = null;
     }
 
     private string? BuildClientProformaWhatsAppUrl()

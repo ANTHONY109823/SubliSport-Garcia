@@ -264,7 +264,7 @@ public static class LandingQuoteCalculator
             sb.AppendLine($"  WhatsApp: {request.ClientPhone}");
         sb.AppendLine($"  Deporte: {request.Sport}");
         if (!string.IsNullOrWhiteSpace(request.DesiredDeliveryDeadline))
-            sb.AppendLine($"  Plazo deseado: {request.DesiredDeliveryDeadline.Trim()}");
+            sb.AppendLine($"  Fecha de entrega de pedido: {request.DesiredDeliveryDeadline.Trim()}");
         sb.AppendLine();
         sb.AppendLine("DETALLE DEL PEDIDO");
         sb.AppendLine($"  Prenda: {(isMixed ? "Pedido mixto" : request.GarmentType)}");
@@ -344,7 +344,7 @@ public static class LandingQuoteCalculator
             sb.AppendLine($"  WhatsApp: {request.ClientPhone}");
         sb.AppendLine($"  Deporte: {request.Sport}");
         if (!string.IsNullOrWhiteSpace(request.DesiredDeliveryDeadline))
-            sb.AppendLine($"  Plazo solicitado: {request.DesiredDeliveryDeadline.Trim()}");
+            sb.AppendLine($"  Fecha de entrega de pedido: {request.DesiredDeliveryDeadline.Trim()}");
         sb.AppendLine();
         sb.AppendLine("DETALLE DEL PEDIDO");
         sb.AppendLine($"  Prenda: {(isMixed ? "Pedido mixto" : request.GarmentType)}");
@@ -421,7 +421,7 @@ public static class LandingQuoteCalculator
         sb.AppendLine($"✨ *Acabado:* {DescribeEmbroidery(request)}");
         sb.AppendLine($"⚽ *Deporte:* {request.Sport}");
         if (!string.IsNullOrWhiteSpace(request.DesiredDeliveryDeadline))
-            sb.AppendLine($"📅 *Plazo deseado:* {request.DesiredDeliveryDeadline.Trim()}");
+            sb.AppendLine($"📅 *Fecha de entrega de pedido:* {request.DesiredDeliveryDeadline.Trim()}");
         if (!string.IsNullOrWhiteSpace(request.Notes))
             sb.AppendLine($"📝 *Detalles:* {request.Notes}");
 

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using SubliSport.Domain.Constants;
@@ -87,9 +88,10 @@ public static class LandingEndpoints
                         : Math.Max(1, request.Quantity);
                 var notes = (request.Notes ?? string.Empty).Trim();
 
-                if (!string.IsNullOrWhiteSpace(request.DesiredDeliveryDeadline))
+                var agreedDeliveryDate = ParseSpanishDate(request.DesiredDeliveryDeadline);
+                if (!string.IsNullOrWhiteSpace(request.DesiredDeliveryDeadline) && agreedDeliveryDate is null)
                 {
-                    var plazo = $"Plazo deseado por el cliente: {request.DesiredDeliveryDeadline.Trim()}";
+                    var plazo = $"Fecha de entrega solicitada: {request.DesiredDeliveryDeadline.Trim()}";
                     notes = string.IsNullOrEmpty(notes) ? plazo : $"{notes}\n\n{plazo}";
                 }
 
@@ -143,7 +145,8 @@ public static class LandingEndpoints
                     ConfectionRosterDetails = roster.Count > 0
                         ? JsonSerializer.Serialize(roster, JsonOptions)
                         : null,
-                    ReceivedAt = DateTime.UtcNow
+                    ReceivedAt = DateTime.UtcNow,
+                    AgreedDeliveryDate = agreedDeliveryDate
                 };
 
                 var created = await orderService.CreateManualOrderAsync(
@@ -162,6 +165,26 @@ public static class LandingEndpoints
             })
             .AllowAnonymous()
             .RequireCors("LandingPublic");
+    }
+
+    private static DateTime? ParseSpanishDate(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        if (DateTime.TryParseExact(
+                text.Trim(),
+                "dd/MM/yyyy",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out var parsed))
+        {
+            return DateTime.SpecifyKind(parsed.Date, DateTimeKind.Utc);
+        }
+
+        return null;
     }
 
     private static async Task<List<string>> SaveReferenceImagesAsync(

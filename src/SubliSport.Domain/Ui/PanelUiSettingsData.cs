@@ -25,7 +25,14 @@ public class PanelUiSettingsData
     {
         AdminCreateOrder = new PanelSectionSettings
         {
-            GarmentTypes = ["Conjunto completo", "Camiseta", "Short / Pantaloneta", "Medias", "Mixta", "Otro"],
+            GarmentTypes =
+            [
+                "Conjunto completo (camiseta + short + medias)",
+                "Solo camiseta",
+                "Short deportivo",
+                "Mixta",
+                "Otro"
+            ],
             Sports = ["Fútbol", "Vóley", "Básquet", "Atletismo", "Otro"],
             Fields =
             [
@@ -34,7 +41,8 @@ public class PanelUiSettingsData
                 new UiFieldSetting { Key = "garmentType", Label = "Tipo de prenda" },
                 new UiFieldSetting { Key = "sport", Label = "Deporte" },
                 new UiFieldSetting { Key = "quantity", Label = "Cantidad (aprox.)" },
-                new UiFieldSetting { Key = "agreedDeliveryDate", Label = "Fecha de entrega" },
+                new UiFieldSetting { Key = "receivedAt", Label = "Fecha de ingreso de pedido" },
+                new UiFieldSetting { Key = "agreedDeliveryDate", Label = "Fecha de entrega de pedido" },
                 new UiFieldSetting { Key = "priority", Label = "Prioridad" },
                 new UiFieldSetting { Key = "notes", Label = "Nota breve (opcional)" }
             ]
@@ -49,7 +57,8 @@ public class PanelUiSettingsData
                 new UiFieldSetting { Key = "sport", Label = "Deporte" },
                 new UiFieldSetting { Key = "quantity", Label = "Cantidad" },
                 new UiFieldSetting { Key = "sizeRange", Label = "Tallas" },
-                new UiFieldSetting { Key = "agreedDeliveryDate", Label = "Entrega acordada" },
+                new UiFieldSetting { Key = "receivedAt", Label = "Fecha de ingreso de pedido" },
+                new UiFieldSetting { Key = "agreedDeliveryDate", Label = "Fecha de entrega de pedido" },
                 new UiFieldSetting { Key = "notes", Label = "Notas admin" },
                 new UiFieldSetting { Key = "assignedDesigner", Label = "Diseñador" }
             ]
@@ -64,7 +73,7 @@ public class PanelUiSettingsData
                 new UiFieldSetting { Key = "sport", Label = "Deporte" },
                 new UiFieldSetting { Key = "quantity", Label = "Cantidad" },
                 new UiFieldSetting { Key = "sizeRange", Label = "Tallas" },
-                new UiFieldSetting { Key = "agreedDeliveryDate", Label = "Entrega acordada" },
+                new UiFieldSetting { Key = "agreedDeliveryDate", Label = "Fecha de entrega de pedido" },
                 new UiFieldSetting { Key = "notes", Label = "Notas admin" }
             ]
         },
@@ -78,7 +87,7 @@ public class PanelUiSettingsData
                 new UiFieldSetting { Key = "sport", Label = "Deporte" },
                 new UiFieldSetting { Key = "quantity", Label = "Cantidad" },
                 new UiFieldSetting { Key = "sizeRange", Label = "Tallas" },
-                new UiFieldSetting { Key = "agreedDeliveryDate", Label = "Entrega" },
+                new UiFieldSetting { Key = "agreedDeliveryDate", Label = "Fecha de entrega de pedido" },
                 new UiFieldSetting { Key = "assignedDesigner", Label = "Diseñador" },
                 new UiFieldSetting { Key = "notes", Label = "Notas" }
             ]
