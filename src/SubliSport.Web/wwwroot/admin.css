@@ -385,6 +385,19 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 .form-group-span2 { grid-column: 1 / -1; }
 .form-control-mt { margin-top: 8px; }
 .field-hint { color: var(--gray); font-size: 0.88rem; margin: 0 0 12px; }
+.proforma-preview {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  max-height: 360px;
+  overflow: auto;
+  margin: 0 0 16px;
+  color: var(--gray);
+}
 .text-muted { color: var(--gray); font-style: italic; }
 
 .priority-chips { display: flex; gap: 8px; flex-wrap: wrap; }

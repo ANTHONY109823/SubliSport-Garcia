@@ -150,6 +150,38 @@ else
                 </div>
             </section>
 
+            @if (!string.IsNullOrWhiteSpace(order.PricingNotes) &&
+                 order.Status is OrderStatus.CotizacionRecibida or OrderStatus.EnRevision)
+            {
+                <section class="panel-section panel-highlight">
+                    <h2>Proforma automática (landing)</h2>
+                    <p class="field-hint">
+                        Cotización calculada desde la web. Verifique montos y envíe al cliente por WhatsApp.
+                        @if (order.FabricTypeName is not null)
+                        {
+                            <span> · Tela: <strong>@order.FabricTypeName</strong></span>
+                        }
+                        @if (order.ChargeAmount > 0)
+                        {
+                            <span> · Total ref.: <strong class="price-tag">S/ @order.ChargeAmount.ToString("N2")</strong> (sin IGV)</span>
+                        }
+                    </p>
+                    <pre class="proforma-preview">@order.PricingNotes</pre>
+                    @if (clientProformaWhatsAppUrl is not null)
+                    {
+                        <div class="form-actions">
+                            <a href="@clientProformaWhatsAppUrl" target="_blank" rel="noopener noreferrer" class="btn-action btn-success btn-action-lg">
+                                📲 Enviar proforma al cliente por WhatsApp
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="field-hint text-muted">Registre el WhatsApp del cliente para habilitar el envío.</p>
+                    }
+                </section>
+            }
+
             @if (order.ChargeAmount > 0 || order.CalculatedTotal > 0)
             {
                 <OrderPricingCalculator Order="order" ReadOnly="true" />
@@ -298,6 +330,7 @@ else
     private bool isDesignerView;
     private bool isOwnDesignOrder;
     private string? whatsappUrl;
+    private string? clientProformaWhatsAppUrl;
     private string? editSizeRange;
     private string? editNotes;
     private string? returnComment;
@@ -322,6 +355,12 @@ else
         finishFabricMetersRip = order.FabricMetersRip ?? 0;
         finishHasRip = order.FabricMetersRip is > 0 || order.FabricTypeRipId.HasValue;
         whatsappUrl = WhatsAppHelper.BuildChatUrl(order.ClientPhone, WhatsAppHelper.BuildOrderMessage(order.ClientName, order.OrderNumber));
+        clientProformaWhatsAppUrl = !string.IsNullOrWhiteSpace(order.PricingNotes)
+            ? WhatsAppHelper.BuildChatUrl(
+                order.ClientPhone,
+                WhatsAppHelper.TruncateForWhatsApp(
+                    WhatsAppHelper.BuildLandingProformaMessage(order.PricingNotes)))
+            : null;
 
         var auth = await AuthState;
         currentUserId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;

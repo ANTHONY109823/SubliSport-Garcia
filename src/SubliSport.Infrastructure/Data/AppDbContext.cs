@@ -39,7 +39,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             entity.Property(o => o.Notes).HasMaxLength(2000);
             entity.Property(o => o.FabricTypeName).HasMaxLength(120);
             entity.Property(o => o.FabricTypeRipName).HasMaxLength(120);
-            entity.Property(o => o.PricingNotes).HasMaxLength(1000);
+            entity.Property(o => o.PricingNotes).HasMaxLength(6000);
             entity.Property(o => o.FabricMeters).HasPrecision(10, 2);
             entity.Property(o => o.FabricMetersRip).HasPrecision(10, 2);
             entity.Property(o => o.CalculatedFabricCost).HasPrecision(12, 2);

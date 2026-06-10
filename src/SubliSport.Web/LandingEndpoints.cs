@@ -4,6 +4,7 @@ using SubliSport.Domain.Constants;
 using SubliSport.Domain.Entities;
 using SubliSport.Domain.Landing;
 using SubliSport.Domain.Orders;
+using SubliSport.Web.Helpers;
 using SubliSport.Web.Services;
 
 namespace SubliSport.Web;
@@ -52,6 +53,7 @@ public static class LandingEndpoints
                     return Results.Problem("No hay administrador activo para registrar la solicitud.");
                 }
 
+                var quote = LandingQuoteCalculator.Calculate(request);
                 var referenceImageUrl = await SaveReferenceImageAsync(env, request.ReferenceImageBase64);
                 var roster = request.Roster
                     .Where(r => !string.IsNullOrWhiteSpace(r.Name) ||
@@ -90,6 +92,11 @@ public static class LandingEndpoints
                     Quantity = quantity,
                     SizeRange = sizeRange,
                     Notes = string.IsNullOrWhiteSpace(notes) ? null : notes,
+                    FabricTypeName = quote.FabricLabel,
+                    CalculatedTotal = quote.Total,
+                    ChargeAmount = quote.Total,
+                    PricingNotes = quote.ProformaText,
+                    PricingUpdatedAt = DateTime.UtcNow,
                     ConfectionRosterDetails = roster.Count > 0
                         ? JsonSerializer.Serialize(roster, JsonOptions)
                         : null,
@@ -101,13 +108,21 @@ public static class LandingEndpoints
                     owner.Id,
                     "Cotización recibida desde la página web");
 
+                var clientWaUrl = WhatsAppHelper.BuildChatUrl(
+                    request.ClientPhone,
+                    WhatsAppHelper.BuildLandingProformaMessage(quote.ProformaText));
+
                 return Results.Json(new LandingQuoteSubmitResponse
                 {
                     OrderId = created.Id,
                     OrderNumber = created.OrderNumber,
                     ReferenceImageUrl = referenceImageUrl is null
                         ? null
-                        : $"{http.Request.Scheme}://{http.Request.Host}{referenceImageUrl}"
+                        : $"{http.Request.Scheme}://{http.Request.Host}{referenceImageUrl}",
+                    QuotedTotal = quote.Total,
+                    ProformaText = quote.ProformaText,
+                    WhatsAppText = quote.WhatsAppSummary,
+                    ClientWhatsAppUrl = clientWaUrl ?? string.Empty
                 });
             })
             .AllowAnonymous()

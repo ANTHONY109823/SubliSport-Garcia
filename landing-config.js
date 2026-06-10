@@ -1,5 +1,5 @@
 /**
- * Catálogo y cotización avanzada (lista jugadores, foto referencia, panel + WhatsApp).
+ * Catálogo y cotización automática (lista jugadores, foto, panel + WhatsApp).
  */
 (function () {
   var DEFAULTS = {
@@ -15,7 +15,7 @@
     ],
     quote: {
       whatsAppPhone: '51960840874',
-      responseNote: 'Respuesta en menos de 2 horas · La Victoria, Lima',
+      responseNote: 'Cotización automática · Wilber verifica y envía proforma final',
       quantityPlaceholder: 'Cantidad de prendas',
       namePlaceholder: 'Tu nombre o club *',
       extraPlaceholder: 'Colores, diseño, fecha de entrega, escudo...',
@@ -45,7 +45,6 @@
   var whatsAppPhone = DEFAULTS.quote.whatsAppPhone;
   var rosterRows = [{ name: '', size: '', number: '' }];
   var referenceImageBase64 = null;
-  var lastPanelResult = null;
   var isSubmitting = false;
 
   function apiBase() {
@@ -68,6 +67,18 @@
     if (!el) return;
     el.textContent = msg || '';
     el.className = 'quote-status' + (type ? ' ' + type : '');
+  }
+
+  function showPreview(text) {
+    var el = $('quotePreview');
+    if (!el) return;
+    if (!text) {
+      el.style.display = 'none';
+      el.textContent = '';
+      return;
+    }
+    el.textContent = text;
+    el.style.display = 'block';
   }
 
   function catalogCard(item) {
@@ -232,6 +243,9 @@
     var name = $('clientName');
     var phone = $('clientPhone');
     var extra = $('extraMsg');
+    var fabric = $('fabricType');
+    var embIns = $('embroideryInsignia');
+    var embBrand = $('embroideryBrand');
     var roster = getRosterFromDom();
 
     if (!name || !name.value.trim()) {
@@ -240,47 +254,26 @@
       return null;
     }
 
+    if (!phone || !phone.value.trim()) {
+      setStatus('Indique su WhatsApp para recibir la proforma.', 'err');
+      phone && phone.focus();
+      return null;
+    }
+
     return {
       clientName: name.value.trim(),
-      clientPhone: phone && phone.value ? phone.value.trim() : '',
+      clientPhone: phone.value.trim(),
       garmentType: selectedPrenda,
       sport: selectedSport,
       quantity: qty && qty.value ? parseInt(qty.value, 10) || 1 : Math.max(1, roster.length),
       sizeRangeSummary: size && size.value ? size.value : '',
       notes: extra && extra.value ? extra.value.trim() : '',
       roster: roster,
-      referenceImageBase64: referenceImageBase64
+      referenceImageBase64: referenceImageBase64,
+      fabricKey: fabric && fabric.value ? fabric.value : 'dry_fit',
+      embroideryInsigniaQty: embIns && embIns.value ? parseInt(embIns.value, 10) || 0 : 0,
+      embroideryBrandQty: embBrand && embBrand.value ? parseInt(embBrand.value, 10) || 0 : 0
     };
-  }
-
-  function formatRosterText(roster) {
-    if (!roster.length) return '';
-    var lines = roster.map(function (r, i) {
-      return (i + 1) + '. ' + r.name + ' · Talla ' + r.size + ' · N°' + r.number;
-    });
-    return '\n👥 *Lista jugadores:*\n' + lines.join('\n') + '\n';
-  }
-
-  function buildWhatsAppMessage(data, panelInfo) {
-    var msg = '🏅 *COTIZACIÓN - SUBLISPORT GARCIA*\n\n';
-    msg += '👕 *Prenda:* ' + (data.garmentType || '—') + '\n';
-    msg += '⚽ *Deporte:* ' + (data.sport || '—') + '\n';
-    msg += '📦 *Cantidad:* ' + (data.roster.length > 0 ? data.roster.length : data.quantity) + ' uds.\n';
-    if (data.sizeRangeSummary) msg += '📏 *Tallas generales:* ' + data.sizeRangeSummary + '\n';
-    msg += formatRosterText(data.roster);
-    msg += '👤 *Nombre/Club:* ' + data.clientName + '\n';
-    if (data.clientPhone) msg += '📱 *WhatsApp:* ' + data.clientPhone + '\n';
-    if (data.notes) msg += '📝 *Detalles:* ' + data.notes + '\n';
-    if (panelInfo && panelInfo.orderNumber) {
-      msg += '\n🧾 *Pedido registrado:* ' + panelInfo.orderNumber + '\n';
-    }
-    if (panelInfo && panelInfo.referenceImageUrl) {
-      msg += '🖼 *Foto referencia:* ' + panelInfo.referenceImageUrl + '\n';
-    } else if (referenceImageBase64 && !panelInfo) {
-      msg += '\n📎 *Adjunte la foto de referencia en este chat.*\n';
-    }
-    msg += '\n¡Hola! Me gustaría recibir cotización. 😊';
-    return msg;
   }
 
   function submitToPanel(data) {
@@ -296,54 +289,45 @@
     });
   }
 
-  function openWhatsApp(data, panelInfo) {
-    var msg = buildWhatsAppMessage(data, panelInfo);
-    window.open('https://wa.me/' + whatsAppPhone + '?text=' + encodeURIComponent(msg), '_blank');
+  function openBusinessWhatsApp(text) {
+    window.open('https://wa.me/' + whatsAppPhone + '?text=' + encodeURIComponent(text), '_blank');
   }
 
-  function sendWhatsAppOnly() {
-    var data = collectForm();
-    if (!data) return;
-    openWhatsApp(data, lastPanelResult);
-    setStatus('Abriendo WhatsApp… Si subió foto sin registrar, adjúntela en el chat.', 'ok');
-  }
-
-  function sendPanelOnly() {
+  function sendQuote() {
     if (isSubmitting) return;
     var data = collectForm();
     if (!data) return;
+
     isSubmitting = true;
-    setStatus('Registrando solicitud…', '');
+    setStatus('Calculando cotización y registrando…', '');
+    showPreview('');
+
     submitToPanel(data)
       .then(function (res) {
-        lastPanelResult = res;
-        setStatus('✓ Pedido ' + res.orderNumber + ' registrado. Wilber lo verá en el panel.', 'ok');
+        var waText = res.whatsAppText || res.proformaText || '';
+        if (res.orderNumber) {
+          waText += '\n\n🧾 *Pedido:* ' + res.orderNumber;
+        }
+        if (res.referenceImageUrl) {
+          waText += '\n🖼 *Foto referencia:* ' + res.referenceImageUrl;
+        } else if (referenceImageBase64) {
+          waText += '\n\n📎 *Adjunte la foto de referencia en este chat.*';
+        }
+
+        showPreview(res.proformaText || '');
+        openBusinessWhatsApp(waText);
+        setStatus(
+          '✓ Cotización ' + (res.orderNumber || '') + ' registrada (S/ ' +
+          (res.quotedTotal != null ? Number(res.quotedTotal).toFixed(2) : '—') +
+          '). Complete el envío en WhatsApp.',
+          'ok'
+        );
       })
       .catch(function (err) {
-        setStatus(err.message || 'Error al registrar.', 'err');
+        setStatus(err.message || 'Error al enviar la cotización.', 'err');
       })
       .finally(function () { isSubmitting = false; });
   }
-
-  function sendBoth() {
-    if (isSubmitting) return;
-    var data = collectForm();
-    if (!data) return;
-    isSubmitting = true;
-    setStatus('Registrando y abriendo WhatsApp…', '');
-    submitToPanel(data)
-      .then(function (res) {
-        lastPanelResult = res;
-        openWhatsApp(data, res);
-        setStatus('✓ Pedido ' + res.orderNumber + ' registrado. Complete el envío en WhatsApp.', 'ok');
-      })
-      .catch(function (err) {
-        setStatus('No se registró en panel: ' + (err.message || 'error') + '. Puede enviar solo por WhatsApp.', 'err');
-      })
-      .finally(function () { isSubmitting = false; });
-  }
-
-  window.sendToWhatsApp = sendWhatsAppOnly;
 
   function applyQuoteTexts(quote) {
     if (!quote) return;
@@ -382,13 +366,9 @@
   }
 
   function wireQuoteButtons() {
-    var btnWa = $('btnSendWhatsApp');
-    var btnPanel = $('btnSendPanel');
-    var btnBoth = $('btnSendBoth');
+    var btn = $('btnSendQuote');
     var btnAdd = $('btnAddRoster');
-    if (btnWa) btnWa.addEventListener('click', sendWhatsAppOnly);
-    if (btnPanel) btnPanel.addEventListener('click', sendPanelOnly);
-    if (btnBoth) btnBoth.addEventListener('click', sendBoth);
+    if (btn) btn.addEventListener('click', sendQuote);
     if (btnAdd) btnAdd.addEventListener('click', addRosterRow);
   }
 

@@ -45,6 +45,21 @@ body { cursor: none; }
 .nav-login { border:1.5px solid rgba(240,165,0,0.5)!important; color:var(--gold)!important; padding:7px 18px!important; border-radius:4px; font-weight:600!important; letter-spacing:1.5px!important; }
 .nav-login::after { display:none!important; }
 .nav-login:hover { background:rgba(240,165,0,0.12)!important; color:var(--gold-light)!important; }
+.nav-page-tabs { display:flex; gap:4px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:6px; padding:3px; }
+.nav-page-tab { color:rgba(255,255,255,0.55)!important; text-decoration:none; font-family:'Barlow Condensed'; font-size:0.82rem; letter-spacing:2px; text-transform:uppercase; padding:6px 16px!important; border-radius:4px; transition:all 0.25s; }
+.nav-page-tab::after { display:none!important; }
+.nav-page-tab:hover { color:var(--white)!important; background:rgba(255,255,255,0.04); }
+.nav-page-tab.active { background:var(--gold)!important; color:var(--black)!important; font-weight:700!important; }
+.site-page { display:none; }
+.site-page.active { display:block; }
+.quote-page-hero { padding:110px 6% 36px; text-align:center; position:relative; overflow:hidden; }
+.quote-page-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 70% 80% at 50% 0%,rgba(240,165,0,0.12) 0%,transparent 65%); pointer-events:none; }
+.quote-page-hero .section-tag { justify-content:center; }
+.quote-page-hero .section-title { margin-bottom:12px; }
+.quote-page-sub { color:var(--gray); font-size:0.95rem; max-width:520px; margin:0 auto 8px; line-height:1.6; }
+.quote-back-link { display:inline-flex; align-items:center; gap:8px; color:var(--gray); text-decoration:none; font-family:'Barlow Condensed'; font-size:0.82rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:28px; transition:color 0.25s; }
+.quote-back-link:hover { color:var(--gold); }
+.quote-page-section { padding:0 6% 90px; }
 .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; }
 .hamburger span { width:24px; height:2px; background:var(--white); transition:0.3s; display:block; }
 
@@ -116,6 +131,7 @@ body { cursor: none; }
 .btn-quote-both { width:100%; background:transparent; color:var(--white); padding:12px 24px; border:1px solid var(--border); border-radius:10px; cursor:pointer; font-family:'Barlow Condensed'; font-size:0.85rem; letter-spacing:1.5px; text-transform:uppercase; margin-top:8px; transition:all 0.25s; }
 .btn-quote-both:hover { border-color:var(--gold); color:var(--gold); }
 .quote-send-options { margin-top:20px; }
+.quote-preview { margin-top:14px; padding:14px; background:rgba(0,0,0,0.35); border:1px solid var(--border); border-radius:10px; color:var(--gray); font-size:0.75rem; white-space:pre-wrap; max-height:220px; overflow:auto; }
 .roster-table-wrap { overflow-x:auto; margin:10px 0 12px; border:1px solid var(--border); border-radius:10px; }
 .roster-table { width:100%; border-collapse:collapse; min-width:480px; }
 .roster-table th { font-family:'Barlow Condensed'; font-size:0.72rem; letter-spacing:2px; text-transform:uppercase; color:var(--gold); padding:10px 8px; text-align:left; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.02); }
@@ -185,6 +201,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
   .cursor,.cursor-ring{display:none;}
   .nav-links{display:none;flex-direction:column;position:fixed;top:70px;left:0;right:0;background:rgba(6,6,6,0.99);padding:28px 6%;gap:22px;border-bottom:1px solid var(--border);}
   .nav-links.open{display:flex;}
+  .nav-page-tabs{width:100%;justify-content:center;}
   .hamburger{display:flex;}
   .hero-stats{gap:24px;}
   .stat-num{font-size:2rem;}
@@ -210,17 +227,21 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
 <nav class="navbar" id="navbar">
   <div class="logo">SUBLISPORT <span>GARCIA</span></div>
   <ul class="nav-links" id="navLinks">
-    <li><a href="#inicio">Inicio</a></li>
-    <li><a href="#catalogo">Catálogo</a></li>
-    <li><a href="#cotizar">Cotizar</a></li>
-    <li><a href="#proceso">Proceso</a></li>
+    <li class="nav-page-tabs">
+      <a href="#inicio" class="nav-page-tab active" data-page="inicio">Inicio</a>
+      <a href="#cotizar" class="nav-page-tab" data-page="cotizar">Cotizar</a>
+    </li>
+    <li><a href="#catalogo" data-page-link="inicio">Catálogo</a></li>
+    <li><a href="#proceso" data-page-link="inicio">Proceso</a></li>
     <li><a href="https://sublisport-garcia-production.up.railway.app/login" data-panel-login target="_blank" rel="noopener noreferrer" class="nav-login">🔐 INGRESAR</a></li>
-    <li><a href="#cotizar" class="nav-cta">📲 WhatsApp</a></li>
+    <li><a href="#cotizar" class="nav-cta" data-page="cotizar">📲 Cotización</a></li>
   </ul>
   <button class="hamburger" id="hamburger" onclick="toggleMenu()">
     <span></span><span></span><span></span>
   </button>
 </nav>
+
+<div id="page-inicio" class="site-page active">
 
 <!-- HERO -->
 <section id="inicio" class="hero">
@@ -231,7 +252,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     <h1>SUBLISPORT<br><em>GARCIA</em></h1>
     <p>Diseños únicos, sublimación premium y uniformes deportivos que marcan la diferencia.</p>
     <div class="hero-btns">
-      <a href="#cotizar" class="btn-main"><i class="fab fa-whatsapp"></i> PEDIR COTIZACIÓN</a>
+      <a href="#cotizar" class="btn-main" data-page="cotizar"><i class="fab fa-whatsapp"></i> PEDIR COTIZACIÓN</a>
       <a href="#catalogo" class="btn-outline"><i class="fas fa-images"></i> VER TRABAJOS</a>
     </div>
     <div class="hero-stats">
@@ -253,7 +274,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
       <div class="section-tag reveal">Portafolio</div>
       <h2 class="section-title reveal reveal-delay-1" style="margin-bottom:0;">MODELOS <span>DE REFERENCIA</span></h2>
     </div>
-    <a href="#cotizar" class="btn-outline reveal">Pedir el tuyo <i class="fas fa-arrow-right"></i></a>
+    <a href="#cotizar" class="btn-outline reveal" data-page="cotizar">Pedir el tuyo <i class="fas fa-arrow-right"></i></a>
   </div>
 
   <div class="jerseys-slider-wrap reveal" style="margin-bottom:40px;">
@@ -261,10 +282,48 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
   </div><!-- FIN jerseys-slider-wrap -->
 </section><!-- FIN catalogo -->
 
+<!-- PROCESO -->
+<section id="proceso" class="process-section">
+  <div style="padding:0 0 70px;">
+    <div class="section-tag reveal">Cómo trabajamos</div>
+    <h2 class="section-title reveal reveal-delay-1">PROCESO DE <span>TRABAJO</span></h2>
+  </div>
+  <div class="steps-grid">
+    <div class="step reveal">
+      <div class="step-num">01</div>
+      <h3>Cotiza gratis</h3>
+      <p>Complete el formulario y reciba su proforma automática por WhatsApp.</p>
+    </div>
+    <div class="step reveal reveal-delay-1">
+      <div class="step-num">02</div>
+      <h3>Diseño digital</h3>
+      <p>Creamos el arte en alta resolución para tu aprobación.</p>
+    </div>
+    <div class="step reveal reveal-delay-2">
+      <div class="step-num">03</div>
+      <h3>Producción</h3>
+      <p>Sublimación con telas premium seleccionadas.</p>
+    </div>
+    <div class="step reveal reveal-delay-3">
+      <div class="step-num">04</div>
+      <h3>Entrega rápida</h3>
+      <p>Enviamos a todo el Perú. Entrega a tiempo garantizada.</p>
+    </div>
+  </div>
+</section>
+
+</div><!-- FIN page-inicio -->
+
+<div id="page-cotizar" class="site-page">
+
 <!-- COTIZACIÓN -->
-<section id="cotizar" class="section" style="padding-top:0;">
-  <div class="section-tag reveal">Contáctanos</div>
-  <h2 class="section-title reveal reveal-delay-1">SOLICITA TU <span>COTIZACIÓN</span></h2>
+<section id="cotizar" class="quote-page-section">
+  <div class="quote-page-hero">
+    <a href="#inicio" class="quote-back-link" data-page="inicio"><i class="fas fa-arrow-left"></i> Volver al inicio</a>
+    <div class="section-tag reveal">Contáctanos</div>
+    <h2 class="section-title reveal reveal-delay-1">SOLICITA TU <span>COTIZACIÓN</span></h2>
+    <p class="quote-page-sub reveal reveal-delay-2">Cotización automática con precios vigentes · Registro en panel · Envío por WhatsApp</p>
+  </div>
   <div class="quote-wrap reveal">
     <span class="control-label">Tipo de prenda</span>
     <div class="prenda-opts" id="garmentOpts"></div>
@@ -275,12 +334,27 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     <span class="control-label">Datos del pedido</span>
     <div class="quote-grid">
       <input type="number" id="quantity" class="form-field" placeholder="Cantidad de prendas" min="1">
+      <select id="fabricType" class="form-field">
+        <option value="dry_fit" style="background:#111">DRY FIT / WIN FRESCH</option>
+        <option value="poly_exagonal" style="background:#111">POLY EXAGONAL</option>
+        <option value="puma" style="background:#111">PUMA</option>
+        <option value="gota_sig_sag" style="background:#111">GOTA / SIG SAG</option>
+        <option value="marathon_micro" style="background:#111">MARATON / MICRO NIKE</option>
+        <option value="labrado_brillo" style="background:#111">LABRADO CON BRILLO</option>
+      </select>
       <select id="sizeRange" class="form-field">
         <option value="" style="background:#111">Rango de tallas general...</option>
       </select>
-      <input type="tel" id="clientPhone" class="form-field" placeholder="Tu WhatsApp (9 dígitos)">
+      <input type="tel" id="clientPhone" class="form-field" placeholder="Tu WhatsApp (9 dígitos) *">
       <input type="text" id="clientName" class="form-field" placeholder="Tu nombre o club *">
     </div>
+
+    <span class="control-label">Bordado (opcional)</span>
+    <div class="quote-grid">
+      <input type="number" id="embroideryInsignia" class="form-field" placeholder="Bordado insignia (uds.)" min="0" value="0">
+      <input type="number" id="embroideryBrand" class="form-field" placeholder="Bordado marca (uds.)" min="0" value="0">
+    </div>
+    <p class="quote-hint">Insignia S/ 3.00 c/u · Marca S/ 2.00 c/u · Precios desde una docena (sin IGV).</p>
 
     <span class="control-label">Lista por jugador / prenda (nombre · talla · número)</span>
     <p class="quote-hint">Opcional pero recomendado para equipos. Agregue una fila por cada persona o prenda.</p>
@@ -307,24 +381,16 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     <textarea id="extraMsg" class="form-field" rows="2" style="margin-top:8px;resize:none;" placeholder="Colores, diseño, fecha de entrega, escudo..."></textarea>
 
     <div class="quote-send-options">
-      <span class="control-label">Enviar cotización — elija una opción</span>
       <p class="quote-hint">
-        <strong>WhatsApp:</strong> abre el chat con el mensaje listo (adjunte la foto si no registró en el panel).<br>
-        <strong>Registrar en SubliSport:</strong> crea el pedido en el panel de Wilber con lista y foto.<br>
-        <strong>Ambos:</strong> registra y luego abre WhatsApp (recomendado).
+        Al enviar, calculamos su cotización automática con los precios vigentes, la registramos en el panel de Wilber
+        y abrimos WhatsApp con el mensaje listo. Wilber verificará y le enviará la proforma final.
       </p>
-      <button type="button" class="btn-whatsapp" id="btnSendWhatsApp">
+      <button type="button" class="btn-whatsapp" id="btnSendQuote">
         <i class="fab fa-whatsapp" style="font-size:1.3rem;"></i>
-        ENVIAR POR WHATSAPP
-      </button>
-      <button type="button" class="btn-quote-panel" id="btnSendPanel">
-        <i class="fas fa-clipboard-list"></i>
-        REGISTRAR SOLICITUD EN EL PANEL
-      </button>
-      <button type="button" class="btn-quote-both" id="btnSendBoth">
-        WhatsApp + registrar en panel (recomendado)
+        ENVIAR COTIZACIÓN
       </button>
       <p id="quoteStatus" class="quote-status"></p>
+      <pre id="quotePreview" class="quote-preview" style="display:none;"></pre>
     </div>
     <p id="quoteResponseNote" style="text-align:center;color:var(--gray);font-size:0.78rem;margin-top:10px;letter-spacing:1px;">
       <i class="fas fa-clock" style="color:var(--gold)"></i> Respuesta en menos de 2 horas · La Victoria, Lima
@@ -332,35 +398,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
   </div>
 </section>
 
-<!-- PROCESO -->
-<section id="proceso" class="process-section">
-  <div style="padding:0 0 70px;">
-    <div class="section-tag reveal">Cómo trabajamos</div>
-    <h2 class="section-title reveal reveal-delay-1">PROCESO DE <span>TRABAJO</span></h2>
-  </div>
-  <div class="steps-grid">
-    <div class="step reveal">
-      <div class="step-num">01</div>
-      <h3>Cotiza gratis</h3>
-      <p>Escríbenos por WhatsApp con tu idea, cantidad y presupuesto.</p>
-    </div>
-    <div class="step reveal reveal-delay-1">
-      <div class="step-num">02</div>
-      <h3>Diseño digital</h3>
-      <p>Creamos el arte en alta resolución para tu aprobación.</p>
-    </div>
-    <div class="step reveal reveal-delay-2">
-      <div class="step-num">03</div>
-      <h3>Producción</h3>
-      <p>Sublimación con telas premium seleccionadas.</p>
-    </div>
-    <div class="step reveal reveal-delay-3">
-      <div class="step-num">04</div>
-      <h3>Entrega rápida</h3>
-      <p>Enviamos a todo el Perú. Entrega a tiempo garantizada.</p>
-    </div>
-  </div>
-</section>
+</div><!-- FIN page-cotizar -->
 
 <!-- FOOTER -->
 <footer>
@@ -377,20 +415,20 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
     <div class="footer-col">
       <h4>Navegación</h4>
       <ul>
-        <li><a href="#inicio">Inicio</a></li>
-        <li><a href="#catalogo">Catálogo</a></li>
-        <li><a href="#cotizar">Cotizar</a></li>
-        <li><a href="#proceso">Proceso</a></li>
+        <li><a href="#inicio" data-page="inicio">Inicio</a></li>
+        <li><a href="#catalogo" data-page-link="inicio">Catálogo</a></li>
+        <li><a href="#cotizar" data-page="cotizar">Cotizar</a></li>
+        <li><a href="#proceso" data-page-link="inicio">Proceso</a></li>
       </ul>
     </div>
     <div class="footer-col">
       <h4>Deportes</h4>
       <ul>
-        <li><a href="#cotizar">Fútbol</a></li>
-        <li><a href="#cotizar">Vóley</a></li>
-        <li><a href="#cotizar">Básquet</a></li>
-        <li><a href="#cotizar">Ciclismo</a></li>
-        <li><a href="#cotizar">Atletismo</a></li>
+        <li><a href="#cotizar" data-page="cotizar">Fútbol</a></li>
+        <li><a href="#cotizar" data-page="cotizar">Vóley</a></li>
+        <li><a href="#cotizar" data-page="cotizar">Básquet</a></li>
+        <li><a href="#cotizar" data-page="cotizar">Ciclismo</a></li>
+        <li><a href="#cotizar" data-page="cotizar">Atletismo</a></li>
       </ul>
     </div>
     <div class="footer-col">
@@ -424,7 +462,73 @@ document.querySelectorAll('a,button,.prenda-opt,.sport-tab,.jersey-card').forEac
 });
 window.addEventListener('scroll',()=>{ document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>20); });
 function toggleMenu(){ document.getElementById('navLinks').classList.toggle('open'); }
-document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')));
+
+(function pageRouter(){
+  var pages = { inicio: document.getElementById('page-inicio'), cotizar: document.getElementById('page-cotizar') };
+  var tabs = document.querySelectorAll('.nav-page-tab[data-page]');
+  var revealObs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.08 });
+
+  function observeReveals(root){
+    (root || document).querySelectorAll('.reveal:not(.visible)').forEach(function(el){ revealObs.observe(el); });
+  }
+
+  function showPage(name, scrollTarget){
+    var page = pages[name] || pages.inicio;
+    Object.keys(pages).forEach(function(key){
+      if(pages[key]) pages[key].classList.toggle('active', pages[key] === page);
+    });
+    tabs.forEach(function(tab){
+      tab.classList.toggle('active', tab.getAttribute('data-page') === name);
+    });
+    window.scrollTo(0, 0);
+    observeReveals(page);
+    if(scrollTarget && name === 'inicio'){
+      var el = document.querySelector(scrollTarget);
+      if(el) setTimeout(function(){ el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
+    }
+    document.getElementById('navLinks').classList.remove('open');
+  }
+
+  function handleNavClick(e){
+    var link = e.currentTarget;
+    var page = link.getAttribute('data-page');
+    var pageLink = link.getAttribute('data-page-link');
+    var href = link.getAttribute('href') || '';
+    if(page){
+      e.preventDefault();
+      var hash = href.indexOf('#') >= 0 ? href.slice(href.indexOf('#')) : '#'+page;
+      history.pushState(null, '', hash);
+      showPage(page);
+      return;
+    }
+    if(pageLink === 'inicio'){
+      e.preventDefault();
+      var target = href.indexOf('#') >= 0 ? href.slice(href.indexOf('#')) : '#inicio';
+      history.pushState(null, '', target);
+      showPage('inicio', target);
+    }
+  }
+
+  document.querySelectorAll('[data-page],[data-page-link]').forEach(function(a){
+    a.addEventListener('click', handleNavClick);
+  });
+
+  document.querySelectorAll('.nav-links a:not([data-page]):not([data-page-link])').forEach(function(a){
+    a.addEventListener('click', function(){ document.getElementById('navLinks').classList.remove('open'); });
+  });
+
+  function routeFromHash(){
+    var hash = (location.hash || '#inicio').toLowerCase();
+    if(hash === '#cotizar') showPage('cotizar');
+    else showPage('inicio', hash === '#inicio' ? null : hash);
+  }
+
+  window.addEventListener('hashchange', routeFromHash);
+  routeFromHash();
+})();
+
 const obs = new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.1});
 document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 </script>

@@ -34,6 +34,21 @@ public static class WhatsAppHelper
     public static string BuildOrderMessage(string clientName, string orderNumber) =>
         $"Hola {clientName}, le escribe el equipo de diseño de SubliSport García respecto a su pedido {orderNumber}.";
 
+    public static string BuildLandingProformaMessage(string proformaText) =>
+        string.IsNullOrWhiteSpace(proformaText)
+            ? "Hola, le enviamos su cotización de SubliSport García."
+            : proformaText.Trim();
+
+    public static string TruncateForWhatsApp(string text, int maxChars = 1800)
+    {
+        if (string.IsNullOrEmpty(text) || text.Length <= maxChars)
+        {
+            return text;
+        }
+
+        return text[..maxChars] + "\n\n… (cotización completa en el panel SubliSport)";
+    }
+
     public static string BuildProductionFileMessage(string orderNumber, string clientName, string? designerName = null)
     {
         var designerPart = string.IsNullOrWhiteSpace(designerName) ? string.Empty : $" · diseño: {designerName}";

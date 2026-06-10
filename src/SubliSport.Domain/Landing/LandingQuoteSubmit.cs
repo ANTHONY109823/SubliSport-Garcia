@@ -18,6 +18,9 @@ public class LandingQuoteSubmitRequest
     public string? Notes { get; set; }
     public List<LandingQuoteRosterLine> Roster { get; set; } = [];
     public string? ReferenceImageBase64 { get; set; }
+    public string? FabricKey { get; set; }
+    public int EmbroideryInsigniaQty { get; set; }
+    public int EmbroideryBrandQty { get; set; }
 }
 
 public class LandingQuoteSubmitResponse
@@ -25,4 +28,8 @@ public class LandingQuoteSubmitResponse
     public string OrderNumber { get; set; } = string.Empty;
     public Guid OrderId { get; set; }
     public string? ReferenceImageUrl { get; set; }
+    public decimal QuotedTotal { get; set; }
+    public string ProformaText { get; set; } = string.Empty;
+    public string WhatsAppText { get; set; } = string.Empty;
+    public string ClientWhatsAppUrl { get; set; } = string.Empty;
 }
