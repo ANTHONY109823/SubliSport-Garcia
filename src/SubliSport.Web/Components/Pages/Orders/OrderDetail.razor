@@ -150,32 +150,47 @@ else
                 </div>
             </section>
 
-            @if (!string.IsNullOrWhiteSpace(order.PricingNotes) &&
+            @if (!string.IsNullOrWhiteSpace(internalSuggestion) &&
                  order.Status is OrderStatus.CotizacionRecibida or OrderStatus.EnRevision)
             {
                 <section class="panel-section panel-highlight">
-                    <h2>Proforma automática (landing)</h2>
+                    <h2>Cotización landing — revisión Wilber</h2>
                     <p class="field-hint">
-                        Cotización calculada desde la web. Verifique montos y envíe al cliente por WhatsApp.
+                        Sugerencia interna según tarifario. Ajuste el monto según tallas, cantidad y dificultad antes de enviar al cliente.
                         @if (order.FabricTypeName is not null)
                         {
                             <span> · Tela: <strong>@order.FabricTypeName</strong></span>
                         }
-                        @if (order.ChargeAmount > 0)
-                        {
-                            <span> · Total ref.: <strong class="price-tag">S/ @order.ChargeAmount.ToString("N2")</strong> (sin IGV)</span>
-                        }
                     </p>
-                    <pre class="proforma-preview">@order.PricingNotes</pre>
-                    @if (clientProformaWhatsAppUrl is not null)
-                    {
-                        <div class="form-actions">
-                            <a href="@clientProformaWhatsAppUrl" target="_blank" rel="noopener noreferrer" class="btn-action btn-success btn-action-lg">
-                                📲 Enviar proforma al cliente por WhatsApp
+
+                    <h3 class="panel-subtitle">Sugerencia interna (no enviar al cliente)</h3>
+                    <pre class="proforma-preview proforma-internal">@internalSuggestion</pre>
+
+                    <div class="form-group">
+                        <label>Precio a cobrar al cliente (S/) *</label>
+                        <input type="number" step="0.01" min="0" @bind="editChargeAmount" class="form-control" style="max-width:220px;" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Proforma para el cliente (editable)</label>
+                        <textarea @bind="editClientProforma" class="form-control proforma-editor" rows="16"></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-primary" disabled="@isBusy" @onclick="SaveLandingProformaAsync">
+                            Guardar proforma
+                        </button>
+                        <a href="/pedidos/@order.Id/proforma" target="_blank" class="btn-outline">
+                            📄 Descargar PDF
+                        </a>
+                        @if (clientProformaWhatsAppUrl is not null)
+                        {
+                            <a href="@clientProformaWhatsAppUrl" target="_blank" rel="noopener noreferrer" class="btn-action btn-success">
+                                📲 Enviar proforma por WhatsApp
                             </a>
-                        </div>
-                    }
-                    else
+                        }
+                    </div>
+                    @if (clientProformaWhatsAppUrl is null)
                     {
                         <p class="field-hint text-muted">Registre el WhatsApp del cliente para habilitar el envío.</p>
                     }
@@ -331,6 +346,9 @@ else
     private bool isOwnDesignOrder;
     private string? whatsappUrl;
     private string? clientProformaWhatsAppUrl;
+    private string? internalSuggestion;
+    private string editClientProforma = string.Empty;
+    private decimal editChargeAmount;
     private string? editSizeRange;
     private string? editNotes;
     private string? returnComment;
@@ -355,12 +373,10 @@ else
         finishFabricMetersRip = order.FabricMetersRip ?? 0;
         finishHasRip = order.FabricMetersRip is > 0 || order.FabricTypeRipId.HasValue;
         whatsappUrl = WhatsAppHelper.BuildChatUrl(order.ClientPhone, WhatsAppHelper.BuildOrderMessage(order.ClientName, order.OrderNumber));
-        clientProformaWhatsAppUrl = !string.IsNullOrWhiteSpace(order.PricingNotes)
-            ? WhatsAppHelper.BuildChatUrl(
-                order.ClientPhone,
-                WhatsAppHelper.TruncateForWhatsApp(
-                    WhatsAppHelper.BuildLandingProformaMessage(order.PricingNotes)))
-            : null;
+        internalSuggestion = LandingQuoteNotesHelper.GetInternalSuggestion(order.PricingNotes);
+        editClientProforma = LandingQuoteNotesHelper.GetClientProforma(order.PricingNotes);
+        editChargeAmount = order.ChargeAmount > 0 ? order.ChargeAmount : order.CalculatedTotal;
+        clientProformaWhatsAppUrl = BuildClientProformaWhatsAppUrl();
 
         var auth = await AuthState;
         currentUserId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -381,6 +397,54 @@ else
 
             var leaderboard = await MetricsService.GetDesignerLeaderboardAsync();
             designerStats = leaderboard.ToDictionary(e => e.DesignerId);
+        }
+    }
+
+    private string? BuildClientProformaWhatsAppUrl()
+    {
+        if (order is null || string.IsNullOrWhiteSpace(order.ClientPhone) || string.IsNullOrWhiteSpace(editClientProforma))
+        {
+            return null;
+        }
+
+        return WhatsAppHelper.BuildChatUrl(
+            order.ClientPhone,
+            WhatsAppHelper.TruncateForWhatsApp(WhatsAppHelper.BuildLandingProformaMessage(editClientProforma)));
+    }
+
+    private async Task SaveLandingProformaAsync()
+    {
+        if (order is null || currentUserId is null) return;
+        if (editChargeAmount <= 0)
+        {
+            error = "Indique el precio a cobrar al cliente.";
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(editClientProforma))
+        {
+            error = "La proforma para el cliente no puede estar vacía.";
+            return;
+        }
+
+        try
+        {
+            isBusy = true;
+            await OrderService.SaveLandingQuoteProformaAsync(
+                order.Id,
+                currentUserId,
+                editChargeAmount,
+                editClientProforma.Trim());
+            await LoadOrderAsync();
+            message = "Proforma guardada. Ya puede descargar el PDF o enviarla por WhatsApp.";
+            error = null;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            isBusy = false;
         }
     }
 

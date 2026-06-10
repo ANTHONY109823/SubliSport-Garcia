@@ -15,7 +15,7 @@
     ],
     quote: {
       whatsAppPhone: '51960840874',
-      responseNote: 'Cotización automática · Wilber verifica y envía proforma final',
+      responseNote: 'Wilber revisará su pedido y le enviará la proforma con precios',
       quantityPlaceholder: 'Cantidad de prendas',
       namePlaceholder: 'Tu nombre o club *',
       extraPlaceholder: 'Colores, diseño, fecha de entrega, escudo...',
@@ -78,18 +78,6 @@
     if (!el) return;
     el.textContent = msg || '';
     el.className = 'quote-status' + (type ? ' ' + type : '');
-  }
-
-  function showPreview(text) {
-    var el = $('quotePreview');
-    if (!el) return;
-    if (!text) {
-      el.style.display = 'none';
-      el.textContent = '';
-      return;
-    }
-    el.textContent = text;
-    el.style.display = 'block';
   }
 
   function catalogCard(item) {
@@ -434,7 +422,7 @@
     }
 
     if (!phone || !phone.value.trim()) {
-      setStatus('Indique su WhatsApp para recibir la proforma.', 'err');
+      setStatus('Indique su WhatsApp para que el asesor le contacte.', 'err');
       phone && phone.focus();
       return null;
     }
@@ -488,14 +476,13 @@
     if (!data) return;
 
     isSubmitting = true;
-    setStatus('Calculando cotización y registrando…', '');
-    showPreview('');
+    setStatus('Registrando solicitud…', '');
 
     submitToPanel(data)
       .then(function (res) {
-        var waText = res.whatsAppText || res.proformaText || '';
+        var waText = res.clientRequestText || '';
         if (res.orderNumber) {
-          waText += '\n\n🧾 *Pedido:* ' + res.orderNumber;
+          waText += '\n\n🧾 *Referencia:* ' + res.orderNumber;
         }
         if (res.referenceImageUrl) {
           waText += '\n🖼 *Foto referencia:* ' + res.referenceImageUrl;
@@ -503,12 +490,9 @@
           waText += '\n\n📎 *Adjunte la foto de referencia en este chat.*';
         }
 
-        showPreview(res.proformaText || '');
         openBusinessWhatsApp(waText);
         setStatus(
-          '✓ Cotización ' + (res.orderNumber || '') + ' registrada (S/ ' +
-          (res.quotedTotal != null ? Number(res.quotedTotal).toFixed(2) : '—') +
-          '). Complete el envío en WhatsApp.',
+          '✓ Solicitud ' + (res.orderNumber || '') + ' registrada. Complete el envío en WhatsApp. El asesor le enviará los precios.',
           'ok'
         );
       })

@@ -398,6 +398,16 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
   margin: 0 0 16px;
   color: var(--gray);
 }
+.proforma-internal { border-color: rgba(240, 165, 0, 0.35); max-height: 280px; }
+.proforma-editor { font-family: Consolas, 'Courier New', monospace; font-size: 0.82rem; line-height: 1.45; }
+.panel-subtitle { font-size: 0.92rem; color: var(--gold); margin: 0 0 10px; letter-spacing: 1px; text-transform: uppercase; }
+.proforma-print-body {
+  white-space: pre-wrap;
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  padding: 24px;
+}
 .text-muted { color: var(--gray); font-style: italic; }
 
 .priority-chips { display: flex; gap: 8px; flex-wrap: wrap; }

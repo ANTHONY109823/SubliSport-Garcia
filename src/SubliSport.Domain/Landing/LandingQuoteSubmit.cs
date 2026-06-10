@@ -38,8 +38,6 @@ public class LandingQuoteSubmitResponse
     public string OrderNumber { get; set; } = string.Empty;
     public Guid OrderId { get; set; }
     public string? ReferenceImageUrl { get; set; }
-    public decimal QuotedTotal { get; set; }
-    public string ProformaText { get; set; } = string.Empty;
-    public string WhatsAppText { get; set; } = string.Empty;
+    public string ClientRequestText { get; set; } = string.Empty;
     public string ClientWhatsAppUrl { get; set; } = string.Empty;
 }

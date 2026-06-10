@@ -135,7 +135,7 @@ public static class LandingEndpoints
                     FabricTypeName = quote.FabricLabel,
                     CalculatedTotal = quote.Total,
                     ChargeAmount = quote.Total,
-                    PricingNotes = quote.ProformaText,
+                    PricingNotes = LandingQuoteNotesHelper.Pack(quote.AdminSuggestionText, quote.ClientProformaDraft),
                     PricingUpdatedAt = DateTime.UtcNow,
                     ConfectionRosterDetails = roster.Count > 0
                         ? JsonSerializer.Serialize(roster, JsonOptions)
@@ -148,10 +148,6 @@ public static class LandingEndpoints
                     owner.Id,
                     "Cotización recibida desde la página web");
 
-                var clientWaUrl = WhatsAppHelper.BuildChatUrl(
-                    request.ClientPhone,
-                    WhatsAppHelper.BuildLandingProformaMessage(quote.ProformaText));
-
                 return Results.Json(new LandingQuoteSubmitResponse
                 {
                     OrderId = created.Id,
@@ -159,10 +155,7 @@ public static class LandingEndpoints
                     ReferenceImageUrl = referenceImageUrl is null
                         ? null
                         : $"{http.Request.Scheme}://{http.Request.Host}{referenceImageUrl}",
-                    QuotedTotal = quote.Total,
-                    ProformaText = quote.ProformaText,
-                    WhatsAppText = quote.WhatsAppSummary,
-                    ClientWhatsAppUrl = clientWaUrl ?? string.Empty
+                    ClientRequestText = quote.ClientRequestText
                 });
             })
             .AllowAnonymous()

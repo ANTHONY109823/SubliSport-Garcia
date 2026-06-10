@@ -1,0 +1,38 @@
+@page "/pedidos/{OrderId:guid}/proforma"
+@layout PrintLayout
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+
+@if (order is null)
+{
+    <p>Pedido no encontrado.</p>
+}
+else if (string.IsNullOrWhiteSpace(proformaText))
+{
+    <p>No hay proforma de cliente guardada. Revise y guarde la proforma en el detalle del pedido.</p>
+}
+else
+{
+    <div class="confection-sheet">
+        <div class="print-toolbar no-print">
+            <button type="button" class="btn-primary" onclick="window.print()">🖨 Descargar PDF / Imprimir</button>
+            <a href="/pedidos/@OrderId" class="btn-outline">← Volver al pedido</a>
+        </div>
+        <pre class="proforma-print-body">@proformaText</pre>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid OrderId { get; set; }
+    [Inject] private OrderService OrderService { get; set; } = default!;
+
+    private Order? order;
+    private string? proformaText;
+
+    protected override async Task OnInitializedAsync()
+    {
+        order = await OrderService.GetByIdAsync(OrderId);
+        if (order is null) return;
+        proformaText = LandingQuoteNotesHelper.GetClientProforma(order.PricingNotes);
+    }
+}

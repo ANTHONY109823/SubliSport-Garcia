@@ -1,7 +1,5 @@
 using System.Text;
 using SubliSport.Domain.Landing;
-using SubliSport.Web.Helpers;
-
 namespace SubliSport.Web.Services;
 
 public static class LandingQuoteCalculator
@@ -51,8 +49,9 @@ public static class LandingQuoteCalculator
         var shortTotal = request.EmbroideryShort ? shortCount * EmbroideryShortUnit : 0m;
         var total = subtotal + escudoTotal + marcaTotal + shortTotal;
 
-        var proforma = BuildProforma(request, fabricLabel, category, lines, subtotal, escudoTotal, marcaTotal, shortTotal, total, isMixed);
-        var waSummary = BuildWhatsAppSummary(request, fabricLabel, total, proforma);
+        var adminSuggestion = BuildAdminSuggestion(request, fabricLabel, category, lines, subtotal, escudoTotal, marcaTotal, shortTotal, total, isMixed);
+        var clientRequest = BuildClientRequest(request, fabricLabel, isMixed);
+        var clientProforma = BuildClientProformaDraft(request, fabricLabel, isMixed, total);
 
         return new LandingQuoteResult(
             subtotal,
@@ -63,8 +62,9 @@ public static class LandingQuoteCalculator
             fabricLabel,
             category,
             lines,
-            proforma,
-            waSummary);
+            adminSuggestion,
+            clientRequest,
+            clientProforma);
     }
 
     private static bool IsMixedOrder(LandingQuoteSubmitRequest request) =>
@@ -229,7 +229,14 @@ public static class LandingQuoteCalculator
         return parts.Count == 0 ? "Sublimado (sin bordado)" : string.Join(" · ", parts);
     }
 
-    private static string BuildProforma(
+    public static string BuildClientProformaDraft(
+        LandingQuoteSubmitRequest request,
+        string fabricLabel,
+        bool isMixed,
+        decimal total) =>
+        BuildClientProformaDraftCore(request, fabricLabel, isMixed, total);
+
+    private static string BuildAdminSuggestion(
         LandingQuoteSubmitRequest request,
         string fabricLabel,
         string category,
@@ -248,7 +255,7 @@ public static class LandingQuoteCalculator
         sb.AppendLine($"  {LandingCompanyInfo.Address}");
         sb.AppendLine("══════════════════════════════════");
         sb.AppendLine();
-        sb.AppendLine("PROFORMA / COTIZACIÓN (referencial)");
+        sb.AppendLine("SUGERENCIA INTERNA — SOLO PANEL ADMIN (NO ENVIAR AL CLIENTE)");
         sb.AppendLine($"Fecha: {DateTime.Now:dd/MM/yyyy HH:mm}");
         sb.AppendLine();
         sb.AppendLine("DATOS DEL CLIENTE");
@@ -311,36 +318,125 @@ public static class LandingQuoteCalculator
             sb.AppendLine();
         }
 
-        sb.AppendLine(LandingQuoteTerms.Text);
+        sb.AppendLine("Nota: Ajuste el precio final según tallas, cantidad y dificultad del diseño.");
         return sb.ToString().TrimEnd();
     }
 
-    private static string BuildWhatsAppSummary(
+    private static string BuildClientProformaDraftCore(
         LandingQuoteSubmitRequest request,
         string fabricLabel,
-        decimal total,
-        string fullProforma)
+        bool isMixed,
+        decimal total)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("══════════════════════════════════");
+        sb.AppendLine($"  {LandingCompanyInfo.BusinessName}");
+        sb.AppendLine($"  RUC: {LandingCompanyInfo.Ruc}");
+        sb.AppendLine($"  {LandingCompanyInfo.Address}");
+        sb.AppendLine("══════════════════════════════════");
+        sb.AppendLine();
+        sb.AppendLine("PROFORMA / COTIZACIÓN");
+        sb.AppendLine($"Fecha: {DateTime.Now:dd/MM/yyyy HH:mm}");
+        sb.AppendLine();
+        sb.AppendLine("DATOS DEL CLIENTE");
+        sb.AppendLine($"  Nombre/Club: {request.ClientName}");
+        if (!string.IsNullOrWhiteSpace(request.ClientPhone))
+            sb.AppendLine($"  WhatsApp: {request.ClientPhone}");
+        sb.AppendLine($"  Deporte: {request.Sport}");
+        if (!string.IsNullOrWhiteSpace(request.DesiredDeliveryDeadline))
+            sb.AppendLine($"  Plazo solicitado: {request.DesiredDeliveryDeadline.Trim()}");
+        sb.AppendLine();
+        sb.AppendLine("DETALLE DEL PEDIDO");
+        sb.AppendLine($"  Prenda: {(isMixed ? "Pedido mixto" : request.GarmentType)}");
+        if (isMixed && request.MixedLines.Count > 0)
+        {
+            foreach (var m in request.MixedLines.Where(l => l.Quantity > 0))
+            {
+                var label = m.ItemType == "Otro" && !string.IsNullOrWhiteSpace(m.OtherDescription)
+                    ? m.OtherDescription.Trim()
+                    : m.ItemType;
+                sb.AppendLine($"    · {m.Quantity} x {label}");
+            }
+        }
+        else if (!isMixed)
+        {
+            sb.AppendLine($"    · Cantidad: {Math.Max(1, request.Quantity)} uds.");
+        }
+        sb.AppendLine($"  Tela: {fabricLabel}");
+        sb.AppendLine($"  Acabado: {DescribeEmbroidery(request)}");
+        if (!string.IsNullOrWhiteSpace(request.SizeRangeSummary))
+            sb.AppendLine($"  Tallas generales: {request.SizeRangeSummary}");
+
+        var roster = ActiveRoster(request);
+        if (roster.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("  Lista (nombre · talla · número):");
+            foreach (var r in roster)
+                sb.AppendLine($"    · {r.Name} | {r.Size} | N°{r.Number}");
+        }
+
+        sb.AppendLine();
+        sb.AppendLine($"  TOTAL: S/ {total:N2}");
+        sb.AppendLine("  * Monto sujeto a confirmación. No incluye IGV.");
+        sb.AppendLine();
+
+        if (!string.IsNullOrWhiteSpace(request.Notes))
+        {
+            sb.AppendLine($"Observaciones: {request.Notes}");
+            sb.AppendLine();
+        }
+
+        sb.AppendLine(LandingQuoteTerms.ClientText);
+        return sb.ToString().TrimEnd();
+    }
+
+    private static string BuildClientRequest(
+        LandingQuoteSubmitRequest request,
+        string fabricLabel,
+        bool isMixed)
     {
         var sb = new StringBuilder();
         sb.AppendLine("🏅 *SOLICITUD DE COTIZACIÓN — SUBLISPORT GARCIA*");
         sb.AppendLine();
-        sb.AppendLine($"👤 *Cliente:* {request.ClientName}");
+        sb.AppendLine($"👤 *Nombre/Club:* {request.ClientName}");
         if (!string.IsNullOrWhiteSpace(request.ClientPhone))
             sb.AppendLine($"📱 *Mi WhatsApp:* {request.ClientPhone}");
-        sb.AppendLine($"👕 *Prenda:* {request.GarmentType}");
+        sb.AppendLine($"👕 *Prenda:* {(isMixed ? "Pedido mixto" : request.GarmentType)}");
+        if (isMixed && request.MixedLines.Count > 0)
+        {
+            foreach (var m in request.MixedLines.Where(l => l.Quantity > 0))
+            {
+                var label = m.ItemType == "Otro" && !string.IsNullOrWhiteSpace(m.OtherDescription)
+                    ? m.OtherDescription.Trim()
+                    : m.ItemType;
+                sb.AppendLine($"   · {m.Quantity} x {label}");
+            }
+        }
+        else
+        {
+            sb.AppendLine($"📦 *Cantidad:* {Math.Max(1, request.Quantity)} uds.");
+        }
         sb.AppendLine($"🧵 *Tela:* {fabricLabel}");
         sb.AppendLine($"✨ *Acabado:* {DescribeEmbroidery(request)}");
         sb.AppendLine($"⚽ *Deporte:* {request.Sport}");
         if (!string.IsNullOrWhiteSpace(request.DesiredDeliveryDeadline))
             sb.AppendLine($"📅 *Plazo deseado:* {request.DesiredDeliveryDeadline.Trim()}");
-        sb.AppendLine($"💰 *Total referencial:* S/ {total:N2} (sin IGV)");
         if (!string.IsNullOrWhiteSpace(request.Notes))
             sb.AppendLine($"📝 *Detalles:* {request.Notes}");
+
+        var roster = ActiveRoster(request);
+        if (roster.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("*Lista jugadores:*");
+            foreach (var r in roster)
+                sb.AppendLine($"· {r.Name} | Talla {r.Size} | N°{r.Number}");
+        }
+
         sb.AppendLine();
-        sb.AppendLine("📋 *Resumen proforma automática:*");
-        sb.AppendLine(WhatsAppHelper.TruncateForWhatsApp(fullProforma, 1200));
-        sb.AppendLine();
-        sb.AppendLine("✅ Solicitud registrada en panel SubliSport (cotización pendiente).");
+        sb.AppendLine("Solicito cotización. *Los precios los confirmará el asesor.*");
+        sb.AppendLine("Gracias 😊");
         return sb.ToString().TrimEnd();
     }
 
@@ -356,6 +452,26 @@ public static class LandingQuoteCalculator
 
 public static class LandingQuoteTerms
 {
+    public static string ClientText => """
+        CONDICIONES COMERCIALES
+        1. Los precios están considerados a partir de una docena.
+        2. El tiempo de entrega es 07 días hábiles después del adelanto del 50%.
+        3. Plazo máximo recomendado: 07 días hábiles después de la aprobación del diseño, sujeto a la carga de trabajo vigente.
+        4. El cliente podrá realizar cambios 3 veces; posterior a ello pagará por diseño.
+        5. El cliente pagará el envío de encomienda.
+        6. Los costos de este presupuesto NO incluyen IGV.
+
+        FORMA DE PAGO
+        1. 50% de adelanto — inicio según acuerdo.
+        2. 50% restante el mismo día del envío o entrega.
+        3. YAPE / PLIN: 960 840 874 · 982 765 879
+        4. BCP: 191-06073742092
+        5. INTERBANK: 898-3233877451
+        6. SCOTIABANK: 970-1614761
+        7. BANCO DE LA NACIÓN: 04-074-267780
+        8. Cuenta a nombre de LIZARDO EPIFANIO GARCIA CCAYO
+        """;
+
     public static string Text => """
         CONDICIONES COMERCIALES
         1. Los precios están considerados a partir de una docena.

@@ -37,5 +37,6 @@ public record LandingQuoteResult(
     string FabricLabel,
     string GarmentCategory,
     List<LandingQuoteLineItem> Lines,
-    string ProformaText,
-    string WhatsAppSummary);
+    string AdminSuggestionText,
+    string ClientRequestText,
+    string ClientProformaDraft);
