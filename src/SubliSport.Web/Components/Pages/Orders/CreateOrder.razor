@@ -1,5 +1,8 @@
 @using SubliSport.Domain.Enums
+@using SubliSport.Domain.Landing
 @using SubliSport.Domain.Orders
+@using SubliSport.Web.Components.Shared
+@using SubliSport.Web.Services
 
 @page "/pedidos/nuevo"
 @layout AdminLayout
@@ -9,7 +12,7 @@
 <PageTitle>Nuevo pedido - SUBLISPORT GARCIA</PageTitle>
 
 <h1 class="page-title">Registrar pedido</h1>
-<p class="page-subtitle">Solo lo esencial — el diseñador completa tallas y detalles técnicos</p>
+<p class="page-subtitle">Mismo formulario que cotizar.html — use esto cuando el cliente no pueda ingresar la solicitud.</p>
 
 @if (!string.IsNullOrEmpty(message))
 {
@@ -20,86 +23,44 @@
     <div class="alert-error">@error</div>
 }
 
-<EditForm Model="model" FormName="createOrderForm" OnValidSubmit="HandleSubmit" class="form-panel form-quick-order">
+<EditForm Model="model" FormName="createOrderForm" OnValidSubmit="HandleSubmit" class="form-panel form-quote-admin">
     <DataAnnotationsValidator />
 
     <section class="panel-section form-section-compact">
         <h2>1. Cliente</h2>
         <div class="form-grid form-grid-2">
-            <div class="form-group form-group-span2">
-                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "clientName", "Nombre del cliente") *</label>
+            <div class="form-group">
+                <label>Nombre o club *</label>
                 <InputText @bind-value="model.ClientName" class="form-control" placeholder="Ej. Club Deportivo Lima" />
                 <ValidationMessage For="() => model.ClientName" />
             </div>
             <div class="form-group">
-                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "clientPhone", "Teléfono / WhatsApp")</label>
+                <label>WhatsApp *</label>
                 <InputText @bind-value="model.ClientPhone" class="form-control" placeholder="999 999 999" />
             </div>
         </div>
     </section>
 
     <section class="panel-section form-section-compact">
-        <h2>2. Pedido</h2>
-        <div class="form-grid">
-            <div class="form-group">
-                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "garmentType", "Tipo de prenda") *</label>
-                <InputSelect @bind-value="model.GarmentType" class="form-control">
-                    @foreach (var type in GarmentTypeHelper.AdminCreateOptions)
-                    {
-                        <option value="@type.Value">@type.Label</option>
-                    }
-                </InputSelect>
-                @if (GarmentTypeHelper.IsMixed(model.GarmentType))
-                {
-                    <p class="field-hint">Indique cada prenda y cantidad (ej. 6 conjuntos + 5 polos).</p>
-                }
-                @if (model.GarmentType == "Otro")
-                {
-                    <InputText @bind-value="model.GarmentTypeOther" class="form-control form-control-mt" placeholder="Especifique prenda" />
-                }
-            </div>
-            <div class="form-group">
-                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "sport", "Deporte") *</label>
-                <InputSelect @bind-value="model.Sport" class="form-control">
-                    @foreach (var sport in UiLabelHelper.Sports(ui))
-                    {
-                        <option value="@sport">@sport</option>
-                    }
-                </InputSelect>
-                @if (model.Sport == "Otro")
-                {
-                    <InputText @bind-value="model.SportOther" class="form-control form-control-mt" placeholder="Especifique deporte" />
-                }
-            </div>
-            <div class="form-group">
-                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "quantity", "Cantidad (aprox.)") @(GarmentTypeHelper.IsMixed(model.GarmentType) ? "" : "*")</label>
-                @if (GarmentTypeHelper.IsMixed(model.GarmentType))
-                {
-                    <p class="field-hint">Se calcula automáticamente según el detalle mixto.</p>
-                }
-                else
-                {
-                    <InputNumber @bind-value="model.Quantity" class="form-control" />
-                    <ValidationMessage For="() => model.Quantity" />
-                }
-            </div>
-            <div class="form-group">
-                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "receivedAt", "Fecha de ingreso de pedido") *</label>
-                <InputDate @bind-value="model.ReceivedAt" class="form-control" />
-                <span class="field-hint">Día en que ingresó el pedido a la cola de trabajo.</span>
-            </div>
-            <div class="form-group">
-                <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "agreedDeliveryDate", "Fecha de entrega de pedido") *</label>
-                <InputDate @bind-value="model.AgreedDeliveryDate" class="form-control" />
-                <span class="field-hint">Fecha comprometida de entrega al cliente.</span>
-            </div>
+        <h2>2. Tipo de prenda</h2>
+        <p class="field-hint">Si necesita conjunto y camiseta (u otros), elija <strong>Ambos tipos</strong>.</p>
+        <div class="garment-chips">
+            @foreach (var g in OrderFormOptions.GarmentChips)
+            {
+                var value = g.Value;
+                <button type="button"
+                        class="garment-chip @(model.GarmentType == value ? "active" : "")"
+                        @onclick="() => SelectGarment(value)">
+                    @g.Label
+                </button>
+            }
         </div>
 
         @if (GarmentTypeHelper.IsMixed(model.GarmentType))
         {
-            <div class="form-group mixed-garment-section">
+            <div class="mixed-garment-section">
                 <label>Detalle — ambos tipos *</label>
-                <p class="field-hint">Agregue cada tipo de prenda y cantidad (ej. 6 conjuntos + 5 polos).</p>
+                <p class="field-hint">Ejemplo: 6 conjuntos + 5 polos.</p>
                 @for (var i = 0; i < model.MixedLines.Count; i++)
                 {
                     var line = model.MixedLines[i];
@@ -122,57 +83,131 @@
                         }
                     </div>
                 }
-                <button type="button" class="btn-secondary" @onclick="AddMixedLine">+ Agregar prenda</button>
+                <button type="button" class="btn-secondary btn-sm" @onclick="AddMixedLine">+ Agregar línea</button>
             </div>
         }
+    </section>
 
+    <section class="panel-section form-section-compact">
+        <h2>3. Deporte</h2>
+        <div class="sport-chips">
+            @foreach (var s in OrderFormOptions.Sports)
+            {
+                var sport = s.Value;
+                <button type="button"
+                        class="sport-chip @(model.Sport == sport ? "active" : "")"
+                        @onclick="() => SelectSport(sport)">
+                    @s.Label
+                </button>
+            }
+        </div>
+        @if (model.Sport == "Otro")
+        {
+            <InputText @bind-value="model.SportOther" class="form-control form-control-mt" placeholder="Especifique deporte" />
+        }
+    </section>
+
+    <section class="panel-section form-section-compact">
+        <h2>4. Datos del pedido</h2>
+        <div class="form-grid">
+            @if (!GarmentTypeHelper.IsMixed(model.GarmentType))
+            {
+                <div class="form-group">
+                    <label>Cantidad de prendas *</label>
+                    <InputNumber @bind-value="model.Quantity" class="form-control" />
+                    <ValidationMessage For="() => model.Quantity" />
+                </div>
+            }
+            <div class="form-group">
+                <label>Tipo de tela</label>
+                <InputSelect @bind-value="model.FabricKey" class="form-control">
+                    @foreach (var fabric in OrderFormOptions.Fabrics)
+                    {
+                        <option value="@fabric.Key">@fabric.Label</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="form-group">
+                <label>Rango de tallas general</label>
+                <InputSelect @bind-value="model.SizeRangeSummary" class="form-control">
+                    <option value="">— Seleccione —</option>
+                    @foreach (var size in OrderFormOptions.SizeRanges)
+                    {
+                        <option value="@size.Value">@size.Label</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="form-group">
+                <label>Fecha de ingreso de pedido *</label>
+                <InputDate @bind-value="model.ReceivedAt" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label>Fecha de entrega de pedido *</label>
+                <InputDate @bind-value="model.AgreedDeliveryDate" class="form-control" />
+                <button type="button" class="btn-secondary btn-sm" style="margin-top:8px;" @onclick="ApplySuggestedDelivery">
+                    Usar sugerencia (7 días hábiles)
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel-section form-section-compact">
+        <h2>5. Acabado / bordado (opcional)</h2>
+        <p class="field-hint">Si no marca ninguna opción, todo será <strong>sublimado</strong>.</p>
+        <div class="option-chips">
+            <button type="button" class="option-chip @(model.EmbroideryEscudo ? "active" : "")" @onclick="ToggleEmbroideryEscudo">Bordado escudo</button>
+            <button type="button" class="option-chip @(model.EmbroideryMarca ? "active" : "")" @onclick="ToggleEmbroideryMarca">Bordado marca</button>
+            <button type="button" class="option-chip @(model.EmbroideryShort ? "active" : "")" @onclick="ToggleEmbroideryShort">Bordado short</button>
+        </div>
+    </section>
+
+    <section class="panel-section form-section-compact">
+        <h2>6. Lista de jugadores</h2>
+        <AdminQuoteRosterEditor Rows="model.RosterRows" />
+    </section>
+
+    <section class="panel-section form-section-compact">
+        <h2>7. Fotos de referencia</h2>
+        <AdminQuotePhotoSlots Slots="model.PhotoSlots" />
+    </section>
+
+    <section class="panel-section form-section-compact">
+        <h2>8. Detalles y opciones admin</h2>
         <div class="form-group">
-            <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "priority", "Prioridad")</label>
+            <label>Detalles adicionales</label>
+            <InputTextArea @bind-value="model.Notes" class="form-control" rows="3" placeholder="Colores, diseño, escudo, observaciones..." />
+        </div>
+        <div class="form-group">
+            <label>Prioridad</label>
             <div class="option-chips">
                 @foreach (var p in OrderFormOptions.PriorityQuick)
                 {
                     var priority = p.Value;
-                    <button type="button"
-                            class="option-chip priority-@priority.ToString().ToLower() @(model.Priority == priority ? "active" : "")"
-                            @onclick="() => SelectPriority(priority)">
-                        @p.Label
-                    </button>
+                    <button type="button" class="option-chip priority-@priority.ToString().ToLower() @(model.Priority == priority ? "active" : "")" @onclick="() => SelectPriority(priority)">@p.Label</button>
                 }
             </div>
         </div>
-
-        <div class="form-group">
-            <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "notes", "Nota breve (opcional)")</label>
-            <InputText @bind-value="model.Notes" class="form-control" placeholder="Ej. Uniforme titular + suplente, colores rojo/negro" />
-        </div>
-
         <div class="form-group">
             <label>Obsequio (opcional)</label>
             <div class="option-chips">
                 @foreach (var gift in GiftOptionHelper.Options)
                 {
                     var giftValue = gift.Value;
-                    <button type="button"
-                            class="option-chip @(model.GiftOption == giftValue ? "active" : "")"
-                            @onclick="() => SelectGift(giftValue)">
-                        @gift.Label
-                    </button>
+                    <button type="button" class="option-chip @(model.GiftOption == giftValue ? "active" : "")" @onclick="() => SelectGift(giftValue)">@gift.Label</button>
                 }
             </div>
         </div>
     </section>
 
     <section class="panel-section form-section-compact">
-        <h2>3. Asignar diseñador (opcional)</h2>
-        <p class="field-hint">Elija quien tenga menos pendientes. Si no asigna ahora, podrá hacerlo desde el pedido.</p>
-        <DesignerPickerCards Designers="designers"
-                             Workloads="designerWorkloads"
-                             @bind-SelectedDesignerId="model.DesignerId" />
+        <h2>9. Asignar diseñador (opcional)</h2>
+        <p class="field-hint">Elija quien tenga menos pendientes.</p>
+        <DesignerPickerCards Designers="designers" Workloads="designerWorkloads" @bind-SelectedDesignerId="model.DesignerId" />
     </section>
 
     <div class="form-actions-sticky">
         <button type="submit" class="btn-primary btn-primary-lg" disabled="@isSaving">
-            @(isSaving ? "Guardando..." : "Registrar pedido")
+            @(isSaving ? "Guardando..." : "Registrar pedido y generar proforma")
         </button>
         <a href="/pedidos" class="btn-secondary">Cancelar</a>
     </div>
@@ -180,6 +215,7 @@
 
 @code {
     [Inject] private OrderService OrderService { get; set; } = default!;
+    [Inject] private QuoteReferenceImageService QuoteImages { get; set; } = default!;
     [Inject] private PanelUiConfigurationService PanelUiConfig { get; set; } = default!;
     [Inject] private UserManagementService UserManagementService { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
@@ -196,9 +232,7 @@
     protected override async Task OnInitializedAsync()
     {
         ui = await PanelUiConfig.GetSettingsAsync();
-        designers = await UserManagementService.GetDesignersAsync();
-        var activeDesigners = designers.Where(d => d.IsActive).ToList();
-        designers = activeDesigners;
+        designers = (await UserManagementService.GetDesignersAsync()).Where(d => d.IsActive).ToList();
 
         var auth = await AuthState;
         var userId = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -206,9 +240,20 @@
 
         var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value);
         var orders = await OrderService.GetOrdersForUserAsync(userId, roles);
-        designerWorkloads = DesignerWorkloadHelper.BuildWorkloads(
-            orders,
-            designers.Select(d => d.Id));
+        designerWorkloads = DesignerWorkloadHelper.BuildWorkloads(orders, designers.Select(d => d.Id));
+        ApplySuggestedDelivery();
+    }
+
+    private void SelectGarment(string value)
+    {
+        model.GarmentType = value;
+        StateHasChanged();
+    }
+
+    private void SelectSport(string value)
+    {
+        model.Sport = value;
+        StateHasChanged();
     }
 
     private void SelectGift(GiftOption value)
@@ -223,6 +268,32 @@
         StateHasChanged();
     }
 
+    private void ToggleEmbroideryEscudo() { model.EmbroideryEscudo = !model.EmbroideryEscudo; StateHasChanged(); }
+    private void ToggleEmbroideryMarca() { model.EmbroideryMarca = !model.EmbroideryMarca; StateHasChanged(); }
+    private void ToggleEmbroideryShort() { model.EmbroideryShort = !model.EmbroideryShort; StateHasChanged(); }
+
+    private void ApplySuggestedDelivery()
+    {
+        var today = DateTime.Today;
+        model.AgreedDeliveryDate = AddBusinessDays(today, 7);
+        StateHasChanged();
+    }
+
+    private static DateTime AddBusinessDays(DateTime from, int days)
+    {
+        var d = from;
+        var added = 0;
+        while (added < days)
+        {
+            d = d.AddDays(1);
+            if (d.DayOfWeek is not DayOfWeek.Saturday and not DayOfWeek.Sunday)
+            {
+                added++;
+            }
+        }
+        return d;
+    }
+
     private void AddMixedLine() =>
         model.MixedLines.Add(new MixedGarmentLineModel { ItemType = OrderFormOptions.MixedGarmentItemTypes[0], Quantity = 1 });
 
@@ -232,6 +303,55 @@
         {
             model.MixedLines.RemoveAt(index);
         }
+    }
+
+    private LandingQuoteSubmitRequest BuildQuoteRequest()
+    {
+        var sport = model.Sport == "Otro" ? model.SportOther?.Trim() ?? "Otro" : model.Sport;
+        var garment = GarmentTypeHelper.IsMixed(model.GarmentType) ? "Mixta" : model.GarmentType;
+
+        var roster = model.RosterRows
+            .Where(r => !string.IsNullOrWhiteSpace(r.Name) || !string.IsNullOrWhiteSpace(r.Size) || !string.IsNullOrWhiteSpace(r.Number))
+            .Select(r => new LandingQuoteRosterLine
+            {
+                Name = r.Name.Trim(),
+                Size = r.Size.Trim(),
+                Number = r.Number.Trim()
+            })
+            .ToList();
+
+        var mixed = model.MixedLines
+            .Where(l => l.Quantity > 0 && !string.IsNullOrWhiteSpace(l.ItemType))
+            .Select(l => new LandingQuoteMixedLine
+            {
+                ItemType = l.ItemType,
+                Quantity = l.Quantity,
+                OtherDescription = l.ItemType == "Otro" ? l.OtherDescription : null
+            })
+            .ToList();
+
+        var qty = GarmentTypeHelper.IsMixed(model.GarmentType)
+            ? mixed.Sum(l => l.Quantity)
+            : roster.Count > 0 ? roster.Count : model.Quantity;
+
+        return new LandingQuoteSubmitRequest
+        {
+            ClientName = model.ClientName.Trim(),
+            ClientPhone = model.ClientPhone?.Trim(),
+            GarmentType = garment,
+            Sport = sport,
+            Quantity = Math.Max(1, qty),
+            SizeRangeSummary = model.SizeRangeSummary,
+            Notes = model.Notes,
+            DesiredDeliveryDeadline = model.AgreedDeliveryDate?.ToString("dd/MM/yyyy"),
+            Roster = roster,
+            MixedLines = mixed,
+            ReferenceImagesBase64 = model.PhotoSlots.Where(p => !string.IsNullOrWhiteSpace(p.Base64)).Select(p => p.Base64!).ToList(),
+            FabricKey = model.FabricKey,
+            EmbroideryEscudo = model.EmbroideryEscudo,
+            EmbroideryMarca = model.EmbroideryMarca,
+            EmbroideryShort = model.EmbroideryShort
+        };
     }
 
     private async Task HandleSubmit()
@@ -249,83 +369,54 @@
             return;
         }
 
-        var garment = model.GarmentType == "Otro" ? model.GarmentTypeOther?.Trim() : model.GarmentType;
-        var sport = model.Sport == "Otro" ? model.SportOther?.Trim() : model.Sport;
-
-        if (string.IsNullOrWhiteSpace(garment))
+        if (string.IsNullOrWhiteSpace(model.ClientPhone))
         {
-            error = "Indique el tipo de prenda.";
+            error = "Indique el WhatsApp del cliente.";
             isSaving = false;
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(sport))
+        if (GarmentTypeHelper.IsMixed(model.GarmentType) &&
+            !model.MixedLines.Any(l => l.Quantity > 0 && !string.IsNullOrWhiteSpace(l.ItemType)))
         {
-            error = "Indique el deporte.";
+            error = "Agregue al menos una línea al pedido mixto.";
             isSaving = false;
             return;
         }
 
-        string? mixedJson = null;
-        var quantity = model.Quantity;
-
-        if (GarmentTypeHelper.IsMixed(model.GarmentType))
+        if (model.ReceivedAt is null || model.AgreedDeliveryDate is null)
         {
-            var validLines = model.MixedLines
-                .Where(l => l.Quantity > 0 && !string.IsNullOrWhiteSpace(l.ItemType))
-                .Select(l => new MixedGarmentLine
-                {
-                    ItemType = l.ItemType,
-                    Quantity = l.Quantity,
-                    OtherDescription = l.ItemType == "Otro" ? l.OtherDescription?.Trim() : null
-                })
-                .ToList();
-
-            if (validLines.Count == 0)
-            {
-                error = "Agregue al menos una prenda al pedido mixto.";
-                isSaving = false;
-                return;
-            }
-
-            mixedJson = MixedGarmentHelper.Serialize(validLines);
-            quantity = validLines.Sum(l => l.Quantity);
-            garment = "Mixta";
-        }
-
-        if (model.ReceivedAt is null)
-        {
-            error = "Indique la fecha de ingreso de pedido.";
+            error = "Indique fecha de ingreso y de entrega.";
             isSaving = false;
             return;
         }
 
         try
         {
-            var order = await OrderService.CreateManualOrderAsync(new Order
-            {
-                ClientName = model.ClientName.Trim(),
-                ClientPhone = model.ClientPhone,
-                GarmentType = garment,
-                MixedGarmentDetails = mixedJson,
-                GiftOption = model.GiftOption,
-                Sport = sport,
-                Quantity = quantity,
-                Notes = model.Notes,
-                Priority = model.Priority,
-                ReceivedAt = model.ReceivedAt.Value.ToUniversalTime(),
-                AgreedDeliveryDate = model.AgreedDeliveryDate?.ToUniversalTime()
-            }, userId);
+            var request = BuildQuoteRequest();
+            var quote = LandingQuoteCalculator.Calculate(request);
+            var imageUrls = await QuoteImages.SaveAsync(request.ReferenceImagesBase64);
 
-            var proformaDraft = OrderProformaBuilder.BuildClientDraft(order, 0);
-            await OrderService.InitializeProformaDraftAsync(order.Id, proformaDraft);
+            var order = LandingQuoteOrderAssembler.Build(
+                request,
+                quote,
+                imageUrls,
+                model.ReceivedAt.Value,
+                model.AgreedDeliveryDate.Value.ToUniversalTime(),
+                model.Priority,
+                model.GiftOption);
+
+            var created = await OrderService.CreateManualOrderAsync(
+                order,
+                userId,
+                "Pedido registrado manualmente por admin (formulario cotización)");
 
             if (!string.IsNullOrEmpty(model.DesignerId))
             {
-                await OrderService.AssignDesignerAsync(order.Id, model.DesignerId, userId);
+                await OrderService.AssignDesignerAsync(created.Id, model.DesignerId, userId);
             }
 
-            Navigation.NavigateTo($"/pedidos/{order.Id}");
+            Navigation.NavigateTo($"/pedidos/{created.Id}");
         }
         catch (Exception ex)
         {
@@ -339,29 +430,38 @@
         public CreateOrderModel()
         {
             MixedLines.Add(new MixedGarmentLineModel { ItemType = OrderFormOptions.MixedGarmentItemTypes[0], Quantity = 1 });
+            RosterRows.Add(new AdminQuoteRosterEditor.RosterRowModel());
+            for (var i = 0; i < 3; i++)
+            {
+                PhotoSlots.Add(new AdminQuotePhotoSlots.PhotoSlotModel());
+            }
         }
 
         [Required(ErrorMessage = "Ingrese el nombre del cliente.")]
         public string ClientName { get; set; } = string.Empty;
 
         public string? ClientPhone { get; set; }
-
-        public string GarmentType { get; set; } = GarmentTypeHelper.AdminCreateOptions[0].Value;
-        public string? GarmentTypeOther { get; set; }
+        public string GarmentType { get; set; } = OrderFormOptions.GarmentChips[0].Value;
         public List<MixedGarmentLineModel> MixedLines { get; } = [];
-
         public string Sport { get; set; } = "Fútbol";
         public string? SportOther { get; set; }
 
         [Range(1, 10000, ErrorMessage = "Cantidad inválida.")]
         public int Quantity { get; set; } = 1;
 
+        public string FabricKey { get; set; } = "dry_fit";
+        public string? SizeRangeSummary { get; set; }
         public string? Notes { get; set; }
+        public bool EmbroideryEscudo { get; set; }
+        public bool EmbroideryMarca { get; set; }
+        public bool EmbroideryShort { get; set; }
         public OrderPriority Priority { get; set; } = OrderPriority.Normal;
-        public DateTime? AgreedDeliveryDate { get; set; } = DateTime.Today.AddDays(7);
+        public DateTime? AgreedDeliveryDate { get; set; }
         public DateTime? ReceivedAt { get; set; } = DateTime.Today;
         public GiftOption GiftOption { get; set; } = GiftOption.None;
         public string? DesignerId { get; set; }
+        public List<AdminQuoteRosterEditor.RosterRowModel> RosterRows { get; } = [];
+        public List<AdminQuotePhotoSlots.PhotoSlotModel> PhotoSlots { get; } = [];
     }
 
     private sealed class MixedGarmentLineModel

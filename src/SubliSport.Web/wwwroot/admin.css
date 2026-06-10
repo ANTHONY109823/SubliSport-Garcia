@@ -487,6 +487,59 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 
 .form-quick-order .panel-section { margin-bottom: 16px; }
 
+.form-quote-admin .panel-section { margin-bottom: 14px; }
+.admin-quote-block { margin-top: 8px; }
+.admin-quote-block > label { display: block; font-size: 0.78rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gray); margin-bottom: 8px; }
+
+.garment-chips, .sport-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.garment-chip, .sport-chip {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--gray);
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: 0.2s;
+}
+.garment-chip:hover, .sport-chip:hover { border-color: rgba(240,165,0,0.5); color: var(--white); }
+.garment-chip.active, .sport-chip.active {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(240,165,0,0.12);
+}
+
+.roster-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 10px; }
+.btn-link-sm { color: var(--gold); font-size: 0.82rem; text-decoration: none; }
+.btn-link-sm:hover { text-decoration: underline; }
+.roster-file-input { font-size: 0.8rem; color: var(--gray); max-width: 220px; }
+.roster-table-wrap { overflow-x: auto; margin: 8px 0; }
+.roster-table-admin { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.roster-table-admin th { text-align: left; color: var(--gold); font-size: 0.72rem; letter-spacing: 1px; text-transform: uppercase; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+.roster-table-admin td { padding: 4px 6px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.form-control-sm { padding: 8px 10px; font-size: 0.88rem; }
+.btn-sm { padding: 8px 12px; font-size: 0.8rem; }
+.btn-xs { padding: 4px 8px; font-size: 0.75rem; }
+.text-error { color: #ff8080 !important; }
+.text-ok { color: #6ee7a0 !important; }
+
+.photo-slots-admin { display: flex; gap: 10px; flex-wrap: wrap; }
+.photo-slot-admin {
+    width: 110px; height: 110px; border: 2px dashed var(--border); border-radius: 10px;
+    position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.02);
+}
+.photo-slot-admin.has-photo { border-style: solid; border-color: var(--gold); }
+.photo-slot-admin img { width: 100%; height: 100%; object-fit: cover; }
+.photo-slot-label { font-size: 0.72rem; color: var(--gray); text-align: center; padding: 8px; }
+.photo-slot-admin input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.photo-slot-remove-admin {
+    position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border: none; border-radius: 50%;
+    background: rgba(0,0,0,0.75); color: #ff8080; cursor: pointer; z-index: 2;
+}
+
 .whatsapp-link {
     display: inline-flex;
     align-items: center;

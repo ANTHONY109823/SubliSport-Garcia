@@ -1,0 +1,82 @@
+<div class="admin-quote-block">
+    <label>Fotos del modelo de referencia</label>
+    <p class="field-hint">Hasta 3 diseños o bocetos (JPG/PNG · máx. 4 MB c/u)</p>
+    <div class="photo-slots-admin">
+        @for (var i = 0; i < Slots.Count; i++)
+        {
+            var slot = Slots[i];
+            var index = i;
+            <div class="photo-slot-admin @(slot.HasImage ? "has-photo" : "")">
+                @if (slot.HasImage)
+                {
+                    <img src="@slot.PreviewUrl" alt="Diseño @(index + 1)" />
+                    <button type="button" class="photo-slot-remove-admin" @onclick="() => RemovePhoto(index)">×</button>
+                }
+                else
+                {
+                    <span class="photo-slot-label">Diseño @(index + 1)</span>
+                    <InputFile OnChange="e => UploadPhotoAsync(e, index)" accept="image/jpeg,image/png,image/webp,image/*" />
+                }
+            </div>
+        }
+    </div>
+    @if (!string.IsNullOrEmpty(photoError))
+    {
+        <p class="field-hint text-error">@photoError</p>
+    }
+</div>
+
+@code {
+    [Parameter] public List<PhotoSlotModel> Slots { get; set; } = [];
+
+    private string? photoError;
+
+    private async Task UploadPhotoAsync(InputFileChangeEventArgs e, int index)
+    {
+        photoError = null;
+        var file = e.File;
+        if (file is null)
+        {
+            return;
+        }
+
+        if (file.Size > 4 * 1024 * 1024)
+        {
+            photoError = "La imagen supera 4 MB.";
+            return;
+        }
+
+        try
+        {
+            await using var stream = file.OpenReadStream(4 * 1024 * 1024);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var bytes = ms.ToArray();
+            var base64 = Convert.ToBase64String(bytes);
+            var mime = file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase)
+                ? file.ContentType
+                : "image/jpeg";
+            var dataUrl = $"data:{mime};base64,{base64}";
+
+            Slots[index].Base64 = dataUrl;
+            Slots[index].PreviewUrl = dataUrl;
+        }
+        catch (Exception ex)
+        {
+            photoError = ex.Message;
+        }
+    }
+
+    private void RemovePhoto(int index)
+    {
+        Slots[index].Base64 = null;
+        Slots[index].PreviewUrl = null;
+    }
+
+    public sealed class PhotoSlotModel
+    {
+        public string? Base64 { get; set; }
+        public string? PreviewUrl { get; set; }
+        public bool HasImage => !string.IsNullOrWhiteSpace(PreviewUrl);
+    }
+}

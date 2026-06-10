@@ -1,0 +1,103 @@
+<div class="admin-quote-block">
+    <label>Lista por jugador / prenda (nombre · talla · número)</label>
+    <div class="roster-tools">
+        <a href="/templates/plantilla-lista-sublisport.csv" download class="btn-link-sm">⬇ Descargar plantilla CSV</a>
+        <InputFile OnChange="ImportCsvAsync" accept=".csv,text/csv" class="roster-file-input" />
+        <span class="field-hint">o cargue CSV exportado desde Excel</span>
+    </div>
+    @if (!string.IsNullOrEmpty(importMessage))
+    {
+        <p class="field-hint @(importError ? "text-error" : "text-ok")">@importMessage</p>
+    }
+    <div class="roster-table-wrap">
+        <table class="roster-table-admin">
+            <thead><tr><th>Nombre</th><th>Talla</th><th>Número</th><th></th></tr></thead>
+            <tbody>
+                @for (var i = 0; i < Rows.Count; i++)
+                {
+                    var row = Rows[i];
+                    var index = i;
+                    <tr>
+                        <td><input class="form-control form-control-sm" @bind="row.Name" placeholder="Nombre" /></td>
+                        <td><input class="form-control form-control-sm" @bind="row.Size" placeholder="M" /></td>
+                        <td><input class="form-control form-control-sm" @bind="row.Number" placeholder="10" /></td>
+                        <td>
+                            @if (Rows.Count > 1)
+                            {
+                                <button type="button" class="btn-action btn-warn btn-xs" @onclick="() => RemoveRow(index)">✕</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <button type="button" class="btn-secondary btn-sm" @onclick="AddRow">+ Agregar fila</button>
+</div>
+
+@code {
+    [Parameter] public List<RosterRowModel> Rows { get; set; } = [];
+
+    private string? importMessage;
+    private bool importError;
+
+    private void AddRow() => Rows.Add(new RosterRowModel());
+
+    private void RemoveRow(int index)
+    {
+        if (Rows.Count > 1)
+        {
+            Rows.RemoveAt(index);
+        }
+    }
+
+    private async Task ImportCsvAsync(InputFileChangeEventArgs e)
+    {
+        importMessage = null;
+        importError = false;
+        var file = e.File;
+        if (file is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var stream = file.OpenReadStream(512 * 1024);
+            using var reader = new StreamReader(stream);
+            var text = await reader.ReadToEndAsync();
+            var parsed = RosterCsvImportHelper.Parse(text);
+            if (parsed.Count == 0)
+            {
+                importError = true;
+                importMessage = "No se encontraron filas válidas en el archivo.";
+                return;
+            }
+
+            Rows.Clear();
+            foreach (var line in parsed)
+            {
+                Rows.Add(new RosterRowModel
+                {
+                    Name = line.Name,
+                    Size = line.Size,
+                    Number = line.Number
+                });
+            }
+
+            importMessage = $"{parsed.Count} jugador(es) importados.";
+        }
+        catch (Exception ex)
+        {
+            importError = true;
+            importMessage = ex.Message;
+        }
+    }
+
+    public sealed class RosterRowModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Size { get; set; } = string.Empty;
+        public string Number { get; set; } = string.Empty;
+    }
+}

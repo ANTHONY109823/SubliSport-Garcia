@@ -99,6 +99,7 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<OrderService>();
+builder.Services.AddScoped<QuoteReferenceImageService>();
 builder.Services.AddScoped<UserManagementService>();
 builder.Services.AddScoped<MetricsService>();
 builder.Services.AddHttpContextAccessor();

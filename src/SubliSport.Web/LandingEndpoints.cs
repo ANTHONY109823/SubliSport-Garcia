@@ -1,10 +1,8 @@
 using System.Globalization;
-using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using SubliSport.Domain.Constants;
 using SubliSport.Domain.Entities;
 using SubliSport.Domain.Landing;
-using SubliSport.Domain.Orders;
 using SubliSport.Web.Helpers;
 using SubliSport.Web.Services;
 
@@ -12,11 +10,6 @@ namespace SubliSport.Web;
 
 public static class LandingEndpoints
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
-
     public static void MapLandingEndpoints(this WebApplication app)
     {
         app.MapGet("/api/landing-config", async (LandingConfigurationService landingConfig) =>
@@ -30,9 +23,8 @@ public static class LandingEndpoints
         app.MapPost("/api/landing-quote", async (
             LandingQuoteSubmitRequest request,
             OrderService orderService,
-            UserManager<ApplicationUser> userManager,
-            IWebHostEnvironment env,
-            HttpContext http) =>
+            QuoteReferenceImageService quoteImages,
+            UserManager<ApplicationUser> userManager) =>
             {
                 if (string.IsNullOrWhiteSpace(request.ClientName))
                 {
@@ -66,88 +58,33 @@ public static class LandingEndpoints
                     return Results.Problem("No hay administrador activo para registrar la solicitud.");
                 }
 
-                var quote = LandingQuoteCalculator.Calculate(request);
-                var referenceImageUrls = await SaveReferenceImagesAsync(env, request, http);
-                var referenceImageUrl = referenceImageUrls.FirstOrDefault();
-                var roster = request.Roster
-                    .Where(r => !string.IsNullOrWhiteSpace(r.Name) ||
-                                !string.IsNullOrWhiteSpace(r.Size) ||
-                                !string.IsNullOrWhiteSpace(r.Number))
-                    .Select(r => new ConfectionRosterLine
-                    {
-                        Name = r.Name.Trim(),
-                        Size = r.Size.Trim(),
-                        Number = r.Number.Trim()
-                    })
-                    .ToList();
-
-                var quantity = roster.Count > 0
-                    ? roster.Count
-                    : isMixed
-                        ? request.MixedLines.Where(l => l.Quantity > 0).Sum(l => l.Quantity)
-                        : Math.Max(1, request.Quantity);
-                var notes = (request.Notes ?? string.Empty).Trim();
-
                 var agreedDeliveryDate = ParseSpanishDate(request.DesiredDeliveryDeadline);
                 if (!string.IsNullOrWhiteSpace(request.DesiredDeliveryDeadline) && agreedDeliveryDate is null)
                 {
                     var plazo = $"Fecha de entrega solicitada: {request.DesiredDeliveryDeadline.Trim()}";
-                    notes = string.IsNullOrEmpty(notes) ? plazo : $"{notes}\n\n{plazo}";
+                    request.Notes = string.IsNullOrWhiteSpace(request.Notes)
+                        ? plazo
+                        : $"{request.Notes.Trim()}\n\n{plazo}";
                 }
 
-                string? mixedJson = null;
-                if (isMixed)
+                var images = (request.ReferenceImagesBase64 ?? [])
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .ToList();
+                if (images.Count == 0 && !string.IsNullOrWhiteSpace(request.ReferenceImageBase64))
                 {
-                    var mixedLines = request.MixedLines
-                        .Where(l => l.Quantity > 0 && !string.IsNullOrWhiteSpace(l.ItemType))
-                        .Select(l => new MixedGarmentLine
-                        {
-                            ItemType = l.ItemType.Trim(),
-                            Quantity = l.Quantity,
-                            OtherDescription = string.IsNullOrWhiteSpace(l.OtherDescription) ? null : l.OtherDescription.Trim()
-                        })
-                        .ToList();
-                    mixedJson = MixedGarmentHelper.Serialize(mixedLines);
+                    images.Add(request.ReferenceImageBase64);
                 }
 
-                if (referenceImageUrls.Count > 0)
-                {
-                    var photoLines = referenceImageUrls.Select((url, index) =>
-                        referenceImageUrls.Count > 1
-                            ? $"Foto modelo referencia {index + 1}: {url}"
-                            : $"Foto modelo referencia: {url}");
-                    var photoBlock = string.Join("\n", photoLines);
-                    notes = string.IsNullOrEmpty(notes) ? photoBlock : $"{notes}\n\n{photoBlock}";
-                }
+                var quote = LandingQuoteCalculator.Calculate(request);
+                var referenceImageUrls = await quoteImages.SaveAsync(images);
+                var referenceImageUrl = referenceImageUrls.FirstOrDefault();
 
-                var sizeRange = roster.Count > 0
-                    ? string.Join(" · ", roster.Select(l =>
-                        $"{l.Name} T{l.Size} N°{l.Number}".Trim()))
-                    : request.SizeRangeSummary;
-
-                var garmentType = isMixed ? "Mixta" : request.GarmentType.Trim();
-
-                var order = new Order
-                {
-                    ClientName = request.ClientName.Trim(),
-                    ClientPhone = string.IsNullOrWhiteSpace(request.ClientPhone) ? null : request.ClientPhone.Trim(),
-                    GarmentType = garmentType,
-                    MixedGarmentDetails = mixedJson,
-                    Sport = request.Sport.Trim(),
-                    Quantity = quantity,
-                    SizeRange = sizeRange,
-                    Notes = string.IsNullOrWhiteSpace(notes) ? null : notes,
-                    FabricTypeName = quote.FabricLabel,
-                    CalculatedTotal = quote.Total,
-                    ChargeAmount = quote.Total,
-                    PricingNotes = LandingQuoteNotesHelper.Pack(quote.AdminSuggestionText, quote.ClientProformaDraft),
-                    PricingUpdatedAt = DateTime.UtcNow,
-                    ConfectionRosterDetails = roster.Count > 0
-                        ? JsonSerializer.Serialize(roster, JsonOptions)
-                        : null,
-                    ReceivedAt = DateTime.UtcNow,
-                    AgreedDeliveryDate = agreedDeliveryDate
-                };
+                var order = LandingQuoteOrderAssembler.Build(
+                    request,
+                    quote,
+                    referenceImageUrls,
+                    DateTime.UtcNow,
+                    agreedDeliveryDate);
 
                 var created = await orderService.CreateManualOrderAsync(
                     order,
@@ -185,70 +122,5 @@ public static class LandingEndpoints
         }
 
         return null;
-    }
-
-    private static async Task<List<string>> SaveReferenceImagesAsync(
-        IWebHostEnvironment env,
-        LandingQuoteSubmitRequest request,
-        HttpContext http)
-    {
-        var images = (request.ReferenceImagesBase64 ?? [])
-            .Where(s => !string.IsNullOrWhiteSpace(s))
-            .Take(3)
-            .ToList();
-
-        if (images.Count == 0 && !string.IsNullOrWhiteSpace(request.ReferenceImageBase64))
-        {
-            images.Add(request.ReferenceImageBase64);
-        }
-
-        var saved = new List<string>();
-        foreach (var base64 in images)
-        {
-            var relative = await SaveReferenceImageAsync(env, base64);
-            if (relative is null)
-            {
-                continue;
-            }
-
-            saved.Add($"{http.Request.Scheme}://{http.Request.Host}{relative}");
-        }
-
-        return saved;
-    }
-
-    private static async Task<string?> SaveReferenceImageAsync(IWebHostEnvironment env, string? base64)
-    {
-        if (string.IsNullOrWhiteSpace(base64))
-        {
-            return null;
-        }
-
-        var payload = base64;
-        if (payload.Contains(','))
-        {
-            payload = payload.Split(',', 2)[1];
-        }
-
-        byte[] bytes;
-        try
-        {
-            bytes = Convert.FromBase64String(payload);
-        }
-        catch
-        {
-            return null;
-        }
-
-        if (bytes.Length == 0 || bytes.Length > 4 * 1024 * 1024)
-        {
-            return null;
-        }
-
-        var dir = Path.Combine(env.WebRootPath, "uploads", "quotes");
-        Directory.CreateDirectory(dir);
-        var fileName = $"{Guid.NewGuid():N}.jpg";
-        await File.WriteAllBytesAsync(Path.Combine(dir, fileName), bytes);
-        return $"/uploads/quotes/{fileName}";
     }
 }
