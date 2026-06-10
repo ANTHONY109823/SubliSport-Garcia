@@ -23,7 +23,7 @@
         { label: 'Conjunto Completo', value: 'Conjunto completo (camiseta + short + medias)', iconClass: 'fas fa-tshirt' },
         { label: 'Solo Camiseta', value: 'Solo camiseta', iconClass: 'fas fa-circle-dot' },
         { label: 'Solo Short', value: 'Short deportivo', iconClass: 'fas fa-person-running' },
-        { label: 'Pedido Mixto', value: 'Mixta', iconClass: 'fas fa-layer-group', isMixed: true }
+        { label: 'Ambos tipos', value: 'Mixta', iconClass: 'fas fa-layer-group', isMixed: true }
       ],
       mixedTypes: [
         'Conjunto completo',
@@ -105,16 +105,43 @@
     if (qtyWrap) qtyWrap.classList.toggle('panel-hidden', mixed);
   }
 
+  function isMixedGarment(g) {
+    return !!(g && (g.isMixed || (g.value && String(g.value).toLowerCase() === 'mixta')));
+  }
+
+  function ensureGarmentOptions(garments) {
+    var list = garments && garments.length
+      ? garments.map(function (g) {
+          return {
+            label: g.label,
+            value: g.value,
+            iconClass: g.iconClass || 'fas fa-tshirt',
+            isMixed: isMixedGarment(g)
+          };
+        })
+      : DEFAULTS.quote.garments.slice();
+    if (!list.some(isMixedGarment)) {
+      list.push({
+        label: 'Ambos tipos',
+        value: 'Mixta',
+        iconClass: 'fas fa-layer-group',
+        isMixed: true
+      });
+    }
+    return list;
+  }
+
   function renderGarments(garments) {
     var wrap = $('garmentOpts');
-    if (!wrap || !garments || !garments.length) return;
-    wrap.innerHTML = garments.map(function (g, i) {
+    if (!wrap) return;
+    var options = ensureGarmentOptions(garments);
+    wrap.innerHTML = options.map(function (g, i) {
       return '<div class="prenda-opt' + (i === 0 ? ' active' : '') + '" data-value="' + esc(g.value) + '"' +
         (g.isMixed ? ' data-mixed="1"' : '') + '>' +
         '<i class="' + esc(g.iconClass || 'fas fa-tshirt') + '"></i><span>' + esc(g.label) + '</span></div>';
     }).join('');
-    selectedPrenda = garments[0].value;
-    setMixedMode(!!garments[0].isMixed);
+    selectedPrenda = options[0].value;
+    setMixedMode(!!options[0].isMixed);
     wrap.querySelectorAll('.prenda-opt').forEach(function (el) {
       el.addEventListener('click', function () {
         wrap.querySelectorAll('.prenda-opt').forEach(function (d) { d.classList.remove('active'); });

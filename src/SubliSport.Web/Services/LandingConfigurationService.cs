@@ -121,6 +121,7 @@ public class LandingConfigurationService(AppDbContext db, IConfiguration configu
                 g.Label = g.Label.Trim();
                 g.Value = g.Value.Trim();
                 g.IconClass = string.IsNullOrWhiteSpace(g.IconClass) ? "fas fa-tshirt" : g.IconClass.Trim();
+                g.IsMixed = g.IsMixed || g.Value.Equals("Mixta", StringComparison.OrdinalIgnoreCase);
                 return g;
             })
             .ToList();
@@ -128,6 +129,17 @@ public class LandingConfigurationService(AppDbContext db, IConfiguration configu
         if (settings.Quote.Garments.Count == 0)
         {
             settings.Quote.Garments = LandingSettingsData.CreateDefault().Quote.Garments;
+        }
+
+        if (!settings.Quote.Garments.Any(g => g.IsMixed))
+        {
+            settings.Quote.Garments.Add(new LandingGarmentOption
+            {
+                Label = "Ambos tipos",
+                Value = "Mixta",
+                IconClass = "fas fa-layer-group",
+                IsMixed = true
+            });
         }
 
         settings.Quote.Sports = settings.Quote.Sports

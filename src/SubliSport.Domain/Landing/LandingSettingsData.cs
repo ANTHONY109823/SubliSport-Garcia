@@ -13,6 +13,7 @@ public class LandingGarmentOption
     public string Label { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
     public string IconClass { get; set; } = "fas fa-tshirt";
+    public bool IsMixed { get; set; }
 }
 
 public class LandingSportOption
@@ -128,6 +129,13 @@ public class LandingSettingsData
                     Label = "Solo Short",
                     Value = "Short deportivo",
                     IconClass = "fas fa-person-running"
+                },
+                new LandingGarmentOption
+                {
+                    Label = "Ambos tipos",
+                    Value = "Mixta",
+                    IconClass = "fas fa-layer-group",
+                    IsMixed = true
                 }
             ],
             Sports =
