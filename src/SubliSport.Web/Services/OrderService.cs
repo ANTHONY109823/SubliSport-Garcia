@@ -446,15 +446,32 @@ public class OrderService(AppDbContext db)
             throw new InvalidOperationException("No puede modificar el cobro de un pedido ya finalizado.");
         }
 
-        order.FabricTypeId = input.FabricTypeId;
-        order.FabricTypeName = result.FabricName;
+        if (clientOwnFabric)
+        {
+            order.FabricTypeId = null;
+            order.FabricTypeName = null;
+        }
+        else
+        {
+            order.FabricTypeId = input.FabricTypeId;
+            order.FabricTypeName = result.FabricName;
+        }
+
         order.FabricTypeRipId = input.FabricTypeRipId;
         order.FabricTypeRipName = result.FabricRipName;
         order.FabricMeters = input.FabricMeters;
         order.FabricMetersRip = input.FabricMetersRip;
-        order.IncludesConfection = includesConfection;
-        order.ServiceOnlyPrintPress = serviceOnlyPrintPress;
         order.ClientOwnFabric = clientOwnFabric;
+        if (clientOwnFabric)
+        {
+            order.ServiceOnlyPrintPress = true;
+            order.IncludesConfection = false;
+        }
+        else
+        {
+            order.IncludesConfection = includesConfection;
+            order.ServiceOnlyPrintPress = serviceOnlyPrintPress;
+        }
         order.IncludesLaserCut = includesLaserCut;
         order.IncludesIgv = includesIgv;
         order.CalculatedFabricCost = result.FabricCost + result.FabricRipCost;

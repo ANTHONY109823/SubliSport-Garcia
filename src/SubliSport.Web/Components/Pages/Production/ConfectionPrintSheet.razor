@@ -7,60 +7,101 @@
 {
     <p>Pedido no encontrado.</p>
 }
+else if (!ProduccionOrderHelper.CanPrintWorkSheet(order))
+{
+    <p class="empty-state">Este pedido aún no está verificado en diseño. Imprima la ficha cuando el diseñador lo envíe a producción.</p>
+    <a href="/produccion/@OrderId" class="btn-outline no-print">← Volver al pedido</a>
+}
 else
 {
     <div class="confection-sheet">
         <div class="print-toolbar no-print">
-            <button type="button" class="btn-primary" onclick="window.print()">🖨 Imprimir / Guardar PDF</button>
+            <button type="button" class="btn-primary" onclick="window.print()">🖨 Imprimir hoja</button>
             <a href="/produccion/@OrderId" class="btn-outline">← Volver al pedido</a>
         </div>
 
-        <header class="confection-sheet-header">
+        <header class="confection-sheet-header confection-brand-header">
             <div>
-                <h1>SUBLISPORT GARCIA</h1>
-                <p>Ficha de confección — sin precios</p>
+                <h1>Sublisport Garcia</h1>
+                <p>Hoja de trabajo — impresión y confección</p>
             </div>
-            <div>
+            <div class="confection-sheet-ref">
                 <strong>@order.OrderNumber</strong>
-                <p>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+                <p>@DateTime.Now.ToString("dd/MM/yyyy")</p>
             </div>
         </header>
 
         <dl class="confection-meta">
             <div><dt>Cliente</dt><dd>@order.ClientName</dd></div>
-            <div><dt>Modelo / prenda</dt><dd>@OrderDisplayHelper.GetGarmentDisplay(order)</dd></div>
+            <div><dt>Prenda</dt><dd>@OrderDisplayHelper.GetGarmentDisplay(order)</dd></div>
             <div><dt>Deporte</dt><dd>@order.Sport</dd></div>
             <div><dt>Cantidad</dt><dd>@order.Quantity uds.</dd></div>
-            <div><dt>Metraje tela</dt><dd>@(order.FabricMeters.HasValue ? $"{order.FabricMeters.Value:N2} m" : "—") @(order.FabricTypeName != null ? $"· {order.FabricTypeName}" : "")</dd></div>
-            @if (order.FabricMetersRip is > 0)
+            <div><dt>Metraje</dt><dd>@FormatMeters()</dd></div>
+            <div><dt>Tallas</dt><dd>@(string.IsNullOrWhiteSpace(order.SizeRange) ? "—" : order.SizeRange)</dd></div>
+            @if (order.AgreedDeliveryDate.HasValue)
             {
-                <div><dt>Metraje RIP</dt><dd>@order.FabricMetersRip.Value.ToString("N2") m @(order.FabricTypeRipName != null ? $"· {order.FabricTypeRipName}" : "")</dd></div>
+                <div><dt>Entrega</dt><dd>@order.AgreedDeliveryDate.Value.ToLocalTime().ToString("dd/MM/yyyy")</dd></div>
             }
-            <div><dt>Tallas generales</dt><dd>@(string.IsNullOrWhiteSpace(order.SizeRange) ? "—" : order.SizeRange)</dd></div>
-            <div><dt>Corte láser</dt><dd>@(order.IncludesLaserCut ? "Sí" : "No")</dd></div>
-            <div><dt>Tela</dt><dd>@(order.ClientOwnFabric ? "Del cliente" : "Nuestra tela")</dd></div>
-            @if (!string.IsNullOrWhiteSpace(order.Notes))
+            @if (order.AssignedDesigner is not null)
             {
-                <div style="grid-column: 1 / -1"><dt>Notas</dt><dd>@order.Notes</dd></div>
+                <div><dt>Diseñador</dt><dd>@order.AssignedDesigner.FullName</dd></div>
+            }
+            @if (!string.IsNullOrWhiteSpace(textNotes))
+            {
+                <div style="grid-column: 1 / -1"><dt>Detalles</dt><dd>@textNotes</dd></div>
             }
         </dl>
 
-        <h2 style="font-size:1rem;margin:0 0 8px;text-transform:uppercase;">Lista de nombres, tallas y números</h2>
+        @if (referenceImages.Count > 0)
+        {
+            <section class="confection-design-section">
+                <h2>Diseño / referencia del cliente</h2>
+                <div class="confection-design-grid">
+                    @foreach (var (url, index) in referenceImages.Select((u, i) => (u, i)))
+                    {
+                        <figure class="confection-design-item">
+                            <img src="@url" alt="Referencia @(index + 1)" />
+                            <figcaption>Ref. @(index + 1)</figcaption>
+                        </figure>
+                    }
+                </div>
+            </section>
+        }
+
+        <h2 class="confection-section-title">Lista del pedido</h2>
+        <p class="confection-sheet-hint">Marque con lapicero el cuadro cuando termine cada prenda.</p>
         @if (roster.Count == 0)
         {
-            <p>Sin lista registrada. Agregue jugadores en el pedido de producción.</p>
+            <table class="confection-roster-table confection-check-table">
+                <thead>
+                    <tr><th class="col-check">✓</th><th>#</th><th>Prenda</th><th>Talla</th><th>Número</th></tr>
+                </thead>
+                <tbody>
+                    @for (var i = 0; i < Math.Max(1, order.Quantity); i++)
+                    {
+                        <tr>
+                            <td class="col-check"><span class="manual-check-box" aria-hidden="true"></span></td>
+                            <td>@(i + 1)</td>
+                            <td>@OrderDisplayHelper.GetGarmentDisplay(order)</td>
+                            <td>—</td>
+                            <td>—</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         }
         else
         {
-            <table class="confection-roster-table">
+            <table class="confection-roster-table confection-check-table">
                 <thead>
-                    <tr><th>#</th><th>Nombre</th><th>Talla</th><th>Número</th></tr>
+                    <tr><th class="col-check">✓</th><th>#</th><th>Nombre</th><th>Talla</th><th>Número</th></tr>
                 </thead>
                 <tbody>
                     @for (var i = 0; i < roster.Count; i++)
                     {
                         var line = roster[i];
                         <tr>
+                            <td class="col-check"><span class="manual-check-box" aria-hidden="true"></span></td>
                             <td>@(i + 1)</td>
                             <td>@line.Name</td>
                             <td>@line.Size</td>
@@ -70,6 +111,19 @@ else
                 </tbody>
             </table>
         }
+
+        <section class="confection-stages-section">
+            <h2 class="confection-section-title">Etapas (marcar al terminar)</h2>
+            <div class="confection-stage-checks">
+                <label class="confection-stage-item"><span class="manual-check-box"></span> Impresión</label>
+                <label class="confection-stage-item"><span class="manual-check-box"></span> Planchado</label>
+                @if (ProduccionOrderHelper.RequiresConfection(order))
+                {
+                    <label class="confection-stage-item"><span class="manual-check-box"></span> Confección</label>
+                }
+                <label class="confection-stage-item"><span class="manual-check-box"></span> Listo</label>
+            </div>
+        </section>
     </div>
 }
 
@@ -80,11 +134,53 @@ else
 
     private Order? order;
     private List<SubliSport.Domain.Orders.ConfectionRosterLine> roster = [];
+    private List<string> referenceImages = [];
+    private string textNotes = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         order = await OrderService.GetByIdAsync(OrderId);
         if (order is null) return;
+
         roster = ConfectionRosterHelper.Parse(order.ConfectionRosterDetails);
+        var split = ReferenceImageNotesHelper.Split(order.Notes);
+        textNotes = split.TextNotes;
+        referenceImages = split.ImageUrls;
+    }
+
+    private string FormatMeters()
+    {
+        if (order is null || !order.FabricMeters.HasValue || order.FabricMeters <= 0)
+        {
+            return "—";
+        }
+
+        if (order.ClientOwnFabric)
+        {
+            var text = $"Tela del cliente · {order.FabricMeters.Value:N2} m";
+            if (order.FabricMetersRip is > 0)
+            {
+                text += $" · RIP {order.FabricMetersRip.Value:N2} m (consultar)";
+            }
+
+            return text;
+        }
+
+        var main = $"{order.FabricMeters.Value:N2} m";
+        if (!string.IsNullOrWhiteSpace(order.FabricTypeName))
+        {
+            main += $" · {order.FabricTypeName}";
+        }
+
+        if (order.FabricMetersRip is > 0)
+        {
+            main += $" · RIP {order.FabricMetersRip.Value:N2} m";
+            if (!string.IsNullOrWhiteSpace(order.FabricTypeRipName))
+            {
+                main += $" ({order.FabricTypeRipName})";
+            }
+        }
+
+        return main;
     }
 }

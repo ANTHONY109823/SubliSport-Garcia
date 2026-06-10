@@ -311,12 +311,109 @@
     text-align: justify;
 }
 
+.confection-brand-header h1 {
+    font-size: 1.75rem;
+    letter-spacing: 0.5px;
+}
+
+.confection-sheet-ref {
+    text-align: right;
+}
+
+.confection-section-title {
+    font-size: 0.95rem;
+    margin: 20px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.confection-sheet-hint {
+    margin: 0 0 10px;
+    font-size: 0.82rem;
+    color: #555;
+}
+
+.manual-check-box {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #111;
+    border-radius: 2px;
+    vertical-align: middle;
+}
+
+.confection-check-table .col-check {
+    width: 36px;
+    text-align: center;
+}
+
+.confection-design-section {
+    margin: 20px 0;
+}
+
+.confection-design-section h2 {
+    font-size: 0.95rem;
+    margin: 0 0 10px;
+    text-transform: uppercase;
+}
+
+.confection-design-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.confection-design-item {
+    margin: 0;
+    max-width: 200px;
+}
+
+.confection-design-item img {
+    width: 100%;
+    max-height: 180px;
+    object-fit: contain;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #fafafa;
+}
+
+.confection-design-item figcaption {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 4px;
+    text-align: center;
+}
+
+.confection-stages-section {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #ddd;
+}
+
+.confection-stage-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 32px;
+}
+
+.confection-stage-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
 @media print {
     .no-print { display: none !important; }
     .print-body { padding: 0; }
     .confection-sheet { max-width: none; }
     .print-layout-wrapper { padding: 0; }
     .proforma-invoice { max-width: none; }
+    .manual-check-box {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
 }
 
 @media (max-width: 720px) {

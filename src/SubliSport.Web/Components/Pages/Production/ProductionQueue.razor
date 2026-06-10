@@ -62,7 +62,10 @@ else
                 </div>
                 <div class="order-card-footer">
                     <a href="/produccion/@order.Id" class="btn-action btn-edit">Gestionar</a>
-                    <a href="/produccion/@order.Id/ficha-confeccion" target="_blank" rel="noopener noreferrer" class="btn-action btn-outline">🖨 Ficha</a>
+                    @if (ProduccionOrderHelper.CanPrintWorkSheet(order))
+                    {
+                        <a href="/produccion/@order.Id/ficha-confeccion" target="_blank" rel="noopener noreferrer" class="btn-action btn-outline">🖨 Hoja</a>
+                    }
                 </div>
             </article>
         }

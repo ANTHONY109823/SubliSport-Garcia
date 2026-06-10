@@ -113,6 +113,11 @@ public static class ProduccionOrderHelper
     public static bool IsCompleted(Order order) =>
         order.Status is OrderStatus.ListoEntrega or OrderStatus.Entregado;
 
+    public static bool CanPrintWorkSheet(Order order) =>
+        order.Status is OrderStatus.DisenoAprobado or OrderStatus.EnImpresion
+            or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion
+            or OrderStatus.ListoEntrega or OrderStatus.Entregado;
+
     public static string GetStageLabel(Order order)
     {
         if (order.Status == OrderStatus.DisenoAprobado && !IsAccepted(order))

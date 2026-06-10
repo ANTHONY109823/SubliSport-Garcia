@@ -27,7 +27,7 @@ public class PricingSettingsData
 {
     public List<FabricTypeConfig> Fabrics { get; set; } = [];
     public decimal LaserPricePerMeter { get; set; } = 1.50m;
-    public decimal PrintPressPricePerMeter { get; set; } = 8.00m;
+    public decimal PrintPressPricePerMeter { get; set; } = 15.00m;
     public List<ExtraMeterCostConfig> ExtraMeterCosts { get; set; } = [];
     public List<GarmentPriceConfig> Garments { get; set; } = [];
     public List<GarmentPriceConfig> Socks { get; set; } = [];
@@ -42,7 +42,7 @@ public class PricingSettingsData
             new FabricTypeConfig { Id = 4, Name = "RIP", Divisor = 3.6m, PricePerKg = 26m, Gm2 = 200 }
         ],
         LaserPricePerMeter = 1.50m,
-        PrintPressPricePerMeter = 8.00m,
+        PrintPressPricePerMeter = 15.00m,
         Garments =
         [
             new GarmentPriceConfig { Id = 1, Name = "Polo / Camiseta", Price = 3m },
