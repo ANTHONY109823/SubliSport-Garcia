@@ -19,7 +19,13 @@
 }
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior: smooth; }
-body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; overflow-x: hidden; cursor: none; }
+body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; overflow-x: hidden; cursor: none; position: relative; }
+.site-backdrop { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.site-backdrop-photo { position: absolute; inset: -6%; background: url('assets/img/santa-rosita.jpg') center/cover no-repeat; opacity: 0.13; filter: grayscale(20%) sepia(18%) contrast(1.04) brightness(0.52); transform: scale(1.06); animation: bgDrift 32s ease-in-out infinite alternate; }
+.site-backdrop-glow { position: absolute; inset: 0; background: radial-gradient(ellipse 100% 75% at 50% -5%, rgba(240,165,0,0.2) 0%, transparent 52%), radial-gradient(ellipse 65% 55% at 95% 95%, rgba(240,165,0,0.07) 0%, transparent 48%), radial-gradient(ellipse 55% 45% at 5% 85%, rgba(255,209,102,0.05) 0%, transparent 42%); }
+.site-backdrop-veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6,6,6,0.84) 0%, rgba(6,6,6,0.5) 38%, rgba(6,6,6,0.68) 62%, rgba(6,6,6,0.94) 100%), linear-gradient(118deg, rgba(6,6,6,0.78) 0%, transparent 40%, rgba(6,6,6,0.82) 100%); }
+@keyframes bgDrift { from { transform: scale(1.06) translate(0, 0); } to { transform: scale(1.09) translate(-0.8%, 0.6%); } }
+.navbar, .hero, .section, footer { position: relative; z-index: 1; }
 .cursor { width:12px; height:12px; background:var(--gold); border-radius:50%; position:fixed; top:0; left:0; pointer-events:none; z-index:99999; transition:transform 0.1s; mix-blend-mode:difference; }
 .cursor-ring { width:36px; height:36px; border:1.5px solid var(--gold); border-radius:50%; position:fixed; top:0; left:0; pointer-events:none; z-index:99998; transition:all 0.15s ease; opacity:0.6; }
 ::-webkit-scrollbar { width: 4px; }
@@ -45,7 +51,7 @@ body { background: var(--black); color: var(--white); font-family: 'Barlow', san
 .hamburger span { width:24px; height:2px; background:var(--white); transition:0.3s; display:block; }
 
 .hero { height:100vh; display:flex; align-items:center; justify-content:center; text-align:center; position:relative; overflow:hidden; }
-.hero-bg { position:absolute; inset:0; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(240,165,0,0.13) 0%, transparent 60%), linear-gradient(180deg,#060606 0%,#0a0a0a 100%); }
+.hero-bg { position:absolute; inset:0; background: radial-gradient(ellipse 75% 55% at 50% 8%, rgba(240,165,0,0.14) 0%, transparent 58%), linear-gradient(180deg, rgba(6,6,6,0.15) 0%, transparent 45%, rgba(10,10,10,0.35) 100%); }
 .field-lines { position:absolute; inset:0; opacity:0.04; background-image: linear-gradient(90deg,rgba(255,255,255,0.8) 1px,transparent 1px), linear-gradient(rgba(255,255,255,0.8) 1px,transparent 1px); background-size:80px 80px; }
 .hero-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(240,165,0,0.1); border:1px solid rgba(240,165,0,0.3); border-radius:30px; padding:6px 18px; font-family:'Barlow Condensed'; font-size:0.82rem; letter-spacing:2px; color:var(--gold); text-transform:uppercase; margin-bottom:24px; animation:fadeDown 1s 0.2s both; }
 .hero-content { position:relative; z-index:2; max-width:900px; padding:0 20px; }
@@ -86,7 +92,7 @@ body { background: var(--black); color: var(--white); font-family: 'Barlow', san
 .jersey-card-info h4 { font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:1px; text-transform:uppercase; margin-bottom:3px; }
 .jersey-card-info p { font-size:0.78rem; color:var(--gold); letter-spacing:1px; }
 
-.process-section { padding:90px 6%; background:var(--dark); }
+.process-section { padding:90px 6%; background:rgba(14,14,14,0.72); backdrop-filter:blur(3px); }
 .steps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:0; position:relative; }
 .steps-grid::before { content:''; position:absolute; top:34px; left:10%; right:10%; height:1px; background:linear-gradient(90deg,transparent,var(--border),var(--border),var(--border),transparent); }
 .step { text-align:center; padding:0 16px; }
@@ -95,7 +101,7 @@ body { background: var(--black); color: var(--white); font-family: 'Barlow', san
 .step h3 { font-family:'Barlow Condensed'; font-size:1rem; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; }
 .step p { color:var(--gray); font-size:0.86rem; line-height:1.6; }
 
-footer { background:var(--dark); border-top:1px solid var(--border); padding:50px 6% 28px; }
+footer { background:rgba(14,14,14,0.82); backdrop-filter:blur(4px); border-top:1px solid var(--border); padding:50px 6% 28px; }
 .footer-top { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:44px; margin-bottom:44px; }
 .footer-brand .logo { font-size:1.4rem; margin-bottom:14px; display:block; }
 .footer-brand p { color:var(--gray); font-size:0.88rem; line-height:1.7; max-width:270px; margin-bottom:20px; }
@@ -145,6 +151,12 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:50p
 </style>
 </head>
 <body>
+
+<div class="site-backdrop" aria-hidden="true">
+  <div class="site-backdrop-photo"></div>
+  <div class="site-backdrop-glow"></div>
+  <div class="site-backdrop-veil"></div>
+</div>
 
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
