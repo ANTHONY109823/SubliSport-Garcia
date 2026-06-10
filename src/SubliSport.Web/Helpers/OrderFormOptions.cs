@@ -10,6 +10,17 @@ public static class OrderFormOptions
         "Camiseta",
         "Short / Pantaloneta",
         "Medias",
+        "Mixta",
+        "Otro"
+    ];
+
+    public static readonly string[] MixedGarmentItemTypes =
+    [
+        "Conjunto completo",
+        "Polo / Camiseta sola",
+        "Short / Pantaloneta",
+        "Short falda",
+        "Medias",
         "Otro"
     ];
 

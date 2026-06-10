@@ -34,15 +34,15 @@ public static class OrderJourneyHelper
         if (DesignerOrderHelper.IsPendingClientApproval(order))
         {
             var pendingAt = order.ClientApprovalPendingAt ?? history.Last().ChangedAt;
-            if (result.Count == 0 || result[^1].Area != "Esperando cliente")
+            if (result.Count == 0 || result[^1].Area != "PENDIENTE DE APROBACIÓN")
             {
                 if (result.Count > 0 && result[^1].At == pendingAt && result[^1].Area == "Diseño")
                 {
-                    result[^1] = new JourneyMilestone("Esperando cliente", pendingAt);
+                    result[^1] = new JourneyMilestone("PENDIENTE DE APROBACIÓN", pendingAt);
                 }
                 else
                 {
-                    result.Add(new JourneyMilestone("Esperando cliente", pendingAt));
+                    result.Add(new JourneyMilestone("PENDIENTE DE APROBACIÓN", pendingAt));
                 }
             }
         }
@@ -53,9 +53,10 @@ public static class OrderJourneyHelper
     private static string ResolveArea(OrderStatusHistory item, Order order)
     {
         if (item.Comment != null &&
-            item.Comment.Contains("pendiente aprobación", StringComparison.OrdinalIgnoreCase))
+            (item.Comment.Contains("pendiente aprobación", StringComparison.OrdinalIgnoreCase) ||
+             item.Comment.Contains("PENDIENTE DE APROBACIÓN", StringComparison.OrdinalIgnoreCase)))
         {
-            return "Esperando cliente";
+            return "PENDIENTE DE APROBACIÓN";
         }
 
         if (item.Comment != null &&

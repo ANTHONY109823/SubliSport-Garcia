@@ -1,0 +1,144 @@
+@using SubliSport.Domain.Orders
+
+<section class="panel-section panel-highlight production-options-panel">
+    <div class="section-header-row">
+        <h2>Opciones de producción</h2>
+        @if (!ReadOnly)
+        {
+            <a href="/produccion/@Order.Id/ficha-confeccion" target="_blank" rel="noopener noreferrer" class="btn-action btn-edit">
+                🖨 Ficha confeccionista (PDF)
+            </a>
+        }
+    </div>
+    <p class="field-hint">Disponible en cualquier etapa del proceso. Guarde después de cambiar opciones.</p>
+
+    @if (!ReadOnly)
+    {
+        <div class="toggle-row production-options-grid">
+            <label class="checkbox-row">
+                <input type="checkbox" @bind="includesLaserCut" />
+                Corte láser
+            </label>
+            <label class="checkbox-row">
+                <input type="checkbox" @bind="clientOwnFabric" />
+                Cliente trae tela propia (solo diseño + impresión)
+            </label>
+            <label class="checkbox-row">
+                <input type="checkbox" @bind="includesIgv" />
+                Incluye IGV (18%)
+            </label>
+            <label class="checkbox-row">
+                <input type="checkbox" @bind="includesConfection" disabled="@serviceOnlyPrintPress" />
+                Incluye confección
+            </label>
+            <label class="checkbox-row">
+                <input type="checkbox" @bind="serviceOnlyPrintPress" @bind:after="OnServiceOnlyChanged" />
+                Solo impresión + planchado (sin tela ni confección)
+            </label>
+        </div>
+
+        <div class="form-group">
+            <label>Lista para confeccionista (nombre · talla · número)</label>
+            @for (var i = 0; i < rosterLines.Count; i++)
+            {
+                var line = rosterLines[i];
+                var index = i;
+                <div class="roster-line-row">
+                    <input type="text" @bind="line.Name" class="form-control" placeholder="Nombre" />
+                    <input type="text" @bind="line.Size" class="form-control" placeholder="Talla" />
+                    <input type="text" @bind="line.Number" class="form-control" placeholder="N°" />
+                    @if (rosterLines.Count > 1)
+                    {
+                        <button type="button" class="btn-action btn-warn" @onclick="() => RemoveRosterLine(index)">✕</button>
+                    }
+                </div>
+            }
+            <button type="button" class="btn-secondary" @onclick="AddRosterLine">+ Agregar jugador/prenda</button>
+        </div>
+
+        <button type="button" class="btn-primary" disabled="@isSaving" @onclick="SaveOptionsAsync">
+            @(isSaving ? "Guardando..." : "Guardar opciones")
+        </button>
+    }
+    else
+    {
+        <dl class="detail-list">
+            <div><dt>Corte láser</dt><dd>@(Order.IncludesLaserCut ? "Sí" : "No")</dd></div>
+            <div><dt>Tela</dt><dd>@(Order.ClientOwnFabric ? "Del cliente" : "Nuestra tela")</dd></div>
+            <div><dt>IGV</dt><dd>@(Order.IncludesIgv ? "Incluye 18%" : "Sin IGV")</dd></div>
+            <div><dt>Confección</dt><dd>@(Order.IncludesConfection && !Order.ServiceOnlyPrintPress ? "Sí" : "No")</dd></div>
+        </dl>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public Order Order { get; set; } = default!;
+    [Parameter] public bool ReadOnly { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    [Inject] private OrderService OrderService { get; set; } = default!;
+
+    private List<ConfectionRosterLine> rosterLines = [];
+    private bool includesLaserCut;
+    private bool clientOwnFabric;
+    private bool includesIgv;
+    private bool includesConfection = true;
+    private bool serviceOnlyPrintPress;
+    private bool isSaving;
+
+    protected override void OnParametersSet()
+    {
+        includesLaserCut = Order.IncludesLaserCut;
+        clientOwnFabric = Order.ClientOwnFabric;
+        includesIgv = Order.IncludesIgv;
+        includesConfection = Order.IncludesConfection;
+        serviceOnlyPrintPress = Order.ServiceOnlyPrintPress;
+
+        rosterLines = ConfectionRosterHelper.Parse(Order.ConfectionRosterDetails);
+        if (rosterLines.Count == 0)
+        {
+            rosterLines.Add(new ConfectionRosterLine());
+        }
+    }
+
+    private void OnServiceOnlyChanged()
+    {
+        if (serviceOnlyPrintPress)
+        {
+            includesConfection = false;
+        }
+    }
+
+    private void AddRosterLine() => rosterLines.Add(new ConfectionRosterLine());
+
+    private void RemoveRosterLine(int index)
+    {
+        if (rosterLines.Count > 1)
+        {
+            rosterLines.RemoveAt(index);
+        }
+    }
+
+    private async Task SaveOptionsAsync()
+    {
+        isSaving = true;
+        try
+        {
+            var normalized = ConfectionRosterHelper.Normalize(rosterLines);
+            await OrderService.SaveProductionOptionsAsync(
+                Order.Id,
+                includesLaserCut,
+                clientOwnFabric,
+                includesIgv,
+                includesConfection,
+                serviceOnlyPrintPress,
+                normalized.Count > 0 ? ConfectionRosterHelper.Serialize(normalized) : null);
+
+            await OnSaved.InvokeAsync();
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

@@ -9,7 +9,7 @@ public static class OrderDisplayHelper
     {
         if (DesignerOrderHelper.IsPendingClientApproval(order))
         {
-            return "Diseño — pendiente cliente";
+            return "PENDIENTE DE APROBACIÓN";
         }
 
         return order.Status switch
@@ -19,5 +19,31 @@ public static class OrderDisplayHelper
             OrderStatus.EnDiseno => "En diseño",
             _ => OrderStatusHelper.GetLabel(order.Status)
         };
+    }
+
+    public static string GetGarmentDisplay(Order order)
+    {
+        if (order.GarmentType.Equals("Mixta", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"Mixta — {MixedGarmentHelper.FormatSummary(order.MixedGarmentDetails)}";
+        }
+
+        return order.GarmentType;
+    }
+
+    public static string FormatFabricMeters(Order order)
+    {
+        if (!order.FabricMeters.HasValue || order.FabricMeters <= 0)
+        {
+            return "—";
+        }
+
+        var text = $"{order.FabricMeters.Value:N2} m";
+        if (order.FabricMetersRip is > 0)
+        {
+            text += $" · RIP {order.FabricMetersRip.Value:N2} m";
+        }
+
+        return text;
     }
 }

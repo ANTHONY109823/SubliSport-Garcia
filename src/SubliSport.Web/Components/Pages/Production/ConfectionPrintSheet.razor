@@ -1,0 +1,90 @@
+@page "/produccion/{OrderId:guid}/ficha-confeccion"
+@layout PrintLayout
+@attribute [Authorize(Roles = "Production,Admin")]
+@rendermode InteractiveServer
+
+@if (order is null)
+{
+    <p>Pedido no encontrado.</p>
+}
+else
+{
+    <div class="confection-sheet">
+        <div class="print-toolbar no-print">
+            <button type="button" class="btn-primary" onclick="window.print()">🖨 Imprimir / Guardar PDF</button>
+            <a href="/produccion/@OrderId" class="btn-outline">← Volver al pedido</a>
+        </div>
+
+        <header class="confection-sheet-header">
+            <div>
+                <h1>SUBLISPORT GARCIA</h1>
+                <p>Ficha de confección — sin precios</p>
+            </div>
+            <div>
+                <strong>@order.OrderNumber</strong>
+                <p>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+        </header>
+
+        <dl class="confection-meta">
+            <div><dt>Cliente</dt><dd>@order.ClientName</dd></div>
+            <div><dt>Modelo / prenda</dt><dd>@OrderDisplayHelper.GetGarmentDisplay(order)</dd></div>
+            <div><dt>Deporte</dt><dd>@order.Sport</dd></div>
+            <div><dt>Cantidad</dt><dd>@order.Quantity uds.</dd></div>
+            <div><dt>Metraje tela</dt><dd>@(order.FabricMeters.HasValue ? $"{order.FabricMeters.Value:N2} m" : "—") @(order.FabricTypeName != null ? $"· {order.FabricTypeName}" : "")</dd></div>
+            @if (order.FabricMetersRip is > 0)
+            {
+                <div><dt>Metraje RIP</dt><dd>@order.FabricMetersRip.Value.ToString("N2") m @(order.FabricTypeRipName != null ? $"· {order.FabricTypeRipName}" : "")</dd></div>
+            }
+            <div><dt>Tallas generales</dt><dd>@(string.IsNullOrWhiteSpace(order.SizeRange) ? "—" : order.SizeRange)</dd></div>
+            <div><dt>Corte láser</dt><dd>@(order.IncludesLaserCut ? "Sí" : "No")</dd></div>
+            <div><dt>Tela</dt><dd>@(order.ClientOwnFabric ? "Del cliente" : "Nuestra tela")</dd></div>
+            @if (!string.IsNullOrWhiteSpace(order.Notes))
+            {
+                <div style="grid-column: 1 / -1"><dt>Notas</dt><dd>@order.Notes</dd></div>
+            }
+        </dl>
+
+        <h2 style="font-size:1rem;margin:0 0 8px;text-transform:uppercase;">Lista de nombres, tallas y números</h2>
+        @if (roster.Count == 0)
+        {
+            <p>Sin lista registrada. Agregue jugadores en el pedido de producción.</p>
+        }
+        else
+        {
+            <table class="confection-roster-table">
+                <thead>
+                    <tr><th>#</th><th>Nombre</th><th>Talla</th><th>Número</th></tr>
+                </thead>
+                <tbody>
+                    @for (var i = 0; i < roster.Count; i++)
+                    {
+                        var line = roster[i];
+                        <tr>
+                            <td>@(i + 1)</td>
+                            <td>@line.Name</td>
+                            <td>@line.Size</td>
+                            <td>@line.Number</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public Guid OrderId { get; set; }
+
+    [Inject] private OrderService OrderService { get; set; } = default!;
+
+    private Order? order;
+    private List<SubliSport.Domain.Orders.ConfectionRosterLine> roster = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        order = await OrderService.GetByIdAsync(OrderId);
+        if (order is null) return;
+        roster = ConfectionRosterHelper.Parse(order.ConfectionRosterDetails);
+    }
+}

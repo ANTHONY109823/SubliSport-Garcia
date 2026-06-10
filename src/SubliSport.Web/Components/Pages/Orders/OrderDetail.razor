@@ -1,4 +1,5 @@
 @page "/pedidos/{OrderId:guid}"
+@using SubliSport.Domain.Enums
 @layout AdminLayout
 @attribute [Authorize(Roles = "Admin,Designer")]
 @rendermode InteractiveServer
@@ -63,7 +64,25 @@ else
                 }
                 @if (UiLabelHelper.IsVisible(ui, panelKey, "garmentType"))
                 {
-                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "garmentType", "Prenda")</dt><dd>@order.GarmentType</dd></div>
+                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "garmentType", "Prenda")</dt><dd>@OrderDisplayHelper.GetGarmentDisplay(order)</dd></div>
+                }
+                @if (order.GarmentType.Equals("Mixta", StringComparison.OrdinalIgnoreCase))
+                {
+                    <div>
+                        <dt>Detalle mixto</dt>
+                        <dd>
+                            <ul class="mixed-summary-list">
+                                @foreach (var line in MixedGarmentHelper.Parse(order.MixedGarmentDetails))
+                                {
+                                    <li>@MixedGarmentHelper.FormatLine(line)</li>
+                                }
+                            </ul>
+                        </dd>
+                    </div>
+                }
+                @if (order.GiftOption != GiftOption.None)
+                {
+                    <div><dt>Obsequio</dt><dd>@GiftOptionHelper.GetLabel(order.GiftOption)</dd></div>
                 }
                 @if (UiLabelHelper.IsVisible(ui, panelKey, "sport"))
                 {
@@ -80,6 +99,14 @@ else
                 @if (UiLabelHelper.IsVisible(ui, panelKey, "agreedDeliveryDate"))
                 {
                     <div><dt>@UiLabelHelper.Label(ui, panelKey, "agreedDeliveryDate", "Entrega acordada")</dt><dd>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</dd></div>
+                }
+                @if (!isDesignerView)
+                {
+                    <div><dt>Fecha de recepción</dt><dd>@order.ReceivedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd></div>
+                }
+                @if (!isDesignerView && order.FabricMeters is > 0)
+                {
+                    <div><dt>Metraje diseñador</dt><dd>@OrderDisplayHelper.FormatFabricMeters(order)</dd></div>
                 }
                 @if (UiLabelHelper.IsVisible(ui, panelKey, "notes"))
                 {
@@ -101,16 +128,18 @@ else
 
             <section class="panel-section panel-highlight">
                 <h2>Asignar diseñador</h2>
+                <p class="field-hint"><a href="/pedidos/disenadores">Ver ranking completo de diseñadores</a></p>
                 <div class="designer-picker">
                     @foreach (var designer in designers)
                     {
                         var load = designerLoads.GetValueOrDefault(designer.Id, 0);
+                        var stats = designerStats.GetValueOrDefault(designer.Id);
                         var isCurrent = order.AssignedDesignerId == designer.Id;
                         <button type="button"
                                 class="designer-card @(selectedDesignerId == designer.Id ? "selected" : "") @(isCurrent ? "current" : "")"
                                 @onclick="() => selectedDesignerId = designer.Id">
                             <strong>@designer.FullName</strong>
-                            <span>@load en diseño</span>
+                            <span>@load en curso · @(stats?.CompletedThisWeek ?? 0) sem · @(stats?.CompletedThisMonth ?? 0) mes · @(stats?.CompletedTotal ?? 0) total</span>
                         </button>
                     }
                 </div>
@@ -139,21 +168,45 @@ else
         </AuthorizeView>
 
         <AuthorizeView Roles="Designer">
-            @if (isOwnDesignOrder)
+            @if (isDesignerView && !isOwnDesignOrder)
             {
-                @if (DesignerOrderHelper.IsPending(order))
+                <section class="panel-section">
+                    <p class="field-hint">Este pedido no está asignado a usted. Solo puede consultar la información general.</p>
+                </section>
+            }
+            else if (isOwnDesignOrder)
+            {
+                @if (DesignerOrderHelper.IsPending(order) || DesignerOrderHelper.IsDesignPhaseComplete(order))
                 {
                     <section class="panel-section">
                         <h2>Detalles técnicos (diseño)</h2>
-                        <div class="form-group">
-                            <label>Tallas / medidas</label>
-                            <InputText @bind-value="editSizeRange" class="form-control" />
-                        </div>
-                        <div class="form-group">
-                            <label>Notas de diseño</label>
-                            <InputTextArea @bind-value="editNotes" class="form-control" rows="3" />
-                        </div>
-                        <button type="button" class="btn-secondary" @onclick="SaveDesignerDetails">Guardar detalles</button>
+                        @if (DesignerOrderHelper.IsPending(order))
+                        {
+                            <div class="form-group">
+                                <label>Tallas / medidas</label>
+                                <InputText @bind-value="editSizeRange" class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label>Notas de diseño</label>
+                                <InputTextArea @bind-value="editNotes" class="form-control" rows="3" />
+                            </div>
+                            <button type="button" class="btn-secondary" @onclick="SaveDesignerDetails">Guardar detalles</button>
+                        }
+                        else
+                        {
+                            <dl class="detail-list">
+                                <div><dt>Tallas / medidas</dt><dd>@(string.IsNullOrWhiteSpace(order.SizeRange) ? "—" : order.SizeRange)</dd></div>
+                                <div><dt>Notas de diseño</dt><dd>@(string.IsNullOrWhiteSpace(order.Notes) ? "—" : order.Notes)</dd></div>
+                                @if (order.FabricMeters.HasValue)
+                                {
+                                    <div><dt>Metraje tela</dt><dd>@order.FabricMeters.Value.ToString("N2") m</dd></div>
+                                }
+                                @if (order.FabricMetersRip.HasValue && order.FabricMetersRip > 0)
+                                {
+                                    <div><dt>Metraje RIP</dt><dd>@order.FabricMetersRip.Value.ToString("N2") m</dd></div>
+                                }
+                            </dl>
+                        }
                     </section>
                 }
 
@@ -170,7 +223,7 @@ else
                         }
                         @if (DesignerOrderHelper.CanMarkPendingClientApproval(order))
                         {
-                            <button type="button" class="btn-action btn-warn btn-action-lg" @onclick="MarkPendingClientAsync">⏳ Pendiente aprobación del cliente</button>
+                            <button type="button" class="btn-action btn-warn btn-action-lg" @onclick="MarkPendingClientAsync">⏳ PENDIENTE DE APROBACIÓN</button>
                         }
                         @if (DesignerOrderHelper.CanResumeAfterClient(order))
                         {
@@ -178,7 +231,28 @@ else
                         }
                         @if (DesignerOrderHelper.CanFinish(order))
                         {
-                            <button type="button" class="btn-action btn-primary-action btn-action-lg" @onclick="FinishDesign">✔ Diseño finalizado — enviar a producción</button>
+                            <div class="return-box production-meters-box">
+                                <h3>Metraje para producción</h3>
+                                <p class="field-hint">Indique el metraje de tela antes de enviar el pedido a producción.</p>
+                                <div class="form-group">
+                                    <label>Metraje tela (m) *</label>
+                                    <input type="number" step="0.01" min="0.01" @bind="finishFabricMeters" class="form-control" />
+                                </div>
+                                <label class="checkbox-row">
+                                    <input type="checkbox" @bind="finishHasRip" />
+                                    Incluye RIP
+                                </label>
+                                @if (finishHasRip)
+                                {
+                                    <div class="form-group">
+                                        <label>Metraje RIP (m) *</label>
+                                        <input type="number" step="0.01" min="0.01" @bind="finishFabricMetersRip" class="form-control" />
+                                    </div>
+                                }
+                                <button type="button" class="btn-action btn-primary-action btn-action-lg" disabled="@isBusy" @onclick="FinishDesign">
+                                    ✔ Diseño finalizado — enviar a producción
+                                </button>
+                            </div>
                         }
                         @if (DesignerOrderHelper.CanReturn(order))
                         {
@@ -207,6 +281,7 @@ else
     [Parameter] public Guid OrderId { get; set; }
 
     [Inject] private OrderService OrderService { get; set; } = default!;
+    [Inject] private MetricsService MetricsService { get; set; } = default!;
     [Inject] private PanelUiConfigurationService PanelUiConfig { get; set; } = default!;
     [Inject] private UserManagementService UserManagementService { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
@@ -217,6 +292,7 @@ else
     private bool isBusy;
     private List<ApplicationUser> designers = [];
     private Dictionary<string, int> designerLoads = new();
+    private Dictionary<string, DesignerLeaderboardEntry> designerStats = new();
     private string? selectedDesignerId;
     private string? currentUserId;
     private bool isDesignerView;
@@ -225,6 +301,9 @@ else
     private string? editSizeRange;
     private string? editNotes;
     private string? returnComment;
+    private decimal finishFabricMeters;
+    private decimal finishFabricMetersRip;
+    private bool finishHasRip;
     private string? message;
     private string? error;
 
@@ -239,6 +318,9 @@ else
         selectedDesignerId = order.AssignedDesignerId;
         editSizeRange = order.SizeRange;
         editNotes = order.Notes;
+        finishFabricMeters = order.FabricMeters ?? 0;
+        finishFabricMetersRip = order.FabricMetersRip ?? 0;
+        finishHasRip = order.FabricMetersRip is > 0 || order.FabricTypeRipId.HasValue;
         whatsappUrl = WhatsAppHelper.BuildChatUrl(order.ClientPhone, WhatsAppHelper.BuildOrderMessage(order.ClientName, order.OrderNumber));
 
         var auth = await AuthState;
@@ -257,6 +339,9 @@ else
                 .Where(o => o.AssignedDesignerId is not null && o.Status is OrderStatus.AsignadoDiseno or OrderStatus.EnDiseno)
                 .GroupBy(o => o.AssignedDesignerId!)
                 .ToDictionary(g => g.Key, g => g.Count());
+
+            var leaderboard = await MetricsService.GetDesignerLeaderboardAsync();
+            designerStats = leaderboard.ToDictionary(e => e.DesignerId);
         }
     }
 
@@ -310,14 +395,38 @@ else
 
     private async Task FinishDesign()
     {
-        if (order is null || currentUserId is null) return;
+        if (order is null || currentUserId is null || isBusy) return;
+        if (finishFabricMeters <= 0)
+        {
+            error = "Indique el metraje de la tela antes de enviar a producción.";
+            return;
+        }
+
+        if (finishHasRip && finishFabricMetersRip <= 0)
+        {
+            error = "Indique el metraje RIP.";
+            return;
+        }
+
+        isBusy = true;
+        error = null;
+        message = null;
         try
         {
-            await OrderService.DesignerFinishAsync(order.Id, currentUserId);
+            await OrderService.DesignerFinishAsync(
+                order.Id,
+                currentUserId,
+                finishFabricMeters,
+                finishHasRip,
+                finishHasRip ? finishFabricMetersRip : null);
             await LoadOrderAsync();
             message = "Diseño finalizado. El pedido fue enviado a producción.";
         }
         catch (Exception ex) { error = ex.Message; }
+        finally
+        {
+            isBusy = false;
+        }
     }
 
     private async Task MarkPendingClientAsync()
@@ -327,7 +436,7 @@ else
         {
             await OrderService.DesignerMarkPendingClientApprovalAsync(order.Id, currentUserId);
             await LoadOrderAsync();
-            message = "Marcado como pendiente de aprobación del cliente.";
+            message = "Marcado como PENDIENTE DE APROBACIÓN.";
         }
         catch (Exception ex) { error = ex.Message; }
     }

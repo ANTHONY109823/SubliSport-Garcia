@@ -357,6 +357,7 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 }
 .page-header-row .page-title { margin-bottom: 4px; }
 .page-header-row .page-subtitle { margin-bottom: 0; }
+.header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
 .filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
 .filter-tab {
@@ -559,6 +560,46 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 .order-journey-compact .journey-meta { display: flex; align-items: center; gap: 12px; font-size: 0.82rem; color: var(--gray); }
 .order-journey-compact .journey-meta time { color: var(--gold); font-weight: 600; }
 .order-journey-compact .journey-step-current .journey-area { color: var(--gold); }
+
+.mixed-line-row {
+    display: grid;
+    grid-template-columns: 1fr 100px auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.mixed-line-row:has(input[type="text"]) {
+    grid-template-columns: 1fr 1fr 100px auto;
+}
+.mixed-garment-section { margin-top: 12px; }
+.mixed-qty { max-width: 100px; }
+.mixed-summary-list { margin: 0; padding-left: 18px; }
+.mixed-summary-list li { margin-bottom: 4px; }
+
+.mixed-summary-list li { margin-bottom: 4px; }
+
+.production-options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    margin: 12px 0;
+}
+
+.roster-line-row {
+    display: grid;
+    grid-template-columns: 1fr 100px 80px auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.production-options-panel .section-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
 
 @media (max-width: 768px) {
     .admin-shell { flex-direction: column; }

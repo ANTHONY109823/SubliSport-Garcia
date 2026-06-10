@@ -10,6 +10,14 @@ namespace SubliSport.Web.Services;
 
 public record UserRoleMetric(string FullName, string Email, string Role, int ActiveOrders, double? AvgHoursInStage);
 
+public record DesignerLeaderboardEntry(
+    string DesignerId,
+    string FullName,
+    int ActiveDesigns,
+    int CompletedThisWeek,
+    int CompletedThisMonth,
+    int CompletedTotal);
+
 public record DesignerPersonalMetrics(
     int PendingAcceptance,
     int AcceptedNotStarted,
@@ -214,5 +222,53 @@ public class MetricsService(AppDbContext db, UserManager<ApplicationUser> userMa
             AvgHoursToComplete: completionHours.Count > 0 ? completionHours.Average() : null,
             PendingOrders: pendingOrders,
             CompletedOrders: completedOrders);
+    }
+
+    public async Task<List<DesignerLeaderboardEntry>> GetDesignerLeaderboardAsync()
+    {
+        var designers = (await userManager.GetUsersInRoleAsync(AppRoles.Designer))
+            .Where(d => d.IsActive)
+            .OrderBy(d => d.FullName)
+            .ToList();
+
+        var orders = await db.Orders
+            .Include(o => o.StatusHistory)
+            .ToListAsync();
+
+        var now = DateTime.UtcNow;
+        var weekStart = StartOfWeekUtc(now);
+        var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        return designers.Select(d =>
+        {
+            var assigned = orders.Where(o => o.AssignedDesignerId == d.Id).ToList();
+            var active = assigned.Count(o => o.Status is OrderStatus.AsignadoDiseno or OrderStatus.EnDiseno);
+            var completed = assigned.Where(o =>
+                o.StatusHistory.Any(h => h.ToStatus == OrderStatus.DisenoAprobado)).ToList();
+
+            int CountSince(DateTime since) => completed.Count(o =>
+                o.StatusHistory.Any(h =>
+                    h.ToStatus == OrderStatus.DisenoAprobado && h.ChangedAt >= since));
+
+            return new DesignerLeaderboardEntry(
+                d.Id,
+                d.FullName,
+                active,
+                CountSince(weekStart),
+                CountSince(monthStart),
+                completed.Count);
+        })
+        .OrderByDescending(e => e.CompletedThisMonth)
+        .ThenByDescending(e => e.CompletedThisWeek)
+        .ThenByDescending(e => e.CompletedTotal)
+        .ToList();
+    }
+
+    private static DateTime StartOfWeekUtc(DateTime utcNow)
+    {
+        var day = (int)utcNow.DayOfWeek;
+        var diff = day == 0 ? 6 : day - 1;
+        var monday = utcNow.Date.AddDays(-diff);
+        return DateTime.SpecifyKind(monday, DateTimeKind.Utc);
     }
 }

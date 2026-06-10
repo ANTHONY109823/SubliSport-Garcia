@@ -19,7 +19,10 @@
     </div>
     @if (isAdmin)
     {
-        <a href="/pedidos/nuevo" class="btn-primary">+ Nuevo pedido</a>
+        <div class="header-actions">
+            <a href="/pedidos/disenadores" class="btn-outline">Diseñadores</a>
+            <a href="/pedidos/nuevo" class="btn-primary">+ Nuevo pedido</a>
+        </div>
     }
 </div>
 
@@ -45,7 +48,7 @@
             Entregados (@deliveredCount)
         </button>
         <button type="button" class="filter-tab @(filter == AdminFilter.WaitingClient ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.WaitingClient)">
-            Pendiente cliente (@waitingClientCount)
+            Pendiente de aprobación (@waitingClientCount)
         </button>
     </div>
 }
@@ -55,9 +58,6 @@ else if (isDesigner)
         <button type="button" class="filter-tab @(designerFilter == DesignerFilter.Pending ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.Pending)">
             Pendientes (@pendingCount)
         </button>
-        <button type="button" class="filter-tab @(designerFilter == DesignerFilter.ToAccept ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.ToAccept)">
-            Por aceptar (@toAcceptCount)
-        </button>
         <button type="button" class="filter-tab @(designerFilter == DesignerFilter.InProgress ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.InProgress)">
             En diseño (@inProgressCount)
         </button>
@@ -65,7 +65,7 @@ else if (isDesigner)
             Culminados (@completedCount)
         </button>
         <button type="button" class="filter-tab @(designerFilter == DesignerFilter.WaitingClient ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.WaitingClient)">
-            Pendiente cliente (@waitingClientCount)
+            Pendiente de aprobación (@waitingClientCount)
         </button>
     </div>
 }
@@ -113,11 +113,13 @@ else
             <thead>
                 <tr>
                     <th>N°</th>
+                    <th>Recepción</th>
                     <th>Cliente</th>
                     <th>Prenda</th>
                     <th>Prioridad</th>
                     <th>Entrega</th>
                     <th>Estado</th>
+                    <th>Metraje</th>
                     <th>Diseñador</th>
                     <th></th>
                 </tr>
@@ -129,11 +131,13 @@ else
                                       order.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado;
                     <tr class="@(needsAssign ? "row-attention" : "")">
                         <td>@order.OrderNumber</td>
+                        <td>@order.ReceivedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                         <td>@order.ClientName</td>
-                        <td>@order.GarmentType</td>
+                        <td>@OrderDisplayHelper.GetGarmentDisplay(order)</td>
                         <td><span class="badge priority-@order.Priority.ToString().ToLower()">@OrderStatusHelper.GetPriorityLabel(order.Priority)</span></td>
                         <td>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</td>
                         <td>@OrderDisplayHelper.GetStatusLabel(order)</td>
+                        <td>@OrderDisplayHelper.FormatFabricMeters(order)</td>
                         <td>
                             @if (needsAssign)
                             {
@@ -161,7 +165,7 @@ else
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
     private enum AdminFilter { All, Unassigned, Urgent, New, InProduction, Delivered, WaitingClient }
-    private enum DesignerFilter { Pending, ToAccept, InProgress, Completed, WaitingClient }
+    private enum DesignerFilter { Pending, InProgress, Completed, WaitingClient }
 
     private List<Order> orders = [];
     private List<Order> filteredOrders = [];
@@ -175,7 +179,6 @@ else
     private int inProductionCount;
     private int deliveredCount;
     private int pendingCount;
-    private int toAcceptCount;
     private int inProgressCount;
     private int completedCount;
     private int waitingClientCount;
@@ -214,7 +217,6 @@ else
     private void CountDesignerOrders()
     {
         pendingCount = orders.Count(DesignerOrderHelper.IsPending);
-        toAcceptCount = orders.Count(DesignerOrderHelper.CanAccept);
         inProgressCount = orders.Count(o => o.Status == OrderStatus.EnDiseno || DesignerOrderHelper.CanStart(o));
         completedCount = orders.Count(DesignerOrderHelper.IsDesignPhaseComplete);
         waitingClientCount = orders.Count(DesignerOrderHelper.IsPendingClientApproval);
@@ -261,7 +263,8 @@ else
         };
 
         filteredOrders = filteredOrders
-            .OrderByDescending(o => o.CreatedAt)
+            .OrderBy(o => o.ReceivedAt)
+            .ThenBy(o => o.CreatedAt)
             .ToList();
     }
 
@@ -269,7 +272,6 @@ else
     {
         filteredOrders = designerFilter switch
         {
-            DesignerFilter.ToAccept => orders.Where(DesignerOrderHelper.CanAccept).ToList(),
             DesignerFilter.InProgress => orders
                 .Where(o => o.Status == OrderStatus.EnDiseno || DesignerOrderHelper.CanStart(o))
                 .ToList(),

@@ -25,12 +25,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             entity.HasIndex(o => o.Priority);
             entity.HasIndex(o => o.AgreedDeliveryDate);
             entity.HasIndex(o => o.CreatedAt);
+            entity.HasIndex(o => o.ReceivedAt);
 
             entity.Property(o => o.OrderNumber).HasMaxLength(32).IsRequired();
             entity.Property(o => o.ClientName).HasMaxLength(200).IsRequired();
             entity.Property(o => o.ClientPhone).HasMaxLength(30);
             entity.Property(o => o.ClientEmail).HasMaxLength(256);
             entity.Property(o => o.GarmentType).HasMaxLength(120).IsRequired();
+            entity.Property(o => o.MixedGarmentDetails).HasMaxLength(4000);
+            entity.Property(o => o.ConfectionRosterDetails).HasMaxLength(8000);
             entity.Property(o => o.Sport).HasMaxLength(80).IsRequired();
             entity.Property(o => o.SizeRange).HasMaxLength(80);
             entity.Property(o => o.Notes).HasMaxLength(2000);

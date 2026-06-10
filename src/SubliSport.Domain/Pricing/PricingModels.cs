@@ -61,6 +61,8 @@ public record OrderPricingInput(
     decimal FabricMetersRip,
     bool IncludesConfection,
     bool ServiceOnlyPrintPress,
+    bool ClientOwnFabric,
+    bool IncludesLaserCut,
     bool IsFullSet,
     int Quantity);
 

@@ -25,7 +25,7 @@ public class PanelUiSettingsData
     {
         AdminCreateOrder = new PanelSectionSettings
         {
-            GarmentTypes = ["Conjunto completo", "Camiseta", "Short / Pantaloneta", "Medias", "Otro"],
+            GarmentTypes = ["Conjunto completo", "Camiseta", "Short / Pantaloneta", "Medias", "Mixta", "Otro"],
             Sports = ["Fútbol", "Vóley", "Básquet", "Atletismo", "Otro"],
             Fields =
             [

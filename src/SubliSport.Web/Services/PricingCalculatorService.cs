@@ -29,9 +29,11 @@ public static class PricingCalculatorService
             ? (kilosRip / fabricRip.Divisor) * fabricRip.PricePerKg
             : 0m;
 
-        var laserCost = meters * settings.LaserPricePerMeter;
+        var laserCost = input.IncludesLaserCut ? meters * settings.LaserPricePerMeter : 0m;
         var printPressCost = meters * settings.PrintPressPricePerMeter;
         var extraCost = settings.ExtraMeterCosts.Sum(x => meters * x.PricePerMeter);
+
+        var excludeFabric = input.ServiceOnlyPrintPress || input.ClientOwnFabric;
 
         decimal confectionCost = 0m;
         if (!input.ServiceOnlyPrintPress && input.IncludesConfection)
@@ -52,7 +54,7 @@ public static class PricingCalculatorService
             confectionCost *= Math.Max(input.Quantity, 1);
         }
 
-        var fabricTotal = input.ServiceOnlyPrintPress ? 0m : fabricCost + fabricRipCost;
+        var fabricTotal = excludeFabric ? 0m : fabricCost + fabricRipCost;
         var suggested = fabricTotal + laserCost + printPressCost + extraCost + confectionCost;
 
         return new OrderPricingResult(
@@ -76,7 +78,10 @@ public static class PricingCalculatorService
         order.FabricMetersRip ?? 0,
         order.IncludesConfection,
         order.ServiceOnlyPrintPress,
-        order.GarmentType.Contains("Conjunto", StringComparison.OrdinalIgnoreCase),
+        order.ClientOwnFabric,
+        order.IncludesLaserCut,
+        order.GarmentType.Contains("Conjunto", StringComparison.OrdinalIgnoreCase) ||
+        order.GarmentType.Equals("Mixta", StringComparison.OrdinalIgnoreCase),
         order.Quantity);
 
     private static decimal GetKilos(FabricTypeConfig fabric, decimal meters) =>

@@ -26,8 +26,7 @@ public class OrderService(AppDbContext db)
         {
             return await query
                 .Include(o => o.StatusHistory)
-                .OrderByDescending(o => o.Priority)
-                .ThenBy(o => o.AgreedDeliveryDate)
+                .OrderBy(o => o.ReceivedAt)
                 .ThenBy(o => o.CreatedAt)
                 .ToListAsync();
         }
@@ -92,6 +91,10 @@ public class OrderService(AppDbContext db)
         order.OrderNumber = await GenerateOrderNumberAsync();
         order.CreatedByUserId = createdByUserId;
         order.CreatedAt = DateTime.UtcNow;
+        if (order.ReceivedAt == default)
+        {
+            order.ReceivedAt = order.CreatedAt;
+        }
         order.Status = OrderStatus.CotizacionRecibida;
 
         db.Orders.Add(order);
@@ -171,12 +174,35 @@ public class OrderService(AppDbContext db)
         db.ChangeTracker.Clear();
     }
 
-    public async Task DesignerFinishAsync(Guid orderId, string designerId)
+    public async Task DesignerFinishAsync(
+        Guid orderId,
+        string designerId,
+        decimal fabricMeters,
+        bool hasRip,
+        decimal? fabricMetersRip)
     {
-        var order = await GetDesignerOrderAsync(orderId, designerId);
-        if (order.Status != OrderStatus.EnDiseno)
+        if (fabricMeters <= 0)
         {
-            throw new InvalidOperationException("Solo puede finalizar pedidos en diseño activo.");
+            throw new InvalidOperationException("Indique el metraje de la tela antes de enviar a producción.");
+        }
+
+        if (hasRip && (!fabricMetersRip.HasValue || fabricMetersRip <= 0))
+        {
+            throw new InvalidOperationException("Indique el metraje RIP.");
+        }
+
+        var order = await GetDesignerOrderAsync(orderId, designerId);
+        if (!DesignerOrderHelper.CanFinish(order))
+        {
+            throw new InvalidOperationException("Solo puede finalizar pedidos en diseño activo (no en espera de aprobación).");
+        }
+
+        order.FabricMeters = fabricMeters;
+        order.FabricMetersRip = hasRip ? fabricMetersRip : null;
+        if (!hasRip)
+        {
+            order.FabricTypeRipId = null;
+            order.FabricTypeRipName = null;
         }
 
         var previous = order.Status;
@@ -192,7 +218,7 @@ public class OrderService(AppDbContext db)
         var order = await GetDesignerOrderAsync(orderId, designerId);
         if (!DesignerOrderHelper.CanMarkPendingClientApproval(order))
         {
-            throw new InvalidOperationException("Solo puede marcar pendiente de cliente un diseño en curso.");
+            throw new InvalidOperationException("Solo puede marcar PENDIENTE DE APROBACIÓN un diseño en curso.");
         }
 
         order.ClientApprovalPendingAt = DateTime.UtcNow;
@@ -206,7 +232,7 @@ public class OrderService(AppDbContext db)
         var order = await GetDesignerOrderAsync(orderId, designerId);
         if (!DesignerOrderHelper.CanResumeAfterClient(order))
         {
-            throw new InvalidOperationException("El pedido no está pendiente de aprobación del cliente.");
+            throw new InvalidOperationException("El pedido no está en PENDIENTE DE APROBACIÓN.");
         }
 
         order.ClientApprovalPendingAt = null;
@@ -409,7 +435,10 @@ public class OrderService(AppDbContext db)
         decimal chargeAmount,
         string? pricingNotes,
         bool includesConfection,
-        bool serviceOnlyPrintPress)
+        bool serviceOnlyPrintPress,
+        bool clientOwnFabric,
+        bool includesLaserCut,
+        bool includesIgv)
     {
         var order = await GetProduccionOrderAsync(orderId);
         if (ProduccionOrderHelper.IsCompleted(order))
@@ -425,6 +454,9 @@ public class OrderService(AppDbContext db)
         order.FabricMetersRip = input.FabricMetersRip;
         order.IncludesConfection = includesConfection;
         order.ServiceOnlyPrintPress = serviceOnlyPrintPress;
+        order.ClientOwnFabric = clientOwnFabric;
+        order.IncludesLaserCut = includesLaserCut;
+        order.IncludesIgv = includesIgv;
         order.CalculatedFabricCost = result.FabricCost + result.FabricRipCost;
         order.CalculatedFabricRipCost = result.FabricRipCost;
         order.CalculatedLaserCost = result.LaserCost;
@@ -436,6 +468,48 @@ public class OrderService(AppDbContext db)
         order.PricingNotes = pricingNotes;
         order.PricingUpdatedAt = DateTime.UtcNow;
 
+        await db.SaveChangesAsync();
+    }
+
+    public async Task SaveProductionOptionsAsync(
+        Guid orderId,
+        bool includesLaserCut,
+        bool clientOwnFabric,
+        bool includesIgv,
+        bool includesConfection,
+        bool serviceOnlyPrintPress,
+        string? confectionRosterJson)
+    {
+        var order = await GetProduccionOrderAsync(orderId);
+        if (ProduccionOrderHelper.IsCompleted(order))
+        {
+            throw new InvalidOperationException("No puede modificar opciones de un pedido ya finalizado.");
+        }
+
+        order.IncludesLaserCut = includesLaserCut;
+        order.ClientOwnFabric = clientOwnFabric;
+        order.IncludesIgv = includesIgv;
+        order.IncludesConfection = includesConfection;
+        order.ServiceOnlyPrintPress = serviceOnlyPrintPress;
+        order.ConfectionRosterDetails = confectionRosterJson;
+
+        await db.SaveChangesAsync();
+    }
+
+    public async Task AdminUpdateOrderAsync(
+        Guid orderId,
+        DateTime receivedAt,
+        GiftOption giftOption,
+        string? mixedGarmentDetails)
+    {
+        var order = await db.Orders.FindAsync(orderId)
+            ?? throw new InvalidOperationException("Pedido no encontrado.");
+
+        order.ReceivedAt = receivedAt.Kind == DateTimeKind.Unspecified
+            ? DateTime.SpecifyKind(receivedAt, DateTimeKind.Utc)
+            : receivedAt.ToUniversalTime();
+        order.GiftOption = giftOption;
+        order.MixedGarmentDetails = mixedGarmentDetails;
         await db.SaveChangesAsync();
     }
 

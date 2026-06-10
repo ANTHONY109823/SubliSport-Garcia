@@ -1,0 +1,28 @@
+@page "/pedidos/disenadores"
+@layout AdminLayout
+@attribute [Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+
+<PageTitle>Diseñadores - SUBLISPORT GARCIA</PageTitle>
+
+<div class="page-header-row">
+    <div>
+        <h1 class="page-title">Rendimiento de diseñadores</h1>
+        <p class="page-subtitle">Diseños en curso y culminados por semana, mes y total</p>
+    </div>
+    <a href="/pedidos" class="btn-outline">← Pedidos</a>
+</div>
+
+<section class="panel-section panel-highlight">
+    <p class="field-hint">Use estos datos al asignar pedidos nuevos. Los diseños culminados cuentan cuando el pedido pasa a producción.</p>
+    <DesignerLeaderboardTable Entries="leaderboard" />
+</section>
+
+@code {
+    [Inject] private MetricsService MetricsService { get; set; } = default!;
+
+    private List<DesignerLeaderboardEntry> leaderboard = [];
+
+    protected override async Task OnInitializedAsync() =>
+        leaderboard = await MetricsService.GetDesignerLeaderboardAsync();
+}

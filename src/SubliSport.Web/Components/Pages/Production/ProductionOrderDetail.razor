@@ -23,6 +23,9 @@ else
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
             <a href="/produccion" class="btn-outline">← Cola activa</a>
+            <a href="/produccion/@OrderId/ficha-confeccion" target="_blank" rel="noopener noreferrer" class="btn-action btn-edit">
+                🖨 Ficha confeccionista
+            </a>
             @if (ProduccionOrderHelper.IsCompleted(order))
             {
                 <a href="/produccion/historial" class="btn-outline">Historial</a>
@@ -67,7 +70,7 @@ else
                 }
                 @if (UiLabelHelper.IsVisible(ui, UiPanelKeys.ProductionOrderDetail, "garmentType"))
                 {
-                    <div><dt>@UiLabelHelper.Label(ui, UiPanelKeys.ProductionOrderDetail, "garmentType", "Prenda")</dt><dd>@order.GarmentType@if (UiLabelHelper.IsVisible(ui, UiPanelKeys.ProductionOrderDetail, "sport")){<text> · @order.Sport</text>}</dd></div>
+                    <div><dt>@UiLabelHelper.Label(ui, UiPanelKeys.ProductionOrderDetail, "garmentType", "Prenda")</dt><dd>@OrderDisplayHelper.GetGarmentDisplay(order)@if (UiLabelHelper.IsVisible(ui, UiPanelKeys.ProductionOrderDetail, "sport")){<text> · @order.Sport</text>}</dd></div>
                 }
                 else if (UiLabelHelper.IsVisible(ui, UiPanelKeys.ProductionOrderDetail, "sport"))
                 {
@@ -93,8 +96,21 @@ else
                 {
                     <div><dt>@UiLabelHelper.Label(ui, UiPanelKeys.ProductionOrderDetail, "notes", "Notas")</dt><dd>@(order.Notes ?? "—")</dd></div>
                 }
+                @if (order.FabricMeters is > 0)
+                {
+                    <div><dt>Metraje</dt><dd>@OrderDisplayHelper.FormatFabricMeters(order)</dd></div>
+                }
             </dl>
         </section>
+
+        @if (canDoProductionActions && !ProduccionOrderHelper.IsCompleted(order))
+        {
+            <ProductionOptionsPanel Order="order" OnSaved="ReloadAsync" />
+        }
+        else if (order.ConfectionRosterDetails is not null || order.IncludesLaserCut || order.ClientOwnFabric || order.IncludesIgv)
+        {
+            <ProductionOptionsPanel Order="order" ReadOnly="true" />
+        }
 
         @if (canDoProductionActions)
         {

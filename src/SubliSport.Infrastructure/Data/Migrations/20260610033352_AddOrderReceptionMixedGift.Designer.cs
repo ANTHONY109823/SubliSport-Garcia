@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SubliSport.Infrastructure.Data;
@@ -11,9 +12,11 @@ using SubliSport.Infrastructure.Data;
 namespace SubliSport.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260610033352_AddOrderReceptionMixedGift")]
+    partial class AddOrderReceptionMixedGift
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -311,16 +314,9 @@ namespace SubliSport.Infrastructure.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<bool>("ClientOwnFabric")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("ClientPhone")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
-
-                    b.Property<string>("ConfectionRosterDetails")
-                        .HasMaxLength(8000)
-                        .HasColumnType("character varying(8000)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -363,12 +359,6 @@ namespace SubliSport.Infrastructure.Data.Migrations
                         .HasColumnType("integer");
 
                     b.Property<bool>("IncludesConfection")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IncludesIgv")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IncludesLaserCut")
                         .HasColumnType("boolean");
 
                     b.Property<string>("MixedGarmentDetails")

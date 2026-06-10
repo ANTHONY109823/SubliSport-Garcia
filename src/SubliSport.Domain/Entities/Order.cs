@@ -10,6 +10,8 @@ public class Order
     public string? ClientPhone { get; set; }
     public string? ClientEmail { get; set; }
     public string GarmentType { get; set; } = string.Empty;
+    public string? MixedGarmentDetails { get; set; }
+    public GiftOption GiftOption { get; set; } = GiftOption.None;
     public string Sport { get; set; } = string.Empty;
     public int Quantity { get; set; }
     public string? SizeRange { get; set; }
@@ -17,6 +19,7 @@ public class Order
     public OrderStatus Status { get; set; } = OrderStatus.CotizacionRecibida;
     public OrderPriority Priority { get; set; } = OrderPriority.Normal;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ReceivedAt { get; set; } = DateTime.UtcNow;
     public DateTime? AgreedDeliveryDate { get; set; }
     public DateTime? DeliveredAt { get; set; }
 
@@ -40,6 +43,10 @@ public class Order
     public decimal? FabricMetersRip { get; set; }
     public bool IncludesConfection { get; set; } = true;
     public bool ServiceOnlyPrintPress { get; set; }
+    public bool ClientOwnFabric { get; set; }
+    public bool IncludesLaserCut { get; set; }
+    public bool IncludesIgv { get; set; }
+    public string? ConfectionRosterDetails { get; set; }
 
     public decimal? CalculatedFabricCost { get; set; }
     public decimal? CalculatedFabricRipCost { get; set; }

@@ -1,0 +1,116 @@
+/* Ficha imprimible confeccionista — sin precios */
+.print-body {
+    margin: 0;
+    padding: 24px;
+    background: #fff;
+    color: #111;
+    font-family: Arial, sans-serif;
+}
+
+.print-layout-wrapper {
+    background: #fff;
+    color: #111;
+    min-height: 100vh;
+    padding: 24px;
+    font-family: Arial, sans-serif;
+}
+
+.confection-sheet {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.confection-sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    border-bottom: 3px solid #111;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+}
+
+.confection-sheet-header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+}
+
+.confection-sheet-header p {
+    margin: 4px 0 0;
+    color: #444;
+}
+
+.confection-meta {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 24px;
+    margin-bottom: 24px;
+}
+
+.confection-meta div {
+    border: 1px solid #ccc;
+    padding: 10px 12px;
+    border-radius: 6px;
+}
+
+.confection-meta dt {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.confection-meta dd {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.confection-roster-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+}
+
+.confection-roster-table th,
+.confection-roster-table td {
+    border: 1px solid #333;
+    padding: 8px 10px;
+    text-align: left;
+}
+
+.confection-roster-table th {
+    background: #f0f0f0;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+.print-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.print-toolbar .btn-primary,
+.print-toolbar .btn-outline {
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid #333;
+    background: #111;
+    color: #fff;
+}
+
+.print-toolbar .btn-outline {
+    background: #fff;
+    color: #111;
+}
+
+@media print {
+    .no-print { display: none !important; }
+    .print-body { padding: 0; }
+    .confection-sheet { max-width: none; }
+}

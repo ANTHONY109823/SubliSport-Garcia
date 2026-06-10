@@ -8,7 +8,7 @@ public static class DesignerOrderHelper
     public const string AcceptedComment = "Pedido aceptado por diseñador";
     public const string StartedComment = "Trabajo iniciado en diseño";
     public const string FinishedComment = "Diseño finalizado — enviado a impresión/producción";
-    public const string PendingClientComment = "Pendiente aprobación del cliente";
+    public const string PendingClientComment = "PENDIENTE DE APROBACIÓN";
     public const string ClientRespondedComment = "Cliente respondió — diseño en curso";
 
     public static bool IsPendingClientApproval(Order order) =>
@@ -32,7 +32,7 @@ public static class DesignerOrderHelper
         order.Status == OrderStatus.AsignadoDiseno && IsAccepted(order);
 
     public static bool CanFinish(Order order) =>
-        order.Status == OrderStatus.EnDiseno;
+        order.Status == OrderStatus.EnDiseno && !IsPendingClientApproval(order);
 
     public static bool CanReturn(Order order) =>
         order.Status is OrderStatus.AsignadoDiseno or OrderStatus.EnDiseno;
@@ -48,7 +48,7 @@ public static class DesignerOrderHelper
     {
         OrderStatus.AsignadoDiseno when !IsAccepted(order) => "Nuevo — por aceptar",
         OrderStatus.AsignadoDiseno => "Aceptado — por iniciar",
-        OrderStatus.EnDiseno when IsPendingClientApproval(order) => "Pendiente aprobación cliente",
+        OrderStatus.EnDiseno when IsPendingClientApproval(order) => "PENDIENTE DE APROBACIÓN",
         OrderStatus.EnDiseno => "En diseño",
         OrderStatus.DisenoAprobado => "Enviado a producción",
         _ when IsDesignPhaseComplete(order) => "Culminado",

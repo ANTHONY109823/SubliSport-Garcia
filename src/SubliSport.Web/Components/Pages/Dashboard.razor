@@ -45,15 +45,16 @@ else if (isAdmin)
             <div class="table-wrap">
                 <table class="data-table">
                     <thead>
-                        <tr><th>N°</th><th>Cliente</th><th>Prenda</th><th>Entrega</th><th></th></tr>
+                        <tr><th>N°</th><th>Recepción</th><th>Cliente</th><th>Prenda</th><th>Entrega</th><th></th></tr>
                     </thead>
                     <tbody>
                         @foreach (var order in pendingAssignment.Take(5))
                         {
                             <tr>
                                 <td>@order.OrderNumber</td>
+                                <td>@order.ReceivedAt.ToLocalTime().ToString("dd/MM HH:mm")</td>
                                 <td>@order.ClientName</td>
-                                <td>@order.GarmentType</td>
+                                <td>@OrderDisplayHelper.GetGarmentDisplay(order)</td>
                                 <td>@(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</td>
                                 <td><a href="/pedidos/@order.Id" class="btn-action btn-edit">Asignar</a></td>
                             </tr>
@@ -61,6 +62,17 @@ else if (isAdmin)
                     </tbody>
                 </table>
             </div>
+        </section>
+    }
+
+    @if (designerLeaderboard.Count > 0)
+    {
+        <section class="panel-section panel-highlight">
+            <div class="section-header-row">
+                <h2>Rendimiento diseñadores</h2>
+                <a href="/pedidos/disenadores" class="quick-link">Ver detalle</a>
+            </div>
+            <DesignerLeaderboardTable Entries="designerLeaderboard" />
         </section>
     }
 
@@ -75,7 +87,7 @@ else if (isAdmin)
             <div class="table-wrap">
                 <table class="data-table">
                     <thead>
-                        <tr><th>N°</th><th>Cliente</th><th>Estado</th><th>Último movimiento</th><th></th></tr>
+                        <tr><th>N°</th><th>Recepción</th><th>Cliente</th><th>Estado</th><th>Metraje</th><th>Último movimiento</th><th></th></tr>
                     </thead>
                     <tbody>
                         @foreach (var order in activeTracking.Take(8))
@@ -84,8 +96,10 @@ else if (isAdmin)
                             var last = milestones.LastOrDefault();
                             <tr>
                                 <td>@order.OrderNumber</td>
+                                <td>@order.ReceivedAt.ToLocalTime().ToString("dd/MM HH:mm")</td>
                                 <td>@order.ClientName</td>
                                 <td>@OrderDisplayHelper.GetStatusLabel(order)</td>
+                                <td>@OrderDisplayHelper.FormatFabricMeters(order)</td>
                                 <td>
                                     @if (last is not null)
                                     {
@@ -110,6 +124,7 @@ else if (isAdmin)
         <div class="quick-links">
             <a href="/pedidos/nuevo" class="quick-link">+ Registrar pedido</a>
             <a href="/pedidos" class="quick-link">Seguimiento de pedidos</a>
+            <a href="/pedidos/disenadores" class="quick-link">Rendimiento diseñadores</a>
         </div>
     </section>
 }
@@ -237,6 +252,7 @@ else
     private List<Order> pendingAssignment = [];
     private List<Order> activeTracking = [];
     private List<Order> urgentOrders = [];
+    private List<DesignerLeaderboardEntry> designerLeaderboard = [];
     private SystemMetrics? metrics;
     private DesignerPersonalMetrics? designerMetrics;
     private bool isSuperAdminSupport;
@@ -273,15 +289,17 @@ else
         if (isAdmin)
         {
             orders = await OrderService.GetOrdersForUserAsync(userId, roles);
+            designerLeaderboard = await MetricsService.GetDesignerLeaderboardAsync();
             activeTracking = orders
                 .Where(o => o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
-                .OrderByDescending(o => o.CreatedAt)
+                .OrderBy(o => o.ReceivedAt)
+                .ThenBy(o => o.CreatedAt)
                 .ToList();
             pendingAssignment = orders
                 .Where(o => o.AssignedDesignerId is null &&
                             o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
-                .OrderByDescending(o => o.Priority)
-                .ThenBy(o => o.AgreedDeliveryDate)
+                .OrderBy(o => o.ReceivedAt)
+                .ThenBy(o => o.CreatedAt)
                 .ToList();
             urgentOrders = orders
                 .Where(o => o.Priority == OrderPriority.Urgente &&

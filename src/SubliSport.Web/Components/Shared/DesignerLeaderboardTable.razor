@@ -1,0 +1,38 @@
+@using SubliSport.Web.Services
+
+@if (Entries.Count == 0)
+{
+    <p class="empty-state">No hay diseñadores activos.</p>
+}
+else
+{
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Diseñador</th>
+                    <th>En curso</th>
+                    <th>Esta semana</th>
+                    <th>Este mes</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var entry in Entries)
+                {
+                    <tr>
+                        <td><strong>@entry.FullName</strong></td>
+                        <td>@entry.ActiveDesigns</td>
+                        <td>@entry.CompletedThisWeek</td>
+                        <td>@entry.CompletedThisMonth</td>
+                        <td>@entry.CompletedTotal</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter] public IReadOnlyList<DesignerLeaderboardEntry> Entries { get; set; } = [];
+}

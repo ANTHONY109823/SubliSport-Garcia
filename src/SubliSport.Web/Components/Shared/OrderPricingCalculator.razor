@@ -15,6 +15,14 @@
                 {
                     <div><dt>Metraje</dt><dd>@order.FabricMeters.Value.ToString("N2") m @(order.FabricTypeName != null ? $"· {order.FabricTypeName}" : "")</dd></div>
                 }
+                @if (order.ClientOwnFabric)
+                {
+                    <div><dt>Tela</dt><dd>Del cliente (sin costo tela)</dd></div>
+                }
+                @if (order.IncludesLaserCut && order.CalculatedLaserCost > 0)
+                {
+                    <div><dt>Corte láser</dt><dd>S/ @order.CalculatedLaserCost.Value.ToString("N2")</dd></div>
+                }
                 @if (order.CalculatedPrintPressCost > 0)
                 {
                     <div><dt>Impresión + planchado</dt><dd>S/ @order.CalculatedPrintPressCost.Value.ToString("N2")</dd></div>
@@ -27,8 +35,12 @@
                 {
                     <div><dt>Confección</dt><dd>S/ @order.CalculatedConfectionCost.Value.ToString("N2")</dd></div>
                 }
-                <div><dt>Total calculado</dt><dd>S/ @order.CalculatedTotal.ToString("N2")</dd></div>
-                <div><dt>Precio a cobrar</dt><dd><strong class="price-tag">S/ @order.ChargeAmount.ToString("N2")</strong></dd></div>
+                <div><dt>Subtotal calculado</dt><dd>S/ @order.CalculatedTotal.ToString("N2")</dd></div>
+                @if (order.IncludesIgv)
+                {
+                    <div><dt>IGV (18%)</dt><dd>S/ @PricingDisplayHelper.CalculateIgv(order.CalculatedTotal).ToString("N2")</dd></div>
+                }
+                <div><dt>Precio a cobrar</dt><dd><strong class="price-tag">S/ @order.ChargeAmount.ToString("N2")</strong> @(order.IncludesIgv ? "(con IGV)" : "")</dd></div>
                 @if (!string.IsNullOrWhiteSpace(order.PricingNotes))
                 {
                     <div><dt>Notas cobro</dt><dd>@order.PricingNotes</dd></div>
@@ -41,12 +53,12 @@ else
 {
     <section class="panel-section panel-highlight">
         <h2>Calculadora de cobro</h2>
-        <p class="field-hint">Parámetros definidos por SuperAdmin. Ingrese metraje y confirme el precio a cobrar.</p>
+        <p class="field-hint">Parámetros definidos por SuperAdmin. Las opciones de láser, tela e IGV también están en «Opciones de producción».</p>
 
         <div class="form-grid">
             <div class="form-group">
                 <label>Tipo de tela</label>
-                <select @bind="fabricTypeId" @bind:after="Recalculate" class="form-control">
+                <select @bind="fabricTypeId" @bind:after="Recalculate" class="form-control" disabled="@clientOwnFabric">
                     @foreach (var f in settings.Fabrics)
                     {
                         <option value="@f.Id">@f.Name</option>
@@ -59,7 +71,7 @@ else
             </div>
             <div class="form-group">
                 <label>Tela RIP (opcional)</label>
-                <select @bind="fabricRipIdStr" @bind:after="Recalculate" class="form-control">
+                <select @bind="fabricRipIdStr" @bind:after="Recalculate" class="form-control" disabled="@clientOwnFabric">
                     <option value="">— Sin RIP —</option>
                     @foreach (var f in settings.Fabrics)
                     {
@@ -69,18 +81,30 @@ else
             </div>
             <div class="form-group">
                 <label>Metraje RIP (m)</label>
-                <input type="number" step="0.01" @bind="fabricMetersRip" @bind:after="Recalculate" class="form-control" />
+                <input type="number" step="0.01" @bind="fabricMetersRip" @bind:after="Recalculate" class="form-control" disabled="@clientOwnFabric" />
             </div>
         </div>
 
-        <div class="toggle-row">
+        <div class="toggle-row production-options-grid">
             <label class="checkbox-row">
-                <input type="checkbox" @bind="serviceOnly" @bind:after="Recalculate" />
-                Solo servicio impresión + planchado (sin tela ni confección)
+                <input type="checkbox" @bind="includesLaserCut" @bind:after="Recalculate" />
+                Corte láser
             </label>
             <label class="checkbox-row">
-                <input type="checkbox" @bind="includesConfection" @bind:after="Recalculate" disabled="@serviceOnly" />
+                <input type="checkbox" @bind="clientOwnFabric" @bind:after="Recalculate" />
+                Cliente trae tela propia
+            </label>
+            <label class="checkbox-row">
+                <input type="checkbox" @bind="includesIgv" @bind:after="Recalculate" />
+                Incluye IGV (18%)
+            </label>
+            <label class="checkbox-row">
+                <input type="checkbox" @bind="includesConfection" @bind:after="Recalculate" disabled="@serviceOnlyPrintPress" />
                 Incluye confección
+            </label>
+            <label class="checkbox-row">
+                <input type="checkbox" @bind="serviceOnlyPrintPress" @bind:after="OnServiceOnlyChanged" />
+                Solo impresión + planchado
             </label>
         </div>
 
@@ -92,12 +116,12 @@ else
                 {
                     <div class="rrow"><span>Tela RIP (@result.FabricRipName)</span><strong>S/ @result.FabricRipCost.ToString("N2")</strong></div>
                 }
-                @if (!serviceOnly && result.FabricCost > 0)
+                @if (!clientOwnFabric && !serviceOnlyPrintPress && result.FabricCost > 0)
                 {
                     <div class="rrow"><span>Costo tela</span><strong>S/ @result.FabricCost.ToString("N2")</strong></div>
                 }
                 <div class="rrow"><span>Impresión + planchado (@fabricMeters.ToString("N2") m)</span><strong>S/ @result.PrintPressCost.ToString("N2")</strong></div>
-                @if (result.LaserCost > 0)
+                @if (includesLaserCut && result.LaserCost > 0)
                 {
                     <div class="rrow"><span>Corte láser</span><strong>S/ @result.LaserCost.ToString("N2")</strong></div>
                 }
@@ -109,7 +133,12 @@ else
                 {
                     <div class="rrow"><span>Confección</span><strong>S/ @result.ConfectionCost.ToString("N2")</strong></div>
                 }
-                <div class="rrow rrow-total"><span>Total sugerido</span><strong>S/ @result.SuggestedTotal.ToString("N2")</strong></div>
+                <div class="rrow rrow-total"><span>Subtotal sugerido</span><strong>S/ @result.SuggestedTotal.ToString("N2")</strong></div>
+                @if (includesIgv)
+                {
+                    <div class="rrow"><span>IGV 18%</span><strong>S/ @PricingDisplayHelper.CalculateIgv(result.SuggestedTotal).ToString("N2")</strong></div>
+                    <div class="rrow rrow-total"><span>Total con IGV</span><strong>S/ @PricingDisplayHelper.TotalWithIgv(result.SuggestedTotal, true).ToString("N2")</strong></div>
+                }
             </div>
         }
 
@@ -149,7 +178,10 @@ else
     private decimal fabricMeters;
     private decimal fabricMetersRip;
     private bool includesConfection = true;
-    private bool serviceOnly;
+    private bool serviceOnlyPrintPress;
+    private bool clientOwnFabric;
+    private bool includesLaserCut;
+    private bool includesIgv;
     private decimal chargeAmount;
     private string? pricingNotes;
 
@@ -165,7 +197,10 @@ else
             fabricMeters = order.FabricMeters ?? 0;
             fabricMetersRip = order.FabricMetersRip ?? 0;
             includesConfection = order.IncludesConfection;
-            serviceOnly = order.ServiceOnlyPrintPress;
+            serviceOnlyPrintPress = order.ServiceOnlyPrintPress;
+            clientOwnFabric = order.ClientOwnFabric;
+            includesLaserCut = order.IncludesLaserCut;
+            includesIgv = order.IncludesIgv;
             chargeAmount = order.ChargeAmount > 0 ? order.ChargeAmount : order.CalculatedTotal;
             pricingNotes = order.PricingNotes;
             Recalculate();
@@ -176,9 +211,19 @@ else
         }
     }
 
+    private void OnServiceOnlyChanged()
+    {
+        if (serviceOnlyPrintPress)
+        {
+            includesConfection = false;
+        }
+
+        Recalculate();
+    }
+
     private void Recalculate()
     {
-        if (serviceOnly)
+        if (serviceOnlyPrintPress)
         {
             includesConfection = false;
         }
@@ -191,23 +236,28 @@ else
 
         var ripId = int.TryParse(fabricRipIdStr, out var parsed) ? parsed : (int?)null;
 
-        var input = new OrderPricingInput(
-            fabricTypeId,
-            fabricMeters,
-            ripId,
-            fabricMetersRip,
-            includesConfection,
-            serviceOnly,
-            order.GarmentType.Contains("Conjunto", StringComparison.OrdinalIgnoreCase),
-            order.Quantity);
-
+        var input = BuildInput(ripId);
         result = PricingCalculatorService.Calculate(settings, input);
 
-        if (chargeAmount <= 0 || chargeAmount == order.CalculatedTotal)
+        var suggested = PricingDisplayHelper.TotalWithIgv(result.SuggestedTotal, includesIgv);
+        if (chargeAmount <= 0 || chargeAmount == order.CalculatedTotal || chargeAmount == order.ChargeAmount && order.ChargeAmount == PricingDisplayHelper.TotalWithIgv(order.CalculatedTotal, order.IncludesIgv))
         {
-            chargeAmount = result.SuggestedTotal;
+            chargeAmount = suggested;
         }
     }
+
+    private OrderPricingInput BuildInput(int? ripId) => new(
+        fabricTypeId,
+        fabricMeters,
+        ripId,
+        fabricMetersRip,
+        includesConfection,
+        serviceOnlyPrintPress,
+        clientOwnFabric,
+        includesLaserCut,
+        order.GarmentType.Contains("Conjunto", StringComparison.OrdinalIgnoreCase) ||
+        order.GarmentType.Equals("Mixta", StringComparison.OrdinalIgnoreCase),
+        order.Quantity);
 
     private async Task SavePricing()
     {
@@ -218,19 +268,20 @@ else
         if (userId is null) return;
 
         var ripId = int.TryParse(fabricRipIdStr, out var parsed) ? parsed : (int?)null;
-
-        var input = new OrderPricingInput(
-            fabricTypeId,
-            fabricMeters,
-            ripId,
-            fabricMetersRip,
-            includesConfection,
-            serviceOnly,
-            order.GarmentType.Contains("Conjunto", StringComparison.OrdinalIgnoreCase),
-            order.Quantity);
+        var input = BuildInput(ripId);
 
         await OrderService.SaveOrderPricingAsync(
-            order.Id, userId, input, result, chargeAmount, pricingNotes, includesConfection, serviceOnly);
+            order.Id,
+            userId,
+            input,
+            result,
+            chargeAmount,
+            pricingNotes,
+            includesConfection,
+            serviceOnlyPrintPress,
+            clientOwnFabric,
+            includesLaserCut,
+            includesIgv);
 
         await OnSaved.InvokeAsync();
     }
