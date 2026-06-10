@@ -128,12 +128,13 @@
 
         <div class="form-group">
             <label>@UiLabelHelper.Label(ui, UiPanelKeys.AdminCreateOrder, "priority", "Prioridad")</label>
-            <div class="priority-chips">
+            <div class="option-chips">
                 @foreach (var p in OrderFormOptions.PriorityQuick)
                 {
+                    var priority = p.Value;
                     <button type="button"
-                            class="priority-chip priority-@p.Value.ToString().ToLower() @(model.Priority == p.Value ? "active" : "")"
-                            @onclick="() => model.Priority = p.Value">
+                            class="option-chip priority-@priority.ToString().ToLower() @(model.Priority == priority ? "active" : "")"
+                            @onclick="() => SelectPriority(priority)">
                         @p.Label
                     </button>
                 }
@@ -147,12 +148,13 @@
 
         <div class="form-group">
             <label>Obsequio (opcional)</label>
-            <div class="priority-chips">
+            <div class="option-chips">
                 @foreach (var gift in GiftOptionHelper.Options)
                 {
+                    var giftValue = gift.Value;
                     <button type="button"
-                            class="priority-chip @(model.GiftOption == gift.Value ? "active" : "")"
-                            @onclick="() => model.GiftOption = gift.Value">
+                            class="option-chip @(model.GiftOption == giftValue ? "active" : "")"
+                            @onclick="() => SelectGift(giftValue)">
                         @gift.Label
                     </button>
                 }
@@ -162,26 +164,10 @@
 
     <section class="panel-section form-section-compact">
         <h2>3. Asignar diseñador (opcional)</h2>
-        <p class="field-hint">Si ya sabe quién lo tomará, asígnelo ahora y ahorre un paso.</p>
-        <div class="designer-picker">
-            <button type="button"
-                    class="designer-card @(string.IsNullOrEmpty(model.DesignerId) ? "selected" : "")"
-                    @onclick="() => model.DesignerId = null">
-                <strong>Sin asignar aún</strong>
-                <span>Asignar después desde el pedido</span>
-            </button>
-            @foreach (var designer in designers)
-            {
-                var load = designerLoads.GetValueOrDefault(designer.Id, 0);
-                var stats = designerStats.GetValueOrDefault(designer.Id);
-                <button type="button"
-                        class="designer-card @(model.DesignerId == designer.Id ? "selected" : "")"
-                        @onclick="() => model.DesignerId = designer.Id">
-                    <strong>@designer.FullName</strong>
-                    <span>@load en curso · @(stats?.CompletedThisWeek ?? 0) sem · @(stats?.CompletedThisMonth ?? 0) mes · @(stats?.CompletedTotal ?? 0) total</span>
-                </button>
-            }
-        </div>
+        <p class="field-hint">Elija quien tenga menos pendientes. Si no asigna ahora, podrá hacerlo desde el pedido.</p>
+        <DesignerPickerCards Designers="designers"
+                             Workloads="designerWorkloads"
+                             @bind-SelectedDesignerId="model.DesignerId" />
     </section>
 
     <div class="form-actions-sticky">
@@ -194,7 +180,6 @@
 
 @code {
     [Inject] private OrderService OrderService { get; set; } = default!;
-    [Inject] private MetricsService MetricsService { get; set; } = default!;
     [Inject] private PanelUiConfigurationService PanelUiConfig { get; set; } = default!;
     [Inject] private UserManagementService UserManagementService { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
@@ -203,8 +188,7 @@
     private readonly CreateOrderModel model = new();
     private PanelUiSettingsData ui = PanelUiSettingsData.CreateDefault();
     private List<ApplicationUser> designers = [];
-    private Dictionary<string, int> designerLoads = new();
-    private Dictionary<string, DesignerLeaderboardEntry> designerStats = new();
+    private Dictionary<string, DesignerWorkloadInfo> designerWorkloads = new();
     private bool isSaving;
     private string? message;
     private string? error;
@@ -222,14 +206,21 @@
 
         var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value);
         var orders = await OrderService.GetOrdersForUserAsync(userId, roles);
-        designerLoads = orders
-            .Where(o => o.AssignedDesignerId is not null &&
-                        o.Status is OrderStatus.AsignadoDiseno or OrderStatus.EnDiseno)
-            .GroupBy(o => o.AssignedDesignerId!)
-            .ToDictionary(g => g.Key, g => g.Count());
+        designerWorkloads = DesignerWorkloadHelper.BuildWorkloads(
+            orders,
+            designers.Select(d => d.Id));
+    }
 
-        var leaderboard = await MetricsService.GetDesignerLeaderboardAsync();
-        designerStats = leaderboard.ToDictionary(e => e.DesignerId);
+    private void SelectGift(GiftOption value)
+    {
+        model.GiftOption = value;
+        StateHasChanged();
+    }
+
+    private void SelectPriority(OrderPriority value)
+    {
+        model.Priority = value;
+        StateHasChanged();
     }
 
     private void AddMixedLine() =>
@@ -325,6 +316,9 @@
                 ReceivedAt = model.ReceivedAt.Value.ToUniversalTime(),
                 AgreedDeliveryDate = model.AgreedDeliveryDate?.ToUniversalTime()
             }, userId);
+
+            var proformaDraft = OrderProformaBuilder.BuildClientDraft(order, 0);
+            await OrderService.InitializeProformaDraftAsync(order.Id, proformaDraft);
 
             if (!string.IsNullOrEmpty(model.DesignerId))
             {

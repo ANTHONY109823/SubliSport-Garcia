@@ -513,6 +513,22 @@ public class OrderService(AppDbContext db)
         await db.SaveChangesAsync();
     }
 
+    public async Task InitializeProformaDraftAsync(Guid orderId, string clientProformaText)
+    {
+        var order = await db.Orders.FindAsync(orderId)
+            ?? throw new InvalidOperationException("Pedido no encontrado.");
+
+        if (LandingQuoteNotesHelper.IsLandingQuote(order.PricingNotes))
+        {
+            return;
+        }
+
+        var internalSuggestion = LandingQuoteNotesHelper.GetInternalSuggestion(order.PricingNotes);
+        order.PricingNotes = LandingQuoteNotesHelper.Pack(internalSuggestion, clientProformaText.Trim());
+        order.PricingUpdatedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+    }
+
     public async Task SaveLandingQuoteProformaAsync(
         Guid orderId,
         string adminUserId,

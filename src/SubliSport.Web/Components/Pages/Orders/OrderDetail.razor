@@ -126,23 +126,13 @@ else
                 <OrderTimeline Order="order" />
             </section>
 
-            <section class="panel-section panel-highlight">
+            <section class="panel-section panel-section-compact">
                 <h2>Asignar diseñador</h2>
-                <p class="field-hint"><a href="/pedidos/disenadores">Ver ranking completo de diseñadores</a></p>
-                <div class="designer-picker">
-                    @foreach (var designer in designers)
-                    {
-                        var load = designerLoads.GetValueOrDefault(designer.Id, 0);
-                        var stats = designerStats.GetValueOrDefault(designer.Id);
-                        var isCurrent = order.AssignedDesignerId == designer.Id;
-                        <button type="button"
-                                class="designer-card @(selectedDesignerId == designer.Id ? "selected" : "") @(isCurrent ? "current" : "")"
-                                @onclick="() => selectedDesignerId = designer.Id">
-                            <strong>@designer.FullName</strong>
-                            <span>@load en curso · @(stats?.CompletedThisWeek ?? 0) sem · @(stats?.CompletedThisMonth ?? 0) mes · @(stats?.CompletedTotal ?? 0) total</span>
-                        </button>
-                    }
-                </div>
+                <p class="field-hint">Asigne al diseñador con menos pendientes.</p>
+                <DesignerPickerCards Designers="designers"
+                                     Workloads="designerWorkloads"
+                                     CurrentDesignerId="order.AssignedDesignerId"
+                                     @bind-SelectedDesignerId="selectedDesignerId" />
                 <div class="form-actions">
                     <button class="btn-primary" @onclick="AssignDesigner" disabled="@string.IsNullOrEmpty(selectedDesignerId) || selectedDesignerId == order.AssignedDesignerId">
                         @(order.AssignedDesignerId is null ? "Asignar diseñador" : "Reasignar")
@@ -207,11 +197,6 @@ else
                         <p class="field-hint text-muted">Registre el WhatsApp del cliente para habilitar el envío.</p>
                     }
                 </section>
-            }
-
-            @if (order.ChargeAmount > 0 || order.CalculatedTotal > 0)
-            {
-                <OrderPricingCalculator Order="order" ReadOnly="true" />
             }
 
             @if (ProduccionOrderHelper.CanMarkDelivered(order))
@@ -340,7 +325,6 @@ else
     [Parameter] public Guid OrderId { get; set; }
 
     [Inject] private OrderService OrderService { get; set; } = default!;
-    [Inject] private MetricsService MetricsService { get; set; } = default!;
     [Inject] private PanelUiConfigurationService PanelUiConfig { get; set; } = default!;
     [Inject] private UserManagementService UserManagementService { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
@@ -350,8 +334,7 @@ else
     private Order? order;
     private bool isBusy;
     private List<ApplicationUser> designers = [];
-    private Dictionary<string, int> designerLoads = new();
-    private Dictionary<string, DesignerLeaderboardEntry> designerStats = new();
+    private Dictionary<string, DesignerWorkloadInfo> designerWorkloads = new();
     private string? selectedDesignerId;
     private string? currentUserId;
     private bool isDesignerView;
@@ -410,20 +393,16 @@ else
         {
             designers = (await UserManagementService.GetDesignersAsync()).Where(d => d.IsActive).ToList();
             var allOrders = await OrderService.GetOrdersForUserAsync(currentUserId, roles);
-            designerLoads = allOrders
-                .Where(o => o.AssignedDesignerId is not null && o.Status is OrderStatus.AsignadoDiseno or OrderStatus.EnDiseno)
-                .GroupBy(o => o.AssignedDesignerId!)
-                .ToDictionary(g => g.Key, g => g.Count());
-
-            var leaderboard = await MetricsService.GetDesignerLeaderboardAsync();
-            designerStats = leaderboard.ToDictionary(e => e.DesignerId);
+            designerWorkloads = DesignerWorkloadHelper.BuildWorkloads(
+                allOrders,
+                designers.Select(d => d.Id));
         }
     }
 
     private bool ShowProformaPanel() =>
         order is not null &&
         !isDesignerView &&
-        (isLandingQuote || order.Status is OrderStatus.CotizacionRecibida or OrderStatus.EnRevision);
+        order.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado;
 
     private void RegenerateProformaDraft()
     {
