@@ -452,24 +452,18 @@ public static class LandingQuoteCalculator
 
 public static class LandingQuoteTerms
 {
-    public static string ClientText => """
-        CONDICIONES COMERCIALES
-        1. Los precios están considerados a partir de una docena.
-        2. El tiempo de entrega es 07 días hábiles después del adelanto del 50%.
-        3. Plazo máximo recomendado: 07 días hábiles después de la aprobación del diseño, sujeto a la carga de trabajo vigente.
-        4. El cliente podrá realizar cambios 3 veces; posterior a ello pagará por diseño.
-        5. El cliente pagará el envío de encomienda.
-        6. Los costos de este presupuesto NO incluyen IGV.
+    public const string PaymentMethodsShort =
+        "YAPE / PLIN: 960 840 874 · 982 765 879 · BCP: 191-06073742092 · INTERBANK: 898-3233877451 · Cuenta: LIZARDO EPIFANIO GARCIA CCAYO";
 
-        FORMA DE PAGO
-        1. 50% de adelanto — inicio según acuerdo.
-        2. 50% restante el mismo día del envío o entrega.
-        3. YAPE / PLIN: 960 840 874 · 982 765 879
-        4. BCP: 191-06073742092
-        5. INTERBANK: 898-3233877451
-        6. SCOTIABANK: 970-1614761
-        7. BANCO DE LA NACIÓN: 04-074-267780
-        8. Cuenta a nombre de LIZARDO EPIFANIO GARCIA CCAYO
+    public const string PrintFooter =
+        "Términos y condiciones: Cotización referencial sujeta a confirmación. Precios desde una docena. Entrega aproximada de 7 días hábiles tras el adelanto del 50% y la aprobación del diseño. Hasta 3 cambios de diseño incluidos; cambios adicionales tienen costo. Envío de encomienda por cuenta del cliente. Montos sin IGV. Adelanto 50% para iniciar; saldo al entregar o enviar.";
+
+    public static string ClientText => $"""
+        Hola, le enviamos su cotización de SubliSport García.
+
+        {PaymentMethodsShort}
+
+        {PrintFooter}
         """;
 
     public static string Text => """

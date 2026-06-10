@@ -7,10 +7,6 @@
 {
     <p>Pedido no encontrado.</p>
 }
-else if (string.IsNullOrWhiteSpace(proformaText))
-{
-    <p>No hay proforma de cliente guardada. Revise y guarde la proforma en el detalle del pedido.</p>
-}
 else
 {
     <div class="confection-sheet">
@@ -18,7 +14,7 @@ else
             <button type="button" class="btn-primary" onclick="window.print()">🖨 Descargar PDF / Imprimir</button>
             <a href="/pedidos/@OrderId" class="btn-outline">← Volver al pedido</a>
         </div>
-        <pre class="proforma-print-body">@proformaText</pre>
+        <ProformaInvoice Document="proformaDocument" />
     </div>
 }
 
@@ -27,12 +23,13 @@ else
     [Inject] private OrderService OrderService { get; set; } = default!;
 
     private Order? order;
-    private string? proformaText;
+    private ProformaDocument proformaDocument = default!;
 
     protected override async Task OnInitializedAsync()
     {
         order = await OrderService.GetByIdAsync(OrderId);
         if (order is null) return;
-        proformaText = LandingQuoteNotesHelper.GetClientProforma(order.PricingNotes);
+
+        proformaDocument = ProformaDocumentBuilder.Build(order);
     }
 }

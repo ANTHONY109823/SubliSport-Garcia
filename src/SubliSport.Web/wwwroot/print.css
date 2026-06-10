@@ -109,8 +109,228 @@
     color: #111;
 }
 
+/* Factura proforma — estilo boleta limpia */
+.proforma-invoice {
+    max-width: 820px;
+    margin: 0 auto;
+    color: #111;
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+
+.proforma-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.proforma-title {
+    margin: 0;
+    font-size: 1.65rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.proforma-ref {
+    margin: 6px 0 0;
+    color: #555;
+    font-size: 0.85rem;
+}
+
+.proforma-brand {
+    text-align: right;
+    border: 2px dashed #bbb;
+    padding: 14px 18px;
+    min-width: 160px;
+    border-radius: 4px;
+}
+
+.proforma-brand strong {
+    display: block;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+}
+
+.proforma-brand span {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.78rem;
+    color: #666;
+}
+
+.proforma-info-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+    align-items: start;
+}
+
+.proforma-info-col h2 {
+    margin: 0 0 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.proforma-info-col p {
+    margin: 0 0 4px;
+    color: #222;
+}
+
+.proforma-status-col {
+    text-align: center;
+    padding: 0 12px;
+}
+
+.proforma-status {
+    margin: 0 0 12px;
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+}
+
+.proforma-date-label {
+    margin: 0;
+    font-size: 0.78rem;
+    color: #666;
+}
+
+.proforma-date {
+    margin: 4px 0 0;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.proforma-company-col {
+    text-align: right;
+}
+
+.proforma-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+}
+
+.proforma-table thead tr {
+    border-bottom: 2px solid #111;
+}
+
+.proforma-table th {
+    text-align: left;
+    padding: 10px 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.proforma-table td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: top;
+}
+
+.proforma-table tbody tr:nth-child(even) td {
+    background: #f7f7f7;
+}
+
+.proforma-table .col-qty,
+.proforma-table .col-unit,
+.proforma-table .col-total {
+    width: 90px;
+    text-align: right;
+}
+
+.proforma-table th.col-qty,
+.proforma-table th.col-unit,
+.proforma-table th.col-total {
+    text-align: right;
+}
+
+.proforma-table .num {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.proforma-footer-row {
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 24px;
+    margin-bottom: 20px;
+}
+
+.proforma-footer-left h3 {
+    margin: 0 0 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.proforma-footer-left p {
+    margin: 0 0 16px;
+    color: #333;
+}
+
+.proforma-comments {
+    min-height: 48px;
+}
+
+.proforma-totals {
+    border-top: 1px solid #ddd;
+    padding-top: 8px;
+}
+
+.proforma-total-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    font-size: 0.9rem;
+}
+
+.proforma-grand-total {
+    margin-top: 8px;
+    padding: 12px 14px;
+    border: 3px solid #111;
+    font-weight: 800;
+    font-size: 1.05rem;
+}
+
+.proforma-terms {
+    border-top: 1px solid #ddd;
+    padding-top: 12px;
+    margin-top: 8px;
+}
+
+.proforma-terms p {
+    margin: 0;
+    font-size: 0.62rem;
+    line-height: 1.5;
+    color: #555;
+    text-align: justify;
+}
+
 @media print {
     .no-print { display: none !important; }
     .print-body { padding: 0; }
     .confection-sheet { max-width: none; }
+    .print-layout-wrapper { padding: 0; }
+    .proforma-invoice { max-width: none; }
+}
+
+@media (max-width: 720px) {
+    .proforma-info-row,
+    .proforma-footer-row {
+        grid-template-columns: 1fr;
+    }
+
+    .proforma-company-col {
+        text-align: left;
+    }
+
+    .proforma-status-col {
+        text-align: left;
+        padding: 0;
+    }
 }

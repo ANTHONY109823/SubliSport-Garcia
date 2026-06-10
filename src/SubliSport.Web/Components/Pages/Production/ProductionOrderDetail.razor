@@ -1,7 +1,7 @@
 @page "/produccion/{OrderId:guid}"
 @page "/impresion/{OrderId:guid}"
 @layout AdminLayout
-@attribute [Authorize(Roles = "Production")]
+@attribute [Authorize(Roles = "Admin,Production")]
 @rendermode InteractiveServer
 
 <PageTitle>Producción pedido - SUBLISPORT GARCIA</PageTitle>

@@ -1,0 +1,110 @@
+@using SubliSport.Domain.Landing
+@using SubliSport.Web.Helpers
+
+<div class="proforma-invoice">
+    <header class="proforma-header">
+        <div class="proforma-title-block">
+            <h1 class="proforma-title">FACTURA PROFORMA</h1>
+            @if (!string.IsNullOrWhiteSpace(Document.Order.OrderNumber))
+            {
+                <p class="proforma-ref">N.º @Document.Order.OrderNumber</p>
+            }
+        </div>
+        <div class="proforma-brand">
+            <strong>@LandingCompanyInfo.BusinessName</strong>
+            <span>Sublimación deportiva</span>
+        </div>
+    </header>
+
+    <section class="proforma-info-row">
+        <div class="proforma-info-col">
+            <h2>Datos del cliente</h2>
+            <p><strong>@Document.Order.ClientName</strong></p>
+            @if (!string.IsNullOrWhiteSpace(Document.Order.ClientPhone))
+            {
+                <p>WhatsApp: @Document.Order.ClientPhone</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(Document.Order.ClientEmail))
+            {
+                <p>@Document.Order.ClientEmail</p>
+            }
+            @if (Document.Order.AgreedDeliveryDate.HasValue)
+            {
+                <p>Entrega estimada: @Document.Order.AgreedDeliveryDate.Value.ToLocalTime().ToString("dd/MM/yyyy")</p>
+            }
+        </div>
+
+        <div class="proforma-info-col proforma-status-col">
+            <p class="proforma-status">@Document.StatusLabel</p>
+            <p class="proforma-date-label">Fecha</p>
+            <p class="proforma-date">@Document.IssueDate.ToString("dd/MM/yyyy")</p>
+        </div>
+
+        <div class="proforma-info-col proforma-company-col">
+            <h2>Datos</h2>
+            <p><strong>@LandingCompanyInfo.BusinessName</strong></p>
+            <p>RUC: @LandingCompanyInfo.Ruc</p>
+            <p>@LandingCompanyInfo.Address</p>
+        </div>
+    </section>
+
+    <table class="proforma-table">
+        <thead>
+            <tr>
+                <th class="col-desc">Descripción</th>
+                <th class="col-qty">Uds</th>
+                <th class="col-unit">Precio/ud</th>
+                <th class="col-total">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var line in Document.Lines)
+            {
+                <tr>
+                    <td>@line.Description</td>
+                    <td class="num">@line.Units</td>
+                    <td class="num">@FormatMoney(line.UnitPrice)</td>
+                    <td class="num">@FormatMoney(line.LineTotal)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <section class="proforma-footer-row">
+        <div class="proforma-footer-left">
+            <h3>Métodos de pago</h3>
+            <p>@LandingQuoteTerms.PaymentMethodsShort</p>
+
+            <h3>Comentarios</h3>
+            <p class="proforma-comments">
+                @(string.IsNullOrWhiteSpace(Document.Comments) ? "Sin comentarios adicionales." : Document.Comments)
+            </p>
+        </div>
+
+        <div class="proforma-totals">
+            <div class="proforma-total-line">
+                <span>Subtotal</span>
+                <span>@FormatMoney(Document.Subtotal > 0 ? Document.Subtotal : null)</span>
+            </div>
+            <div class="proforma-total-line">
+                <span>IGV</span>
+                <span>No incluido</span>
+            </div>
+            <div class="proforma-total-line proforma-grand-total">
+                <span>Total</span>
+                <span>@FormatMoney(Document.Total > 0 ? Document.Total : null)</span>
+            </div>
+        </div>
+    </section>
+
+    <footer class="proforma-terms">
+        <p>@LandingQuoteTerms.PrintFooter</p>
+    </footer>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ProformaDocument Document { get; set; } = default!;
+
+    private static string FormatMoney(decimal? amount) =>
+        amount is > 0 ? $"S/ {amount.Value:N2}" : "—";
+}
