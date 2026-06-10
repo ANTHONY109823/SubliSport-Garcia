@@ -38,9 +38,21 @@ public static class LandingEndpoints
                     return Results.BadRequest(new { error = "Indique su nombre o club." });
                 }
 
-                if (string.IsNullOrWhiteSpace(request.GarmentType) || string.IsNullOrWhiteSpace(request.Sport))
+                if (string.IsNullOrWhiteSpace(request.Sport))
                 {
-                    return Results.BadRequest(new { error = "Seleccione prenda y deporte." });
+                    return Results.BadRequest(new { error = "Seleccione el deporte." });
+                }
+
+                var isMixed = request.GarmentType.Equals("Mixta", StringComparison.OrdinalIgnoreCase) ||
+                              request.MixedLines.Count > 0;
+                if (string.IsNullOrWhiteSpace(request.GarmentType) && !isMixed)
+                {
+                    return Results.BadRequest(new { error = "Seleccione el tipo de prenda." });
+                }
+
+                if (isMixed && !request.MixedLines.Any(l => l.Quantity > 0))
+                {
+                    return Results.BadRequest(new { error = "Indique las cantidades del pedido mixto." });
                 }
 
                 var owner = (await userManager.GetUsersInRoleAsync(AppRoles.Admin))
@@ -67,8 +79,33 @@ public static class LandingEndpoints
                     })
                     .ToList();
 
-                var quantity = roster.Count > 0 ? roster.Count : Math.Max(1, request.Quantity);
+                var quantity = roster.Count > 0
+                    ? roster.Count
+                    : isMixed
+                        ? request.MixedLines.Where(l => l.Quantity > 0).Sum(l => l.Quantity)
+                        : Math.Max(1, request.Quantity);
                 var notes = (request.Notes ?? string.Empty).Trim();
+
+                if (!string.IsNullOrWhiteSpace(request.DesiredDeliveryDeadline))
+                {
+                    var plazo = $"Plazo deseado por el cliente: {request.DesiredDeliveryDeadline.Trim()}";
+                    notes = string.IsNullOrEmpty(notes) ? plazo : $"{notes}\n\n{plazo}";
+                }
+
+                string? mixedJson = null;
+                if (isMixed)
+                {
+                    var mixedLines = request.MixedLines
+                        .Where(l => l.Quantity > 0 && !string.IsNullOrWhiteSpace(l.ItemType))
+                        .Select(l => new MixedGarmentLine
+                        {
+                            ItemType = l.ItemType.Trim(),
+                            Quantity = l.Quantity,
+                            OtherDescription = string.IsNullOrWhiteSpace(l.OtherDescription) ? null : l.OtherDescription.Trim()
+                        })
+                        .ToList();
+                    mixedJson = MixedGarmentHelper.Serialize(mixedLines);
+                }
 
                 if (referenceImageUrl is not null)
                 {
@@ -83,11 +120,14 @@ public static class LandingEndpoints
                         $"{l.Name} T{l.Size} N°{l.Number}".Trim()))
                     : request.SizeRangeSummary;
 
+                var garmentType = isMixed ? "Mixta" : request.GarmentType.Trim();
+
                 var order = new Order
                 {
                     ClientName = request.ClientName.Trim(),
                     ClientPhone = string.IsNullOrWhiteSpace(request.ClientPhone) ? null : request.ClientPhone.Trim(),
-                    GarmentType = request.GarmentType.Trim(),
+                    GarmentType = garmentType,
+                    MixedGarmentDetails = mixedJson,
                     Sport = request.Sport.Trim(),
                     Quantity = quantity,
                     SizeRange = sizeRange,

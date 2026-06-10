@@ -27,8 +27,9 @@ public static class LandingQuoteCalculator
     private static readonly string[] FabricKeys =
         ["dry_fit", "poly_exagonal", "puma", "gota_sig_sag", "marathon_micro", "labrado_brillo"];
 
-    public const decimal EmbroideryInsigniaUnit = 3m;
-    public const decimal EmbroideryBrandUnit = 2m;
+    public const decimal EmbroideryEscudoUnit = 3m;
+    public const decimal EmbroideryMarcaUnit = 2m;
+    public const decimal EmbroideryShortUnit = 2m;
 
     public static LandingQuoteResult Calculate(LandingQuoteSubmitRequest request)
     {
@@ -37,21 +38,27 @@ public static class LandingQuoteCalculator
         if (fabricIndex < 0) fabricIndex = 0;
 
         var fabricLabel = LandingFabricCatalog.Fabrics.First(f => f.Key == FabricKeys[fabricIndex]).Label;
-        var category = ResolveGarmentCategory(request.GarmentType);
-        var lines = BuildLines(request, category, fabricIndex);
+        var isMixed = IsMixedOrder(request);
+        var category = isMixed ? "mixta" : ResolveGarmentCategory(request.GarmentType);
+        var lines = BuildLines(request, category, fabricIndex, isMixed);
         var subtotal = lines.Sum(l => l.LineTotal);
 
-        var insigniaTotal = Math.Max(0, request.EmbroideryInsigniaQty) * EmbroideryInsigniaUnit;
-        var brandTotal = Math.Max(0, request.EmbroideryBrandQty) * EmbroideryBrandUnit;
-        var total = subtotal + insigniaTotal + brandTotal;
+        var pieceCount = ResolvePieceCount(request, isMixed);
+        var shortCount = ResolveShortPieceCount(request, isMixed);
 
-        var proforma = BuildProforma(request, fabricLabel, category, lines, subtotal, insigniaTotal, brandTotal, total);
+        var escudoTotal = request.EmbroideryEscudo ? pieceCount * EmbroideryEscudoUnit : 0m;
+        var marcaTotal = request.EmbroideryMarca ? pieceCount * EmbroideryMarcaUnit : 0m;
+        var shortTotal = request.EmbroideryShort ? shortCount * EmbroideryShortUnit : 0m;
+        var total = subtotal + escudoTotal + marcaTotal + shortTotal;
+
+        var proforma = BuildProforma(request, fabricLabel, category, lines, subtotal, escudoTotal, marcaTotal, shortTotal, total, isMixed);
         var waSummary = BuildWhatsAppSummary(request, fabricLabel, total, proforma);
 
         return new LandingQuoteResult(
             subtotal,
-            insigniaTotal,
-            brandTotal,
+            escudoTotal,
+            marcaTotal,
+            shortTotal,
             total,
             fabricLabel,
             category,
@@ -60,23 +67,59 @@ public static class LandingQuoteCalculator
             waSummary);
     }
 
-    private static List<LandingQuoteLineItem> BuildLines(
-        LandingQuoteSubmitRequest request,
-        string category,
-        int fabricIndex)
+    private static bool IsMixedOrder(LandingQuoteSubmitRequest request) =>
+        request.GarmentType.Equals("Mixta", StringComparison.OrdinalIgnoreCase) ||
+        request.MixedLines.Count > 0;
+
+    private static int ResolvePieceCount(LandingQuoteSubmitRequest request, bool isMixed)
     {
-        var roster = request.Roster
+        var roster = ActiveRoster(request);
+        if (roster.Count > 0) return roster.Count;
+
+        if (isMixed)
+        {
+            return request.MixedLines.Where(l => l.Quantity > 0).Sum(l => l.Quantity);
+        }
+
+        return Math.Max(1, request.Quantity);
+    }
+
+    private static int ResolveShortPieceCount(LandingQuoteSubmitRequest request, bool isMixed)
+    {
+        if (isMixed)
+        {
+            return request.MixedLines
+                .Where(l => l.Quantity > 0 && ResolveGarmentCategory(l.ItemType) == "short")
+                .Sum(l => l.Quantity);
+        }
+
+        return ResolveGarmentCategory(request.GarmentType) == "short"
+            ? Math.Max(1, request.Quantity)
+            : 0;
+    }
+
+    private static List<LandingQuoteRosterLine> ActiveRoster(LandingQuoteSubmitRequest request) =>
+        request.Roster
             .Where(r => !string.IsNullOrWhiteSpace(r.Name) ||
                         !string.IsNullOrWhiteSpace(r.Size) ||
                         !string.IsNullOrWhiteSpace(r.Number))
             .ToList();
 
+    private static List<LandingQuoteLineItem> BuildLines(
+        LandingQuoteSubmitRequest request,
+        string category,
+        int fabricIndex,
+        bool isMixed)
+    {
+        var roster = ActiveRoster(request);
+
         if (roster.Count > 0)
         {
+            var rosterCategory = isMixed ? "conjunto" : category;
             return roster.Select(r =>
             {
                 var tier = ResolveSizeTier(r.Size);
-                var unit = UnitPrice(category, tier, fabricIndex);
+                var unit = UnitPrice(rosterCategory == "mixta" ? "conjunto" : rosterCategory, tier, fabricIndex);
                 return new LandingQuoteLineItem(
                     string.IsNullOrWhiteSpace(r.Name) ? request.GarmentType : r.Name,
                     string.IsNullOrWhiteSpace(r.Size) ? tier : r.Size.Trim(),
@@ -86,12 +129,29 @@ public static class LandingQuoteCalculator
             }).ToList();
         }
 
+        if (isMixed)
+        {
+            var tier = ResolveSizeTier(request.SizeRangeSummary ?? "M");
+            return request.MixedLines
+                .Where(l => l.Quantity > 0 && !string.IsNullOrWhiteSpace(l.ItemType))
+                .Select(l =>
+                {
+                    var lineCategory = ResolveGarmentCategory(l.ItemType);
+                    var unit = UnitPrice(lineCategory, tier, fabricIndex);
+                    var label = l.ItemType == "Otro" && !string.IsNullOrWhiteSpace(l.OtherDescription)
+                        ? l.OtherDescription.Trim()
+                        : l.ItemType;
+                    return new LandingQuoteLineItem(label, tier, l.Quantity, unit, unit * l.Quantity);
+                })
+                .ToList();
+        }
+
         var qty = Math.Max(1, request.Quantity);
-        var tier = ResolveSizeTier(request.SizeRangeSummary ?? "M");
-        var price = UnitPrice(category, tier, fabricIndex);
+        var sizeTier = ResolveSizeTier(request.SizeRangeSummary ?? "M");
+        var price = UnitPrice(category, sizeTier, fabricIndex);
         return
         [
-            new LandingQuoteLineItem(request.GarmentType, tier, qty, price, price * qty)
+            new LandingQuoteLineItem(request.GarmentType, sizeTier, qty, price, price * qty)
         ];
     }
 
@@ -101,8 +161,15 @@ public static class LandingQuoteCalculator
         {
             "camiseta" => CamisetaPrices,
             "short" => null,
+            "medias" => null,
             _ => ConjuntoPrices
         };
+
+        if (category == "medias")
+        {
+            var conj = ConjuntoPrices[tier][fabricIndex];
+            return Math.Round(conj * 0.15m, 2);
+        }
 
         if (table is null)
         {
@@ -118,8 +185,9 @@ public static class LandingQuoteCalculator
     {
         var g = garmentType.ToLowerInvariant();
         if (g.Contains("conjunto")) return "conjunto";
-        if (g.Contains("camiseta")) return "camiseta";
-        if (g.Contains("short")) return "short";
+        if (g.Contains("polo") || g.Contains("camiseta")) return "camiseta";
+        if (g.Contains("short") || g.Contains("pantaloneta")) return "short";
+        if (g.Contains("media")) return "medias";
         return "conjunto";
     }
 
@@ -152,15 +220,26 @@ public static class LandingQuoteCalculator
         return "l_m_s";
     }
 
+    private static string DescribeEmbroidery(LandingQuoteSubmitRequest request)
+    {
+        var parts = new List<string>();
+        if (request.EmbroideryEscudo) parts.Add("Bordado escudo");
+        if (request.EmbroideryMarca) parts.Add("Bordado marca");
+        if (request.EmbroideryShort) parts.Add("Bordado short");
+        return parts.Count == 0 ? "Sublimado (sin bordado)" : string.Join(" · ", parts);
+    }
+
     private static string BuildProforma(
         LandingQuoteSubmitRequest request,
         string fabricLabel,
         string category,
         List<LandingQuoteLineItem> lines,
         decimal subtotal,
-        decimal insigniaTotal,
-        decimal brandTotal,
-        decimal total)
+        decimal escudoTotal,
+        decimal marcaTotal,
+        decimal shortTotal,
+        decimal total,
+        bool isMixed)
     {
         var sb = new StringBuilder();
         sb.AppendLine("══════════════════════════════════");
@@ -177,11 +256,25 @@ public static class LandingQuoteCalculator
         if (!string.IsNullOrWhiteSpace(request.ClientPhone))
             sb.AppendLine($"  WhatsApp: {request.ClientPhone}");
         sb.AppendLine($"  Deporte: {request.Sport}");
+        if (!string.IsNullOrWhiteSpace(request.DesiredDeliveryDeadline))
+            sb.AppendLine($"  Plazo deseado: {request.DesiredDeliveryDeadline.Trim()}");
         sb.AppendLine();
         sb.AppendLine("DETALLE DEL PEDIDO");
-        sb.AppendLine($"  Prenda: {request.GarmentType}");
+        sb.AppendLine($"  Prenda: {(isMixed ? "Pedido mixto" : request.GarmentType)}");
+        if (isMixed && request.MixedLines.Count > 0)
+        {
+            foreach (var m in request.MixedLines.Where(l => l.Quantity > 0))
+            {
+                var label = m.ItemType == "Otro" && !string.IsNullOrWhiteSpace(m.OtherDescription)
+                    ? m.OtherDescription.Trim()
+                    : m.ItemType;
+                sb.AppendLine($"    · {m.Quantity} x {label}");
+            }
+        }
         sb.AppendLine($"  Tela: {fabricLabel}");
-        sb.AppendLine($"  Tipo tarifa: {CategoryLabel(category)}");
+        sb.AppendLine($"  Acabado: {DescribeEmbroidery(request)}");
+        if (!isMixed)
+            sb.AppendLine($"  Tipo tarifa: {CategoryLabel(category)}");
         sb.AppendLine();
 
         var i = 1;
@@ -191,25 +284,23 @@ public static class LandingQuoteCalculator
             i++;
         }
 
-        if (request.Roster.Count > 0)
+        var roster = ActiveRoster(request);
+        if (roster.Count > 0)
         {
             sb.AppendLine();
             sb.AppendLine("  Lista (nombre · talla · número):");
-            foreach (var r in request.Roster.Where(x =>
-                         !string.IsNullOrWhiteSpace(x.Name) ||
-                         !string.IsNullOrWhiteSpace(x.Size) ||
-                         !string.IsNullOrWhiteSpace(x.Number)))
-            {
+            foreach (var r in roster)
                 sb.AppendLine($"    · {r.Name} | {r.Size} | N°{r.Number}");
-            }
         }
 
         sb.AppendLine();
         sb.AppendLine($"  Subtotal prendas: S/ {subtotal:N2}");
-        if (insigniaTotal > 0)
-            sb.AppendLine($"  Bordado insignia ({request.EmbroideryInsigniaQty} uds.): S/ {insigniaTotal:N2}");
-        if (brandTotal > 0)
-            sb.AppendLine($"  Bordado marca ({request.EmbroideryBrandQty} uds.): S/ {brandTotal:N2}");
+        if (escudoTotal > 0)
+            sb.AppendLine($"  Bordado escudo: S/ {escudoTotal:N2}");
+        if (marcaTotal > 0)
+            sb.AppendLine($"  Bordado marca: S/ {marcaTotal:N2}");
+        if (shortTotal > 0)
+            sb.AppendLine($"  Bordado short: S/ {shortTotal:N2}");
         sb.AppendLine($"  TOTAL REFERENCIAL: S/ {total:N2}");
         sb.AppendLine("  * Precios NO incluyen IGV");
         sb.AppendLine();
@@ -238,7 +329,10 @@ public static class LandingQuoteCalculator
             sb.AppendLine($"📱 *Mi WhatsApp:* {request.ClientPhone}");
         sb.AppendLine($"👕 *Prenda:* {request.GarmentType}");
         sb.AppendLine($"🧵 *Tela:* {fabricLabel}");
+        sb.AppendLine($"✨ *Acabado:* {DescribeEmbroidery(request)}");
         sb.AppendLine($"⚽ *Deporte:* {request.Sport}");
+        if (!string.IsNullOrWhiteSpace(request.DesiredDeliveryDeadline))
+            sb.AppendLine($"📅 *Plazo deseado:* {request.DesiredDeliveryDeadline.Trim()}");
         sb.AppendLine($"💰 *Total referencial:* S/ {total:N2} (sin IGV)");
         if (!string.IsNullOrWhiteSpace(request.Notes))
             sb.AppendLine($"📝 *Detalles:* {request.Notes}");
@@ -247,7 +341,6 @@ public static class LandingQuoteCalculator
         sb.AppendLine(WhatsAppHelper.TruncateForWhatsApp(fullProforma, 1200));
         sb.AppendLine();
         sb.AppendLine("✅ Solicitud registrada en panel SubliSport (cotización pendiente).");
-        sb.AppendLine("Adjunto foto de referencia si la subí en el formulario.");
         return sb.ToString().TrimEnd();
     }
 
@@ -255,6 +348,8 @@ public static class LandingQuoteCalculator
     {
         "camiseta" => "Camiseta varón/dama",
         "short" => "Short (tarifa referencial)",
+        "medias" => "Medias",
+        "mixta" => "Pedido mixto",
         _ => "Conjunto (camiseta + short + medias)"
     };
 }
@@ -265,9 +360,10 @@ public static class LandingQuoteTerms
         CONDICIONES COMERCIALES
         1. Los precios están considerados a partir de una docena.
         2. El tiempo de entrega es 07 días hábiles después del adelanto del 50%.
-        3. El cliente podrá realizar cambios 3 veces; posterior a ello pagará por diseño.
-        4. El cliente pagará el envío de encomienda.
-        5. Los costos de este presupuesto NO incluyen IGV.
+        3. Plazo máximo recomendado: 07 días hábiles después de la aprobación del diseño, sujeto a la carga de trabajo vigente.
+        4. El cliente podrá realizar cambios 3 veces; posterior a ello pagará por diseño.
+        5. El cliente pagará el envío de encomienda.
+        6. Los costos de este presupuesto NO incluyen IGV.
 
         FORMA DE PAGO
         1. 50% de adelanto — inicio según acuerdo.
@@ -279,8 +375,9 @@ public static class LandingQuoteTerms
         7. BANCO DE LA NACIÓN: 04-074-267780
         8. Cuenta a nombre de LIZARDO EPIFANIO GARCIA CCAYO
 
-        BORDADO (si aplica)
-        · Insignia: S/ 3.00 c/u
+        BORDADO (opcional — si no marca ninguna opción, todo es sublimado)
+        · Escudo / insignia: S/ 3.00 c/u
         · Marca: S/ 2.00 c/u
+        · Short: S/ 2.00 c/u
         """;
 }

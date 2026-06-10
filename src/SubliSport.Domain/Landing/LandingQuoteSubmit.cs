@@ -7,6 +7,13 @@ public class LandingQuoteRosterLine
     public string Number { get; set; } = string.Empty;
 }
 
+public class LandingQuoteMixedLine
+{
+    public string ItemType { get; set; } = string.Empty;
+    public int Quantity { get; set; }
+    public string? OtherDescription { get; set; }
+}
+
 public class LandingQuoteSubmitRequest
 {
     public string ClientName { get; set; } = string.Empty;
@@ -16,11 +23,14 @@ public class LandingQuoteSubmitRequest
     public int Quantity { get; set; } = 1;
     public string? SizeRangeSummary { get; set; }
     public string? Notes { get; set; }
+    public string? DesiredDeliveryDeadline { get; set; }
     public List<LandingQuoteRosterLine> Roster { get; set; } = [];
+    public List<LandingQuoteMixedLine> MixedLines { get; set; } = [];
     public string? ReferenceImageBase64 { get; set; }
     public string? FabricKey { get; set; }
-    public int EmbroideryInsigniaQty { get; set; }
-    public int EmbroideryBrandQty { get; set; }
+    public bool EmbroideryEscudo { get; set; }
+    public bool EmbroideryMarca { get; set; }
+    public bool EmbroideryShort { get; set; }
 }
 
 public class LandingQuoteSubmitResponse

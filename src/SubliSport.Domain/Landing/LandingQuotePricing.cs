@@ -32,6 +32,7 @@ public record LandingQuoteResult(
     decimal Subtotal,
     decimal EmbroideryInsigniaTotal,
     decimal EmbroideryBrandTotal,
+    decimal EmbroideryShortTotal,
     decimal Total,
     string FabricLabel,
     string GarmentCategory,

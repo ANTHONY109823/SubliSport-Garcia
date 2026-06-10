@@ -22,7 +22,15 @@
       garments: [
         { label: 'Conjunto Completo', value: 'Conjunto completo (camiseta + short + medias)', iconClass: 'fas fa-tshirt' },
         { label: 'Solo Camiseta', value: 'Solo camiseta', iconClass: 'fas fa-circle-dot' },
-        { label: 'Solo Short', value: 'Short deportivo', iconClass: 'fas fa-person-running' }
+        { label: 'Solo Short', value: 'Short deportivo', iconClass: 'fas fa-person-running' },
+        { label: 'Pedido Mixto', value: 'Mixta', iconClass: 'fas fa-layer-group', isMixed: true }
+      ],
+      mixedTypes: [
+        'Conjunto completo',
+        'Polo / Camiseta sola',
+        'Short / Pantaloneta',
+        'Medias',
+        'Otro'
       ],
       sports: [
         { label: '⚽ Fútbol', value: 'Fútbol' },
@@ -42,8 +50,11 @@
 
   var selectedPrenda = '';
   var selectedSport = '';
+  var isMixedMode = false;
   var whatsAppPhone = DEFAULTS.quote.whatsAppPhone;
   var rosterRows = [{ name: '', size: '', number: '' }];
+  var mixedLines = [{ itemType: 'Conjunto completo', quantity: 1, other: '' }];
+  var mixedTypes = DEFAULTS.quote.mixedTypes;
   var referenceImageBase64 = null;
   var isSubmitting = false;
 
@@ -98,22 +109,102 @@
     wireHover(track.querySelectorAll('.jersey-card'));
   }
 
+  function setMixedMode(mixed) {
+    isMixedMode = mixed;
+    var panel = $('mixedOrderPanel');
+    var qtyWrap = $('singleQuantityWrap');
+    if (panel) panel.classList.toggle('visible', mixed);
+    if (qtyWrap) qtyWrap.classList.toggle('panel-hidden', mixed);
+  }
+
   function renderGarments(garments) {
     var wrap = $('garmentOpts');
     if (!wrap || !garments || !garments.length) return;
     wrap.innerHTML = garments.map(function (g, i) {
-      return '<div class="prenda-opt' + (i === 0 ? ' active' : '') + '" data-value="' + esc(g.value) + '">' +
+      return '<div class="prenda-opt' + (i === 0 ? ' active' : '') + '" data-value="' + esc(g.value) + '"' +
+        (g.isMixed ? ' data-mixed="1"' : '') + '>' +
         '<i class="' + esc(g.iconClass || 'fas fa-tshirt') + '"></i><span>' + esc(g.label) + '</span></div>';
     }).join('');
     selectedPrenda = garments[0].value;
+    setMixedMode(!!garments[0].isMixed);
     wrap.querySelectorAll('.prenda-opt').forEach(function (el) {
       el.addEventListener('click', function () {
         wrap.querySelectorAll('.prenda-opt').forEach(function (d) { d.classList.remove('active'); });
         el.classList.add('active');
         selectedPrenda = el.getAttribute('data-value') || '';
+        setMixedMode(el.getAttribute('data-mixed') === '1');
       });
     });
     wireHover(wrap.querySelectorAll('.prenda-opt'));
+  }
+
+  function renderMixedLines() {
+    var body = $('mixedLinesBody');
+    if (!body) return;
+    body.innerHTML = mixedLines.map(function (row, i) {
+      var opts = mixedTypes.map(function (t) {
+        return '<option value="' + esc(t) + '"' + (row.itemType === t ? ' selected' : '') + ' style="background:#111">' + esc(t) + '</option>';
+      }).join('');
+      var otherField = row.itemType === 'Otro'
+        ? '<input type="text" data-mixed-other value="' + esc(row.other) + '" placeholder="Describa la prenda" style="grid-column:1/-1;margin-top:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--white);padding:10px;border-radius:8px;">'
+        : '';
+      return '<div class="mixed-row" data-midx="' + i + '">' +
+        '<select data-mixed-type>' + opts + '</select>' +
+        '<input type="number" data-mixed-qty min="1" value="' + (row.quantity || 1) + '">' +
+        (mixedLines.length > 1 ? '<button type="button" class="btn-roster-del" data-mixed-remove="' + i + '">✕</button>' : '<span></span>') +
+        otherField + '</div>';
+    }).join('');
+
+    body.querySelectorAll('[data-mixed-type]').forEach(function (sel) {
+      sel.addEventListener('change', function () {
+        var row = sel.closest('.mixed-row');
+        var idx = parseInt(row.getAttribute('data-midx'), 10);
+        if (!isNaN(idx) && mixedLines[idx]) {
+          mixedLines[idx].itemType = sel.value;
+          renderMixedLines();
+        }
+      });
+    });
+    body.querySelectorAll('[data-mixed-qty]').forEach(function (inp) {
+      inp.addEventListener('input', function () {
+        var row = inp.closest('.mixed-row');
+        var idx = parseInt(row.getAttribute('data-midx'), 10);
+        if (!isNaN(idx) && mixedLines[idx]) mixedLines[idx].quantity = parseInt(inp.value, 10) || 1;
+      });
+    });
+    body.querySelectorAll('[data-mixed-other]').forEach(function (inp) {
+      inp.addEventListener('input', function () {
+        var row = inp.closest('.mixed-row');
+        var idx = parseInt(row.getAttribute('data-midx'), 10);
+        if (!isNaN(idx) && mixedLines[idx]) mixedLines[idx].other = inp.value;
+      });
+    });
+    body.querySelectorAll('[data-mixed-remove]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var idx = parseInt(btn.getAttribute('data-mixed-remove'), 10);
+        if (mixedLines.length > 1) {
+          mixedLines.splice(idx, 1);
+          renderMixedLines();
+        }
+      });
+    });
+  }
+
+  function addMixedLine() {
+    mixedLines.push({ itemType: mixedTypes[0], quantity: 1, other: '' });
+    renderMixedLines();
+  }
+
+  function getMixedLinesPayload() {
+    return mixedLines
+      .filter(function (l) { return l.quantity > 0; })
+      .map(function (l) {
+        return {
+          itemType: l.itemType,
+          quantity: l.quantity,
+          otherDescription: l.itemType === 'Otro' ? (l.other || '').trim() : ''
+        };
+      });
   }
 
   function renderSports(sports) {
@@ -237,6 +328,91 @@
     });
   }
 
+  function normalizeHeader(h) {
+    return String(h || '').toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  }
+
+  function parseRosterRows(rows) {
+    if (!rows || !rows.length) return [];
+    var header = rows[0].map(normalizeHeader);
+    var hasHeader = header.some(function (h) {
+      return h.indexOf('nombre') >= 0 || h.indexOf('talla') >= 0 || h === 'n' || h.indexOf('numero') >= 0;
+    });
+    var dataRows = hasHeader ? rows.slice(1) : rows;
+    var nameIdx = 0;
+    var sizeIdx = 1;
+    var numIdx = 2;
+    if (hasHeader) {
+      nameIdx = header.findIndex(function (h) { return h.indexOf('nombre') >= 0; });
+      sizeIdx = header.findIndex(function (h) { return h.indexOf('talla') >= 0; });
+      numIdx = header.findIndex(function (h) { return h.indexOf('numero') >= 0 || h === 'n' || h.indexOf('nro') >= 0; });
+      if (nameIdx < 0) nameIdx = 0;
+      if (sizeIdx < 0) sizeIdx = 1;
+      if (numIdx < 0) numIdx = 2;
+    }
+    return dataRows.map(function (row) {
+      return {
+        name: String(row[nameIdx] || '').trim(),
+        size: String(row[sizeIdx] || '').trim(),
+        number: String(row[numIdx] || '').trim()
+      };
+    }).filter(function (r) { return r.name || r.size || r.number; });
+  }
+
+  function downloadRosterTemplate() {
+    var csv = 'Nombre,Talla,Numero\nEjemplo Juan Perez,M,10\nEjemplo Maria Lopez,S,7\n';
+    var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'plantilla-lista-sublisport.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setStatus('Plantilla descargada. Ábrala en Excel, complete y súbala aquí.', 'ok');
+  }
+
+  function setupExcelUpload() {
+    var input = $('rosterExcel');
+    var zone = $('excelZone');
+    var label = $('excelFileName');
+    if (!input) return;
+
+    input.addEventListener('change', function () {
+      var file = input.files && input.files[0];
+      if (!file) return;
+      if (typeof XLSX === 'undefined') {
+        setStatus('No se pudo cargar el lector de Excel. Use la plantilla CSV.', 'err');
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          var data = new Uint8Array(e.target.result);
+          var workbook = XLSX.read(data, { type: 'array' });
+          var sheet = workbook.Sheets[workbook.SheetNames[0]];
+          var rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+          var parsed = parseRosterRows(rows);
+          if (!parsed.length) {
+            setStatus('No se encontraron filas válidas. Use la plantilla.', 'err');
+            return;
+          }
+          rosterRows = parsed.length ? parsed : [{ name: '', size: '', number: '' }];
+          renderRoster();
+          if (zone) zone.classList.add('has-file');
+          if (label) label.textContent = file.name + ' · ' + parsed.length + ' filas cargadas';
+          setStatus(parsed.length + ' jugadores importados desde Excel.', 'ok');
+        } catch (err) {
+          setStatus('No se pudo leer el archivo. Verifique el formato.', 'err');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
   function collectForm() {
     var qty = $('quantity');
     var size = $('sizeRange');
@@ -244,9 +420,12 @@
     var phone = $('clientPhone');
     var extra = $('extraMsg');
     var fabric = $('fabricType');
-    var embIns = $('embroideryInsignia');
-    var embBrand = $('embroideryBrand');
+    var delivery = $('desiredDelivery');
+    var chkEscudo = $('chkEmbroideryEscudo');
+    var chkMarca = $('chkEmbroideryMarca');
+    var chkShort = $('chkEmbroideryShort');
     var roster = getRosterFromDom();
+    var mixed = getMixedLinesPayload();
 
     if (!name || !name.value.trim()) {
       setStatus('Indique su nombre o club.', 'err');
@@ -260,19 +439,29 @@
       return null;
     }
 
+    if (isMixedMode && !mixed.length) {
+      setStatus('Agregue al menos una línea al pedido mixto.', 'err');
+      return null;
+    }
+
     return {
       clientName: name.value.trim(),
       clientPhone: phone.value.trim(),
-      garmentType: selectedPrenda,
+      garmentType: isMixedMode ? 'Mixta' : selectedPrenda,
       sport: selectedSport,
-      quantity: qty && qty.value ? parseInt(qty.value, 10) || 1 : Math.max(1, roster.length),
+      quantity: isMixedMode
+        ? mixed.reduce(function (s, l) { return s + l.quantity; }, 0)
+        : (qty && qty.value ? parseInt(qty.value, 10) || 1 : Math.max(1, roster.length)),
       sizeRangeSummary: size && size.value ? size.value : '',
+      desiredDeliveryDeadline: delivery && delivery.value ? delivery.value.trim() : '',
       notes: extra && extra.value ? extra.value.trim() : '',
       roster: roster,
+      mixedLines: isMixedMode ? mixed : [],
       referenceImageBase64: referenceImageBase64,
       fabricKey: fabric && fabric.value ? fabric.value : 'dry_fit',
-      embroideryInsigniaQty: embIns && embIns.value ? parseInt(embIns.value, 10) || 0 : 0,
-      embroideryBrandQty: embBrand && embBrand.value ? parseInt(embBrand.value, 10) || 0 : 0
+      embroideryEscudo: !!(chkEscudo && chkEscudo.checked),
+      embroideryMarca: !!(chkMarca && chkMarca.checked),
+      embroideryShort: !!(chkShort && chkShort.checked)
     };
   }
 
@@ -368,8 +557,12 @@
   function wireQuoteButtons() {
     var btn = $('btnSendQuote');
     var btnAdd = $('btnAddRoster');
+    var btnMixed = $('btnAddMixedLine');
+    var btnTemplate = $('btnDownloadTemplate');
     if (btn) btn.addEventListener('click', sendQuote);
     if (btnAdd) btnAdd.addEventListener('click', addRosterRow);
+    if (btnMixed) btnMixed.addEventListener('click', addMixedLine);
+    if (btnTemplate) btnTemplate.addEventListener('click', downloadRosterTemplate);
   }
 
   function applyConfig(data) {
@@ -380,8 +573,11 @@
     renderSports(quote.sports || DEFAULTS.quote.sports);
     renderSizes(quote.sizes || DEFAULTS.quote.sizes);
     applyQuoteTexts(quote);
+    mixedTypes = quote.mixedTypes || DEFAULTS.quote.mixedTypes;
     renderRoster();
+    renderMixedLines();
     setupPhotoUpload();
+    setupExcelUpload();
     wireQuoteButtons();
   }
 

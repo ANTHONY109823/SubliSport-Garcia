@@ -83,6 +83,21 @@ body { background: var(--black); color: var(--white); font-family: 'Barlow', san
 .quote-status.ok { color:#6ee7a0; }
 .quote-status.err { color:#ff8080; }
 .quote-hint { font-size:0.78rem; color:var(--gray); margin-top:6px; line-height:1.5; }
+.option-chips { display:flex; flex-wrap:wrap; gap:10px; margin-top:4px; }
+.option-chip { display:flex; align-items:center; gap:8px; padding:10px 14px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:8px; cursor:pointer; transition:all 0.25s; font-size:0.88rem; color:var(--gray); }
+.option-chip input { accent-color:var(--gold); width:16px; height:16px; cursor:pointer; }
+.option-chip:has(input:checked) { border-color:var(--gold); color:var(--gold); background:rgba(240,165,0,0.1); }
+.mixed-panel { display:none; margin-top:8px; padding:16px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,0.02); }
+.mixed-panel.visible { display:block; }
+.mixed-row { display:grid; grid-template-columns:1fr 100px 36px; gap:10px; margin-bottom:8px; align-items:center; }
+.mixed-row select, .mixed-row input { background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--white); padding:10px 12px; border-radius:8px; font-size:0.88rem; }
+.btn-link { background:none; border:none; color:var(--gold); cursor:pointer; font-family:'Barlow Condensed'; font-size:0.78rem; letter-spacing:1.5px; text-transform:uppercase; text-decoration:underline; padding:0; }
+.btn-link:hover { color:var(--gold-light); }
+.excel-tools { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin:10px 0 14px; }
+.excel-upload-zone { border:2px dashed var(--border); border-radius:10px; padding:16px; text-align:center; position:relative; margin-top:8px; }
+.excel-upload-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.excel-upload-zone.has-file { border-color:var(--gold); background:rgba(240,165,0,0.05); }
+.panel-hidden { display:none !important; }
 
 footer { background:var(--dark); border-top:1px solid var(--border); padding:28px 6%; text-align:center; }
 footer p { color:var(--gray); font-size:0.82rem; }
@@ -136,9 +151,18 @@ footer a { color:var(--gold); text-decoration:none; }
     <span class="control-label">Deporte</span>
     <div class="sport-tabs" id="sportTabs"></div>
 
+    <div id="mixedOrderPanel" class="mixed-panel">
+      <span class="control-label" style="margin-top:0;">Detalle pedido mixto</span>
+      <p class="quote-hint">Ejemplo: 6 conjuntos + 5 polos. Agregue una fila por cada tipo de prenda.</p>
+      <div id="mixedLinesBody"></div>
+      <button type="button" class="btn-roster-add" id="btnAddMixedLine">+ Agregar línea</button>
+    </div>
+
     <span class="control-label">Datos del pedido</span>
     <div class="quote-grid">
-      <input type="number" id="quantity" class="form-field" placeholder="Cantidad de prendas" min="1">
+      <div id="singleQuantityWrap">
+        <input type="number" id="quantity" class="form-field" placeholder="Cantidad de prendas" min="1">
+      </div>
       <select id="fabricType" class="form-field">
         <option value="dry_fit" style="background:#111">DRY FIT / WIN FRESCH</option>
         <option value="poly_exagonal" style="background:#111">POLY EXAGONAL</option>
@@ -154,15 +178,30 @@ footer a { color:var(--gold); text-decoration:none; }
       <input type="text" id="clientName" class="form-field" placeholder="Tu nombre o club *">
     </div>
 
-    <span class="control-label">Bordado (opcional)</span>
-    <div class="quote-grid">
-      <input type="number" id="embroideryInsignia" class="form-field" placeholder="Bordado insignia (uds.)" min="0" value="0">
-      <input type="number" id="embroideryBrand" class="form-field" placeholder="Bordado marca (uds.)" min="0" value="0">
+    <span class="control-label">Acabado / bordado (opcional)</span>
+    <p class="quote-hint">Si no marca ninguna opción, todo el pedido será <strong style="color:var(--white);">sublimado</strong>.</p>
+    <div class="option-chips">
+      <label class="option-chip"><input type="checkbox" id="chkEmbroideryEscudo"> Bordado escudo <span style="opacity:0.7">(S/ 3)</span></label>
+      <label class="option-chip"><input type="checkbox" id="chkEmbroideryMarca"> Bordado marca <span style="opacity:0.7">(S/ 2)</span></label>
+      <label class="option-chip"><input type="checkbox" id="chkEmbroideryShort"> Bordado short <span style="opacity:0.7">(S/ 2)</span></label>
     </div>
-    <p class="quote-hint">Insignia S/ 3.00 c/u · Marca S/ 2.00 c/u · Precios desde una docena (sin IGV).</p>
+
+    <span class="control-label">Plazo de entrega deseado</span>
+    <input type="text" id="desiredDelivery" class="form-field" placeholder="Ej: 10 días hábiles después de aprobar el diseño">
+    <p class="quote-hint">Plazo máximo recomendado: <strong style="color:var(--gold);">7 días hábiles</strong> después de la aprobación del diseño, sujeto a la carga de trabajo actual.</p>
 
     <span class="control-label">Lista por jugador / prenda (nombre · talla · número)</span>
-    <p class="quote-hint">Opcional pero recomendado para equipos.</p>
+    <div class="excel-tools">
+      <button type="button" class="btn-link" id="btnDownloadTemplate"><i class="fas fa-download"></i> Descargar plantilla Excel</button>
+      <span class="quote-hint" style="margin:0;">o cargue su archivo (.xlsx, .xls, .csv)</span>
+    </div>
+    <div class="excel-upload-zone" id="excelZone">
+      <input type="file" id="rosterExcel" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv">
+      <i class="fas fa-file-excel" style="font-size:1.6rem;color:var(--gold);margin-bottom:6px;"></i>
+      <p style="color:var(--gray);font-size:0.88rem;">Arrastre o toque para subir lista en Excel</p>
+      <p id="excelFileName" class="quote-hint"></p>
+    </div>
+    <p class="quote-hint">También puede completar la tabla manualmente abajo.</p>
     <div class="roster-table-wrap">
       <table class="roster-table">
         <thead><tr><th>Nombre</th><th>Talla</th><th>Número</th><th></th></tr></thead>
@@ -202,6 +241,7 @@ footer a { color:var(--gold); text-decoration:none; }
   <p>© 2025 SUBLISPORT GARCIA · <a href="index.html">Volver al inicio</a></p>
 </footer>
 
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <script src="panel-config.js"></script>
 <script src="landing-config.js"></script>
 <script>
