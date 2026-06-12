@@ -1,0 +1,67 @@
+/* Mejoras visuales landing — mantiene fondo Santa Rosa */
+.btn-main,
+.btn-outline,
+.nav-cta,
+.nav-login {
+    border-radius: 10px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s !important;
+}
+
+.btn-main:hover,
+.btn-outline:hover {
+    box-shadow: 0 8px 28px rgba(240, 165, 0, 0.2);
+}
+
+.jersey-card,
+.contact-card,
+.quote-form-card {
+    border-radius: 16px !important;
+    backdrop-filter: blur(8px);
+}
+
+.navbar {
+    border-bottom: 1px solid rgba(240, 165, 0, 0.12) !important;
+}
+
+.section-title {
+    font-weight: 400;
+}
+
+.stat-num {
+    text-shadow: 0 0 24px rgba(240, 165, 0, 0.35);
+}
+
+/* Cotizar — chips y formulario */
+.garment-chip,
+.sport-chip,
+.fabric-chip,
+.option-chip {
+    border-radius: 10px !important;
+    transition: transform 0.15s, box-shadow 0.15s !important;
+}
+
+.garment-chip.active,
+.sport-chip.active,
+.fabric-chip.active,
+.option-chip.active {
+    box-shadow: 0 0 0 2px rgba(240, 165, 0, 0.35), 0 4px 16px rgba(240, 165, 0, 0.15) !important;
+}
+
+.quote-form-card input,
+.quote-form-card select,
+.quote-form-card textarea {
+    border-radius: 10px !important;
+}
+
+.quote-submit-btn {
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    box-shadow: 0 6px 24px rgba(240, 165, 0, 0.3) !important;
+}
+
+.quote-form-card {
+    border: 1px solid rgba(240, 165, 0, 0.2) !important;
+    background: rgba(20, 20, 20, 0.88) !important;
+}

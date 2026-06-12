@@ -51,11 +51,30 @@
 else
 {
     <section class="panel-section panel-highlight">
-        <h2>@(ProductionMode ? "Calculadora de cobro" : "Calculadora de cobro")</h2>
-        @if (!ProductionMode)
+        <div class="section-header-row">
+            <h2>Calculadora MYPE / producción</h2>
+            <span class="@ClientPricingTierHelper.GetBadgeClass(order.PricingTier)">@ClientPricingTierHelper.GetLabel(order.PricingTier)</span>
+        </div>
+
+        @if (order.PricingTier == ClientPricingTier.DirectRetail && ProductionMode)
         {
-            <p class="field-hint">Impresión + planchado = metraje × S/ @settings.PrintPressPricePerMeter.ToString("N2")/m (configurable por SuperAdmin).</p>
+            <p class="dashboard-insight">Pedido <strong>cliente directo</strong> (precio por prenda en cotizar.html). Use esta calculadora solo si aplica cobro por metraje en taller.</p>
         }
+        else
+        {
+            <p class="field-hint">Servicio B2B: metraje × S/ @settings.PrintPressPricePerMeter.ToString("N2")/m (impresión + planchado). La confección suma aparte si aplica.</p>
+        }
+
+        <div class="service-type-cards">
+            <button type="button" class="service-type-card @(selectedService == ServiceTypeHelper.PrintPressOnly ? "active" : "")" @onclick="() => SelectService(ServiceTypeHelper.PrintPressOnly)">
+                <strong>Diseño + impresión + planchado</strong>
+                <span>Sin confección — tela del taller o del cliente.</span>
+            </button>
+            <button type="button" class="service-type-card @(selectedService == ServiceTypeHelper.WithConfection ? "active" : "")" @onclick="() => SelectService(ServiceTypeHelper.WithConfection)">
+                <strong>Con confección</strong>
+                <span>Incluye armado de prenda (polo, short, medias según pedido).</span>
+            </button>
+        </div>
 
         <div class="form-grid">
             @if (!clientOwnFabric)
@@ -103,17 +122,6 @@ else
                 <input type="checkbox" @bind="includesIgv" @bind:after="Recalculate" />
                 Incluye IGV (18%)
             </label>
-            @if (!clientOwnFabric)
-            {
-                <label class="checkbox-row">
-                    <input type="checkbox" @bind="includesConfection" @bind:after="Recalculate" disabled="@serviceOnlyPrintPress" />
-                    Incluye confección
-                </label>
-                <label class="checkbox-row">
-                    <input type="checkbox" @bind="serviceOnlyPrintPress" @bind:after="OnServiceOnlyChanged" />
-                    Solo impresión + planchado
-                </label>
-            }
         </div>
 
         @if (!ProductionMode && result is not null && fabricMeters > 0)
@@ -188,6 +196,7 @@ else
     private bool includesIgv;
     private decimal chargeAmount;
     private string? pricingNotes;
+    private string selectedService = ServiceTypeHelper.WithConfection;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -212,6 +221,13 @@ else
             {
                 serviceOnlyPrintPress = true;
                 includesConfection = false;
+                selectedService = ServiceTypeHelper.PrintPressOnly;
+            }
+            else
+            {
+                selectedService = serviceOnlyPrintPress || !includesConfection
+                    ? ServiceTypeHelper.PrintPressOnly
+                    : ServiceTypeHelper.WithConfection;
             }
 
             Recalculate();
@@ -222,12 +238,28 @@ else
         }
     }
 
+    private void SelectService(string serviceType)
+    {
+        selectedService = serviceType;
+        if (serviceType == ServiceTypeHelper.PrintPressOnly)
+        {
+            serviceOnlyPrintPress = true;
+            includesConfection = false;
+        }
+        else
+        {
+            serviceOnlyPrintPress = false;
+            includesConfection = true;
+        }
+
+        Recalculate();
+    }
+
     private void OnClientOwnFabricChanged()
     {
         if (clientOwnFabric)
         {
-            serviceOnlyPrintPress = true;
-            includesConfection = false;
+            SelectService(ServiceTypeHelper.PrintPressOnly);
         }
 
         Recalculate();

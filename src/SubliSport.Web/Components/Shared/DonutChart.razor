@@ -1,0 +1,57 @@
+<div class="donut-chart-card">
+    <div class="donut-chart" style="@ChartStyle">
+        <div class="donut-hole">
+            <strong>@CenterValue</strong>
+            <span>@CenterLabel</span>
+        </div>
+    </div>
+    @if (LegendItems.Count > 0)
+    {
+        <ul class="donut-legend">
+            @foreach (var item in LegendItems)
+            {
+                <li>
+                    <span class="donut-legend-dot" style="background:@item.Color"></span>
+                    <span>@item.Label</span>
+                    <strong>@item.Value</strong>
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    public sealed record LegendItem(string Label, int Value, string Color);
+
+    [Parameter, EditorRequired] public IReadOnlyList<LegendItem> LegendItems { get; set; } = [];
+    [Parameter] public string CenterLabel { get; set; } = "Total";
+    [Parameter] public string? CenterValue { get; set; }
+
+    private string ChartStyle
+    {
+        get
+        {
+            var total = LegendItems.Sum(i => i.Value);
+            if (total <= 0)
+            {
+                return "background: conic-gradient(#2a2a2a 0deg 360deg);";
+            }
+
+            var colors = new[] { "#F0A500", "#4FC3F7", "#81C784", "#FFB74D", "#BA68C8", "#E57373", "#90A4AE" };
+            var segments = new List<string>();
+            var angle = 0d;
+            for (var i = 0; i < LegendItems.Count; i++)
+            {
+                var item = LegendItems[i];
+                if (item.Value <= 0) continue;
+                var sweep = item.Value / (double)total * 360d;
+                var color = string.IsNullOrWhiteSpace(item.Color) ? colors[i % colors.Length] : item.Color;
+                segments.Add($"{color} {angle:F1}deg {angle + sweep:F1}deg");
+                angle += sweep;
+            }
+
+            CenterValue ??= total.ToString();
+            return $"background: conic-gradient({string.Join(", ", segments)});";
+        }
+    }
+}

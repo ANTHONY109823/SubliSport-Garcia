@@ -11,6 +11,7 @@ public class Order
     public string? ClientEmail { get; set; }
     public string GarmentType { get; set; } = string.Empty;
     public string? MixedGarmentDetails { get; set; }
+    public ClientPricingTier PricingTier { get; set; } = ClientPricingTier.DirectRetail;
     public GiftOption GiftOption { get; set; } = GiftOption.None;
     public string Sport { get; set; } = string.Empty;
     public int Quantity { get; set; }

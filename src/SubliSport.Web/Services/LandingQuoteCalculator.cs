@@ -6,8 +6,8 @@ public static class LandingQuoteCalculator
 {
     private static readonly Dictionary<string, decimal[]> ConjuntoPrices = new()
     {
-        ["xxl_xl"] = [49, 50, 51, 52, 54, 55],
-        ["l_m_s"] = [48, 49, 50, 51, 53, 54],
+        ["xxl_xl"] = [49, 50, 51, 52, 55, 58],
+        ["l_m_s"] = [48, 49, 50, 51, 54, 57],
         ["s_14_16"] = [46, 47, 48, 49, 51, 52],
         ["s_10_12"] = [45, 46, 47, 48, 50, 54],
         ["s_4_6_8"] = [44, 45, 46, 47, 49, 50]

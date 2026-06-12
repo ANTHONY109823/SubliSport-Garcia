@@ -1,0 +1,24 @@
+<div class="stat-ring-card @CssClass">
+    <div class="stat-ring-visual" style="@RingStyle">
+        <div class="stat-ring-hole">
+            <strong>@Value</strong>
+        </div>
+    </div>
+    <span class="stat-ring-label">@Label</span>
+    @if (!string.IsNullOrWhiteSpace(SubLabel))
+    {
+        <span class="stat-ring-sublabel">@SubLabel</span>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = default!;
+    [Parameter, EditorRequired] public string Value { get; set; } = default!;
+    [Parameter] public string? SubLabel { get; set; }
+    [Parameter] public int Percent { get; set; } = 75;
+    [Parameter] public string Color { get; set; } = "#F0A500";
+    [Parameter] public string? CssClass { get; set; }
+
+    private string RingStyle =>
+        $"--ring-pct: {Math.Clamp(Percent, 0, 100)}; --ring-color: {Color};";
+}

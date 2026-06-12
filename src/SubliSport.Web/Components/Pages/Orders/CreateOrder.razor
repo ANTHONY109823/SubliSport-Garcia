@@ -27,7 +27,35 @@
     <DataAnnotationsValidator />
 
     <section class="panel-section form-section-compact">
-        <h2>1. Cliente</h2>
+        <h2>1. Tipo de cliente</h2>
+        <p class="field-hint">Cliente directo usa precios por prenda (cotizar.html). MYPE/taller usa calculadora por metraje en producción.</p>
+        <div class="pricing-tier-cards">
+            <button type="button" class="pricing-tier-card @(model.PricingTier == ClientPricingTier.DirectRetail ? "active" : "")" @onclick="() => model.PricingTier = ClientPricingTier.DirectRetail">
+                <strong>Cliente directo</strong>
+                <p>Persona natural o club — precio retail (ej. S/ 55–58 conjunto).</p>
+            </button>
+            <button type="button" class="pricing-tier-card @(model.PricingTier == ClientPricingTier.MypeB2B ? "active" : "")" @onclick="() => model.PricingTier = ClientPricingTier.MypeB2B">
+                <strong>MYPE / taller</strong>
+                <p>Servicio diseño, impresión, planchado y opcional confección (precio por metraje).</p>
+            </button>
+        </div>
+        @if (model.PricingTier == ClientPricingTier.MypeB2B)
+        {
+            <div class="service-type-cards">
+                <button type="button" class="service-type-card @(model.MypeServiceType == ServiceTypeHelper.PrintPressOnly ? "active" : "")" @onclick="() => model.MypeServiceType = ServiceTypeHelper.PrintPressOnly">
+                    <strong>Solo impresión + planchado</strong>
+                    <span>Sin confección.</span>
+                </button>
+                <button type="button" class="service-type-card @(model.MypeServiceType == ServiceTypeHelper.WithConfection ? "active" : "")" @onclick="() => model.MypeServiceType = ServiceTypeHelper.WithConfection">
+                    <strong>Con confección</strong>
+                    <span>Incluye armado de prenda.</span>
+                </button>
+            </div>
+        }
+    </section>
+
+    <section class="panel-section form-section-compact">
+        <h2>2. Cliente</h2>
         <div class="form-grid form-grid-2">
             <div class="form-group">
                 <label>Nombre o club *</label>
@@ -42,7 +70,7 @@
     </section>
 
     <section class="panel-section form-section-compact">
-        <h2>2. Tipo de prenda</h2>
+        <h2>3. Tipo de prenda</h2>
         <p class="field-hint">Si necesita conjunto y camiseta (u otros), elija <strong>Ambos tipos</strong>.</p>
         <div class="garment-chips">
             @foreach (var g in OrderFormOptions.GarmentChips)
@@ -89,7 +117,7 @@
     </section>
 
     <section class="panel-section form-section-compact">
-        <h2>3. Deporte</h2>
+        <h2>4. Deporte</h2>
         <div class="sport-chips">
             @foreach (var s in OrderFormOptions.Sports)
             {
@@ -108,7 +136,7 @@
     </section>
 
     <section class="panel-section form-section-compact">
-        <h2>4. Datos del pedido</h2>
+        <h2>5. Datos del pedido</h2>
         <div class="form-grid">
             @if (!GarmentTypeHelper.IsMixed(model.GarmentType))
             {
@@ -152,7 +180,7 @@
     </section>
 
     <section class="panel-section form-section-compact">
-        <h2>5. Acabado / bordado (opcional)</h2>
+        <h2>6. Acabado / bordado (opcional)</h2>
         <p class="field-hint">Si no marca ninguna opción, todo será <strong>sublimado</strong>.</p>
         <div class="option-chips">
             <button type="button" class="option-chip @(model.EmbroideryEscudo ? "active" : "")" @onclick="ToggleEmbroideryEscudo">Bordado escudo</button>
@@ -162,17 +190,17 @@
     </section>
 
     <section class="panel-section form-section-compact">
-        <h2>6. Lista de jugadores</h2>
+        <h2>7. Lista de jugadores</h2>
         <AdminQuoteRosterEditor Rows="model.RosterRows" />
     </section>
 
     <section class="panel-section form-section-compact">
-        <h2>7. Fotos de referencia</h2>
+        <h2>8. Fotos de referencia</h2>
         <AdminQuotePhotoSlots Slots="model.PhotoSlots" />
     </section>
 
     <section class="panel-section form-section-compact">
-        <h2>8. Detalles y opciones admin</h2>
+        <h2>9. Detalles y opciones admin</h2>
         <div class="form-group">
             <label>Detalles adicionales</label>
             <InputTextArea @bind-value="model.Notes" class="form-control" rows="3" placeholder="Colores, diseño, escudo, observaciones..." />
@@ -200,7 +228,7 @@
     </section>
 
     <section class="panel-section form-section-compact">
-        <h2>9. Asignar diseñador (opcional)</h2>
+        <h2>10. Asignar diseñador (opcional)</h2>
         <p class="field-hint">Elija quien tenga menos pendientes.</p>
         <DesignerPickerCards Designers="designers" Workloads="designerWorkloads" @bind-SelectedDesignerId="model.DesignerId" />
     </section>
@@ -406,6 +434,15 @@
                 model.Priority,
                 model.GiftOption);
 
+            order.PricingTier = model.PricingTier;
+            if (model.PricingTier == ClientPricingTier.MypeB2B)
+            {
+                order.ChargeAmount = 0;
+                order.CalculatedTotal = 0;
+                order.PricingNotes = null;
+                ServiceTypeHelper.ApplyServiceType(order, model.MypeServiceType);
+            }
+
             var created = await OrderService.CreateManualOrderAsync(
                 order,
                 userId,
@@ -459,6 +496,8 @@
         public DateTime? AgreedDeliveryDate { get; set; }
         public DateTime? ReceivedAt { get; set; } = DateTime.Today;
         public GiftOption GiftOption { get; set; } = GiftOption.None;
+        public ClientPricingTier PricingTier { get; set; } = ClientPricingTier.DirectRetail;
+        public string MypeServiceType { get; set; } = ServiceTypeHelper.PrintPressOnly;
         public string? DesignerId { get; set; }
         public List<AdminQuoteRosterEditor.RosterRowModel> RosterRows { get; } = [];
         public List<AdminQuotePhotoSlots.PhotoSlotModel> PhotoSlots { get; } = [];

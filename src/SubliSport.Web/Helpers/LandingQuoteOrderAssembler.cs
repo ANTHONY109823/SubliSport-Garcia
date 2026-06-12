@@ -76,6 +76,7 @@ public static class LandingQuoteOrderAssembler
 
         return new Order
         {
+            PricingTier = ClientPricingTier.DirectRetail,
             ClientName = request.ClientName.Trim(),
             ClientPhone = string.IsNullOrWhiteSpace(request.ClientPhone) ? null : request.ClientPhone.Trim(),
             GarmentType = isMixed ? "Mixta" : request.GarmentType.Trim(),

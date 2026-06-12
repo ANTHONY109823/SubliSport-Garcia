@@ -2,45 +2,35 @@
 
 @if (Metrics is not null)
 {
-    <div class="stats-grid">
-        <div class="stat-card"><span>Total pedidos</span><strong>@Metrics.TotalOrders</strong></div>
+    <div class="stats-rings-grid">
+        <StatRing Label="Total pedidos" Value="@Metrics.TotalOrders.ToString()" Percent="100" Color="#F0A500" />
+        <StatRing Label="Urgentes" Value="@Metrics.UrgentOrders.ToString()" Percent="@Pct(Metrics.UrgentOrders, Metrics.TotalOrders)" Color="#E57373" />
+        <StatRing Label="En diseño" Value="@Metrics.PendingDesign.ToString()" Percent="@Pct(Metrics.PendingDesign, Metrics.TotalOrders)" Color="#4FC3F7" />
+        <StatRing Label="En producción" Value="@Metrics.InProduction.ToString()" Percent="@Pct(Metrics.InProduction, Metrics.TotalOrders)" Color="#FFB74D" />
+        <StatRing Label="Entregados" Value="@Metrics.Delivered.ToString()" Percent="@Pct(Metrics.Delivered, Metrics.TotalOrders)" Color="#81C784" />
         @if (ShowUserCounts)
         {
-            <div class="stat-card"><span>Usuarios activos</span><strong>@Metrics.ActiveUsers / @Metrics.TotalUsers</strong></div>
+            <StatRing Label="Usuarios activos" Value="@($"{Metrics.ActiveUsers}/{Metrics.TotalUsers}")" Percent="@Pct(Metrics.ActiveUsers, Math.Max(Metrics.TotalUsers, 1))" Color="#BA68C8" />
         }
-        <div class="stat-card"><span>Urgentes</span><strong>@Metrics.UrgentOrders</strong></div>
-        <div class="stat-card"><span>Entregados</span><strong>@Metrics.Delivered</strong></div>
-        <div class="stat-card"><span>En diseño</span><strong>@Metrics.PendingDesign</strong></div>
-        <div class="stat-card"><span>En producción</span><strong>@Metrics.InProduction</strong></div>
     </div>
 
-    <div class="detail-grid detail-grid-3">
+    <div class="dashboard-charts-row">
         <section class="panel-section">
             <h2>Pedidos por estado</h2>
-            <ul class="metrics-list">
-                @foreach (var item in Metrics.OrdersByStatus.OrderByDescending(x => x.Value))
-                {
-                    <li><span>@item.Key</span><strong>@item.Value</strong></li>
-                }
-            </ul>
+            <DonutChart LegendItems="statusLegend" CenterLabel="Pedidos" />
         </section>
 
         <section class="panel-section">
             <h2>@TeamSectionTitle</h2>
-            <ul class="metrics-list">
-                @foreach (var item in Metrics.UsersByRole)
-                {
-                    <li><span>@item.Key</span><strong>@item.Value</strong></li>
-                }
-            </ul>
+            <DonutChart LegendItems="teamLegend" CenterLabel="Equipo" />
         </section>
 
         <section class="panel-section">
             <h2>Tiempos promedio</h2>
-            <ul class="metrics-list">
-                <li><span>Diseño (asignado → aprobado)</span><strong>@FormatHours(Metrics.AvgDesignHours)</strong></li>
-                <li><span>Producción (impresión → entrega)</span><strong>@FormatHours(Metrics.AvgProductionHours)</strong></li>
-            </ul>
+            <div class="stats-rings-grid" style="margin-bottom:0">
+                <StatRing Label="Diseño" Value="@FormatHours(Metrics.AvgDesignHours)" Percent="@HoursPct(Metrics.AvgDesignHours)" Color="#4FC3F7" SubLabel="asignado → aprobado" />
+                <StatRing Label="Producción" Value="@FormatHours(Metrics.AvgProductionHours)" Percent="@HoursPct(Metrics.AvgProductionHours)" Color="#FFB74D" SubLabel="impresión → entrega" />
+            </div>
         </section>
     </div>
 
@@ -67,7 +57,7 @@
     </section>
 
     <section class="panel-section">
-        <h2>Métricas producción / impresión</h2>
+        <h2>Métricas producción</h2>
         <div class="table-wrap">
             <table class="data-table">
                 <thead>
@@ -94,6 +84,29 @@
     [Parameter] public bool ShowUserCounts { get; set; }
     [Parameter] public string TeamSectionTitle { get; set; } = "Equipo operativo";
 
+    private List<DonutChart.LegendItem> statusLegend = [];
+    private List<DonutChart.LegendItem> teamLegend = [];
+
+    private static readonly string[] ChartColors = ["#F0A500", "#4FC3F7", "#81C784", "#FFB74D", "#BA68C8", "#E57373", "#90A4AE"];
+
+    protected override void OnParametersSet()
+    {
+        statusLegend = Metrics.OrdersByStatus
+            .OrderByDescending(x => x.Value)
+            .Select((item, i) => new DonutChart.LegendItem(item.Key, item.Value, ChartColors[i % ChartColors.Length]))
+            .ToList();
+
+        teamLegend = Metrics.UsersByRole
+            .Select((item, i) => new DonutChart.LegendItem(item.Key, item.Value, ChartColors[(i + 2) % ChartColors.Length]))
+            .ToList();
+    }
+
+    private static int Pct(int part, int total) =>
+        total <= 0 ? 0 : Math.Clamp((int)Math.Round(part * 100.0 / total), 0, 100);
+
+    private static int HoursPct(double? hours) =>
+        hours.HasValue ? Math.Clamp((int)Math.Round(hours.Value / 72.0 * 100), 5, 100) : 0;
+
     private static string FormatHours(double? hours) =>
-        hours.HasValue ? $"{hours.Value:F1} h" : "—";
+        hours.HasValue ? $"{hours.Value:F1}h" : "—";
 }
