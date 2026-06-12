@@ -1,4 +1,4 @@
-/* SubliSport — Turquesa + Magenta Técnico */
+/* SubliSport — moderno con dorado/negro + acentos sutiles turquesa/magenta */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 .admin-shell,
@@ -6,35 +6,28 @@
     font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
 }
 
-/* Fondo combinado turquesa + magenta */
+/* Fondo negro con destellos muy suaves */
 .admin-shell {
     background:
-        radial-gradient(ellipse 55% 45% at 0% 0%, rgba(0, 229, 204, 0.14) 0%, transparent 55%),
-        radial-gradient(ellipse 50% 40% at 100% 0%, rgba(255, 45, 154, 0.12) 0%, transparent 50%),
-        radial-gradient(ellipse 45% 35% at 80% 100%, rgba(0, 229, 204, 0.08) 0%, transparent 45%),
-        radial-gradient(ellipse 40% 30% at 10% 90%, rgba(255, 45, 154, 0.09) 0%, transparent 40%),
+        radial-gradient(ellipse 60% 45% at 100% 0%, rgba(0, 229, 204, 0.04) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 0% 100%, rgba(255, 45, 154, 0.03) 0%, transparent 50%),
+        radial-gradient(ellipse 70% 50% at 50% 0%, rgba(240, 165, 0, 0.06) 0%, transparent 60%),
         var(--black);
 }
 
 .login-shell {
     background:
-        radial-gradient(ellipse 70% 55% at 20% 10%, rgba(0, 229, 204, 0.18) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 50% at 85% 85%, rgba(255, 45, 154, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(240, 165, 0, 0.1) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 90% 90%, rgba(255, 45, 154, 0.04) 0%, transparent 45%),
         var(--black) !important;
 }
 
 .admin-sidebar {
-    background: linear-gradient(180deg, rgba(12, 14, 24, 0.98) 0%, rgba(6, 6, 12, 0.99) 100%);
-    border-right: 1px solid var(--border);
-    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.4), inset -1px 0 0 rgba(255, 45, 154, 0.06);
+    background: linear-gradient(180deg, #0E0E0E 0%, #060606 100%);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
 }
 
-.admin-brand strong {
-    background: linear-gradient(135deg, var(--turquoise) 0%, var(--magenta) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
+.admin-brand strong { color: var(--gold); }
 
 .admin-nav a {
     font-size: 0.88rem;
@@ -42,35 +35,28 @@
     border: 1px solid transparent;
 }
 
-.admin-nav a:hover {
-    background: rgba(0, 229, 204, 0.08);
-    color: var(--turquoise);
+.admin-nav a:hover,
+.admin-nav a.active {
+    background: rgba(240, 165, 0, 0.12);
+    color: var(--gold);
 }
 
 .admin-nav a.active {
-    background: linear-gradient(90deg, rgba(0, 229, 204, 0.14) 0%, rgba(255, 45, 154, 0.08) 100%);
-    border-color: rgba(0, 229, 204, 0.35);
-    color: var(--turquoise);
-    box-shadow: 0 0 24px rgba(0, 229, 204, 0.1);
+    border-color: rgba(240, 165, 0, 0.3);
+    box-shadow: 0 0 16px rgba(240, 165, 0, 0.06);
 }
 
-.admin-main {
-    background: transparent;
-}
+.admin-main { background: transparent; }
 
 .page-title {
     font-weight: 800;
     font-size: 1.75rem;
     letter-spacing: -0.02em;
-    background: linear-gradient(90deg, var(--turquoise) 0%, #fff 40%, var(--magenta-light) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--white);
 }
 
 .page-subtitle { font-size: 0.92rem; max-width: 720px; }
 
-/* Anillos Power BI */
 .stats-rings-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -85,17 +71,15 @@
     text-align: center;
     gap: 10px;
     padding: 16px 12px;
-    background: linear-gradient(145deg, rgba(0, 229, 204, 0.06) 0%, rgba(255, 45, 154, 0.04) 100%);
+    background: var(--card);
     border: 1px solid var(--border);
     border-radius: 16px;
     transition: transform 0.2s, box-shadow 0.2s;
-    backdrop-filter: blur(8px);
 }
 
 .stat-ring-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 36px rgba(0, 229, 204, 0.12), 0 4px 16px rgba(255, 45, 154, 0.08);
-    border-color: rgba(0, 229, 204, 0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 
 .stat-ring-visual {
@@ -103,14 +87,13 @@
     height: 88px;
     border-radius: 50%;
     background: conic-gradient(
-        var(--ring-color, var(--turquoise)) calc(var(--ring-pct, 70) * 1%),
-        rgba(255, 255, 255, 0.06) 0
+        var(--ring-color, var(--gold)) calc(var(--ring-pct, 70) * 1%),
+        rgba(255, 255, 255, 0.08) 0
     );
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 6px;
-    box-shadow: 0 0 20px color-mix(in srgb, var(--ring-color, var(--turquoise)) 25%, transparent);
 }
 
 .stat-ring-hole {
@@ -126,7 +109,7 @@
 .stat-ring-hole strong {
     font-size: 1.35rem;
     font-weight: 800;
-    color: var(--turquoise);
+    color: var(--gold);
     line-height: 1;
 }
 
@@ -135,12 +118,11 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: rgba(255, 255, 255, 0.88);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .stat-ring-sublabel { font-size: 0.72rem; color: var(--gray); margin-top: -4px; }
 
-/* Donut charts */
 .dashboard-charts-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -148,15 +130,10 @@
     margin-bottom: 24px;
 }
 
-.donut-chart-card,
-.panel-section {
-    background: linear-gradient(160deg, rgba(14, 18, 30, 0.95) 0%, rgba(10, 12, 22, 0.98) 100%);
+.donut-chart-card {
+    background: var(--card);
     border: 1px solid var(--border);
     border-radius: 16px;
-    backdrop-filter: blur(10px);
-}
-
-.donut-chart-card {
     padding: 20px;
     display: flex;
     align-items: center;
@@ -173,7 +150,6 @@
     align-items: center;
     justify-content: center;
     padding: 10px;
-    filter: drop-shadow(0 0 12px rgba(0, 229, 204, 0.2));
 }
 
 .donut-hole {
@@ -188,7 +164,7 @@
     text-align: center;
 }
 
-.donut-hole strong { font-size: 1.25rem; color: var(--turquoise); font-weight: 800; }
+.donut-hole strong { font-size: 1.25rem; color: var(--gold); font-weight: 800; }
 .donut-hole span { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray); }
 
 .donut-legend { list-style: none; margin: 0; padding: 0; flex: 1; min-width: 140px; }
@@ -200,198 +176,116 @@
     font-size: 0.82rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
-.donut-legend li strong { margin-left: auto; color: var(--magenta-light); }
+.donut-legend li strong { margin-left: auto; color: var(--gold); }
 
-/* Badges tipo cliente */
 .tier-retail {
-    background: rgba(0, 229, 204, 0.12);
-    color: var(--turquoise);
-    border: 1px solid rgba(0, 229, 204, 0.4);
+    background: rgba(240, 165, 0, 0.12);
+    color: var(--gold);
+    border: 1px solid rgba(240, 165, 0, 0.35);
 }
 
 .tier-mype {
-    background: rgba(255, 45, 154, 0.12);
-    color: var(--magenta-light);
-    border: 1px solid rgba(255, 45, 154, 0.4);
+    background: rgba(0, 229, 204, 0.08);
+    color: var(--turquoise);
+    border: 1px solid rgba(0, 229, 204, 0.25);
 }
 
-.service-type-card:hover { border-color: rgba(0, 229, 204, 0.45); }
+.service-type-card:hover { border-color: rgba(240, 165, 0, 0.4); }
 .service-type-card.active {
-    border-color: var(--turquoise);
-    background: linear-gradient(135deg, rgba(0, 229, 204, 0.12) 0%, rgba(255, 45, 154, 0.06) 100%);
-    box-shadow: 0 0 20px rgba(0, 229, 204, 0.15);
+    border-color: var(--gold);
+    background: rgba(240, 165, 0, 0.1);
+    box-shadow: 0 0 0 1px rgba(240, 165, 0, 0.15);
 }
 
-.pricing-tier-card:hover { border-color: rgba(255, 45, 154, 0.35); }
+.pricing-tier-card:hover { border-color: rgba(240, 165, 0, 0.35); }
 .pricing-tier-card.active {
-    border-color: var(--magenta);
-    background: linear-gradient(135deg, rgba(255, 45, 154, 0.1) 0%, rgba(0, 229, 204, 0.06) 100%);
+    border-color: var(--gold);
+    background: rgba(240, 165, 0, 0.08);
 }
 
-/* Botones */
 .btn-primary,
 .btn-login {
-    background: linear-gradient(135deg, var(--turquoise) 0%, var(--turquoise-dim) 100%) !important;
-    color: #041210 !important;
-    border: none !important;
     border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0, 229, 204, 0.35);
-    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(240, 165, 0, 0.25);
+    transition: transform 0.15s, box-shadow 0.15s;
 }
 
 .btn-primary:hover,
 .btn-login:hover {
-    background: linear-gradient(135deg, var(--turquoise-light) 0%, var(--turquoise) 100%) !important;
     transform: translateY(-1px);
-    box-shadow: 0 8px 28px rgba(0, 229, 204, 0.45);
+    box-shadow: 0 6px 20px rgba(240, 165, 0, 0.35);
 }
 
-button.btn-edit,
-a.btn-edit {
-    color: #041210 !important;
-    border-color: var(--turquoise) !important;
-    background: linear-gradient(135deg, var(--turquoise) 0%, var(--turquoise-dim) 100%) !important;
-    box-shadow: 0 2px 12px rgba(0, 229, 204, 0.3);
-}
-
-button.btn-edit:hover,
-a.btn-edit:hover {
-    background: linear-gradient(135deg, var(--turquoise-light) 0%, var(--turquoise) 100%) !important;
-    box-shadow: 0 4px 18px rgba(0, 229, 204, 0.45);
-}
-
-button.btn-success {
-    color: #041210 !important;
-    border-color: var(--turquoise) !important;
-    background: rgba(0, 229, 204, 0.2) !important;
-}
-
-button.btn-warn,
-.priority-urgente {
-    color: var(--magenta-light) !important;
-    border-color: rgba(255, 45, 154, 0.5) !important;
-    background: rgba(255, 45, 154, 0.12) !important;
+button.btn-action,
+.btn-outline {
+    border-radius: 8px;
+    transition: transform 0.15s, box-shadow 0.15s;
 }
 
 .panel-section {
-    box-shadow: 0 4px 28px rgba(0, 0, 0, 0.25);
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
 }
 
-.panel-section h2,
-.panel-subtitle,
-.data-table th,
-.subsection-title {
-    color: var(--turquoise) !important;
+.panel-section h2 {
+    font-weight: 700;
+    font-size: 1rem;
 }
 
 .panel-highlight {
-    border-color: rgba(255, 45, 154, 0.45) !important;
-    box-shadow: 0 0 32px rgba(255, 45, 154, 0.08), inset 0 1px 0 rgba(255, 45, 154, 0.1);
+    border-color: rgba(240, 165, 0, 0.45) !important;
 }
 
 .quick-link {
-    background: linear-gradient(135deg, rgba(0, 229, 204, 0.1) 0%, rgba(255, 45, 154, 0.08) 100%);
-    border-color: var(--border);
-    color: var(--turquoise);
     border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: transform 0.15s, background 0.15s;
 }
 
 .quick-link:hover {
     transform: translateY(-1px);
-    background: linear-gradient(135deg, rgba(0, 229, 204, 0.18) 0%, rgba(255, 45, 154, 0.12) 100%);
-    border-color: var(--turquoise);
-    color: var(--turquoise-light);
-}
-
-.filter-tab:hover { border-color: var(--turquoise); color: var(--turquoise); }
-.filter-tab.active {
-    background: linear-gradient(90deg, rgba(0, 229, 204, 0.14) 0%, rgba(255, 45, 154, 0.1) 100%);
-    border-color: var(--turquoise);
-    color: var(--turquoise);
-}
-
-.data-table tbody tr:hover { background: rgba(0, 229, 204, 0.05); }
-.data-table a { color: var(--turquoise) !important; }
-
-.stat-card strong,
-.price-tag,
-.charge-mini-amount,
-.rrow-total {
-    color: var(--turquoise) !important;
-}
-
-.stat-card {
-    background: linear-gradient(145deg, rgba(0, 229, 204, 0.05) 0%, rgba(255, 45, 154, 0.04) 100%);
+    background: rgba(240, 165, 0, 0.18);
 }
 
 .login-card {
-    border: 1px solid var(--border);
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 45, 154, 0.06);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
     border-radius: 20px;
-    backdrop-filter: blur(12px);
-}
-
-.login-header h1 span {
-    background: linear-gradient(135deg, var(--turquoise), var(--magenta));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.form-control:focus {
-    border-color: var(--turquoise) !important;
-    box-shadow: 0 0 0 3px rgba(0, 229, 204, 0.15);
 }
 
 .order-card {
     border-radius: 14px;
-    background: linear-gradient(160deg, rgba(14, 18, 28, 0.9) 0%, rgba(10, 12, 20, 0.95) 100%);
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .order-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0, 229, 204, 0.1), 0 4px 16px rgba(255, 45, 154, 0.06);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
 }
 
-.order-card.card-new { border-color: rgba(255, 45, 154, 0.5) !important; }
-.order-card.card-active { border-color: rgba(0, 229, 204, 0.45) !important; }
-.order-card-header strong { color: var(--turquoise) !important; }
-
-.charge-mini-box {
-    border-color: var(--magenta) !important;
-    background: linear-gradient(135deg, rgba(255, 45, 154, 0.12) 0%, rgba(0, 229, 204, 0.08) 100%) !important;
+.order-card.card-new {
+    border-color: rgba(255, 45, 154, 0.35) !important;
 }
-
-.charge-mini-amount { color: var(--magenta-light) !important; }
 
 .dashboard-insight {
-    background: linear-gradient(90deg, rgba(0, 229, 204, 0.08) 0%, rgba(255, 45, 154, 0.06) 100%);
-    border-left: 3px solid var(--magenta);
+    font-size: 0.88rem;
+    color: var(--gray);
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.03);
     border-radius: 10px;
+    border-left: 3px solid var(--gold);
+    margin-bottom: 20px;
 }
 
-.option-chip.active,
-.garment-chip.active,
-.sport-chip.active,
-.fabric-chip.active {
-    border-color: var(--turquoise) !important;
-    background: rgba(0, 229, 204, 0.12) !important;
-    color: var(--turquoise) !important;
+/* Urgentes: toque magenta muy sutil */
+.priority-urgente,
+button.btn-warn {
+    border-color: rgba(255, 45, 154, 0.35) !important;
 }
 
-.order-journey-compact .journey-step-current .journey-area,
-.journey-elapsed,
-.history-timeline time {
-    color: var(--turquoise) !important;
+.charge-mini-box {
+    border-color: var(--gold) !important;
+    background: rgba(240, 165, 0, 0.08) !important;
 }
 
-.btn-logout:hover {
-    border-color: var(--magenta);
-    color: var(--magenta-light);
-}
-
-.impersonation-banner {
-    background: linear-gradient(90deg, rgba(0, 229, 204, 0.2), rgba(255, 45, 154, 0.15)) !important;
-    border-bottom-color: var(--turquoise) !important;
-}
+.charge-mini-amount { color: var(--gold) !important; }

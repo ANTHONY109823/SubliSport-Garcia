@@ -1,127 +1,66 @@
-/* Cotizar — Turquesa + Magenta (index.html sin este archivo) */
-:root {
-    --turquoise: #00E5CC;
-    --turquoise-light: #5EFFF0;
-    --magenta: #FF2D9A;
-    --magenta-light: #FF6BB5;
-}
-
-body {
-    background:
-        radial-gradient(ellipse 50% 40% at 0% 0%, rgba(0, 229, 204, 0.1) 0%, transparent 50%),
-        radial-gradient(ellipse 45% 35% at 100% 100%, rgba(255, 45, 154, 0.08) 0%, transparent 45%),
-        var(--black) !important;
-}
-
+/* Cotizar — mantiene dorado/negro de index + acentos sutiles */
 .btn-main,
-.nav-cta {
-    background: linear-gradient(135deg, var(--turquoise) 0%, var(--turquoise-light) 100%) !important;
-    color: #041210 !important;
-    border-color: var(--turquoise) !important;
-    border-radius: 10px !important;
-    box-shadow: 0 4px 24px rgba(0, 229, 204, 0.35) !important;
-}
-
-.btn-main:hover,
-.nav-cta:hover {
-    background: transparent !important;
-    color: var(--turquoise) !important;
-    box-shadow: 0 8px 28px rgba(0, 229, 204, 0.25) !important;
-}
-
 .btn-outline,
+.nav-cta,
 .nav-login {
     border-radius: 10px !important;
-    border-color: rgba(255, 45, 154, 0.45) !important;
-    color: var(--magenta-light) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
     transition: transform 0.2s, box-shadow 0.2s, background 0.2s !important;
 }
 
-.btn-outline:hover,
-.nav-login:hover {
-    border-color: var(--magenta) !important;
-    color: var(--magenta-light) !important;
-    background: rgba(255, 45, 154, 0.1) !important;
-    box-shadow: 0 4px 20px rgba(255, 45, 154, 0.2) !important;
-}
-
-.logo span,
-.section-title span,
-.stat-num {
-    color: var(--turquoise) !important;
-    text-shadow: 0 0 24px rgba(0, 229, 204, 0.4);
-}
-
-.navbar {
-    border-bottom: 1px solid rgba(0, 229, 204, 0.15) !important;
-    background: rgba(6, 6, 12, 0.96) !important;
-}
-
-.nav-links a:hover::after,
-.nav-links a:hover {
-    color: var(--turquoise) !important;
+.btn-main:hover,
+.btn-outline:hover {
+    box-shadow: 0 8px 28px rgba(240, 165, 0, 0.2);
 }
 
 .jersey-card,
+.contact-card,
 .quote-form-card {
     border-radius: 16px !important;
-    border-color: rgba(0, 229, 204, 0.2) !important;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(8px);
 }
 
 .quote-form-card {
-    background: rgba(12, 14, 24, 0.9) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 40px rgba(255, 45, 154, 0.05);
+    border: 1px solid rgba(240, 165, 0, 0.2) !important;
+    background: rgba(20, 20, 20, 0.88) !important;
+}
+
+.garment-chip,
+.sport-chip,
+.fabric-chip,
+.option-chip {
+    border-radius: 10px !important;
+    transition: transform 0.15s, box-shadow 0.15s !important;
 }
 
 .garment-chip.active,
 .sport-chip.active,
 .fabric-chip.active,
 .option-chip.active {
-    border-color: var(--turquoise) !important;
-    background: linear-gradient(135deg, rgba(0, 229, 204, 0.15) 0%, rgba(255, 45, 154, 0.08) 100%) !important;
-    color: var(--turquoise) !important;
-    box-shadow: 0 0 0 2px rgba(0, 229, 204, 0.3), 0 4px 16px rgba(0, 229, 204, 0.15) !important;
+    box-shadow: 0 0 0 2px rgba(240, 165, 0, 0.35), 0 4px 16px rgba(240, 165, 0, 0.12) !important;
 }
 
-.garment-chip:hover,
-.sport-chip:hover,
-.fabric-chip:hover {
-    border-color: rgba(255, 45, 154, 0.4) !important;
-}
-
-.quote-submit-btn {
-    background: linear-gradient(135deg, var(--turquoise) 0%, #14B8A6 100%) !important;
-    color: #041210 !important;
-    border-radius: 12px !important;
-    font-weight: 700 !important;
-    box-shadow: 0 6px 28px rgba(0, 229, 204, 0.4) !important;
+.quote-form-card input,
+.quote-form-card select,
+.quote-form-card textarea {
+    border-radius: 10px !important;
 }
 
 .quote-form-card input:focus,
 .quote-form-card select:focus,
 .quote-form-card textarea:focus {
-    border-color: var(--turquoise) !important;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 229, 204, 0.15);
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 0 2px rgba(240, 165, 0, 0.12);
 }
 
-.section-tag,
-.section-tag::before {
-    color: var(--magenta-light) !important;
-    background: var(--magenta) !important;
+.quote-submit-btn {
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    box-shadow: 0 6px 24px rgba(240, 165, 0, 0.3) !important;
 }
 
-.step-num {
-    border-color: rgba(0, 229, 204, 0.35) !important;
-    color: var(--turquoise) !important;
-}
-
-.step:hover .step-num {
-    border-color: var(--turquoise) !important;
-    box-shadow: 0 0 24px rgba(0, 229, 204, 0.25) !important;
-}
-
+/* Acento sutil en scrollbar */
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, var(--turquoise), var(--magenta)) !important;
+    background: linear-gradient(180deg, var(--gold), rgba(0, 229, 204, 0.6)) !important;
 }

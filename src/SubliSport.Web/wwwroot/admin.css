@@ -1,21 +1,15 @@
 :root {
-    --turquoise: #00E5CC;
-    --turquoise-light: #5EFFF0;
-    --turquoise-dim: #14B8A6;
-    --magenta: #FF2D9A;
-    --magenta-light: #FF6BB5;
-    --magenta-dim: #E91E8C;
-    --gold: var(--turquoise);
-    --gold-light: var(--turquoise-light);
-    --accent: var(--turquoise);
-    --accent-secondary: var(--magenta);
-    --black: #06060a;
-    --dark: #0c0c14;
-    --card: rgba(14, 16, 26, 0.92);
-    --border: rgba(0, 229, 204, 0.2);
-    --border-magenta: rgba(255, 45, 154, 0.25);
+    --gold: #F0A500;
+    --gold-light: #FFD166;
+    --black: #060606;
+    --dark: #0E0E0E;
+    --card: #141414;
+    --border: rgba(240, 165, 0, 0.18);
     --white: #FFFFFF;
-    --gray: #9aa0b4;
+    --gray: #888;
+    /* Acentos sutiles — no reemplazan al dorado */
+    --turquoise: #00E5CC;
+    --magenta: #FF2D9A;
 }
 
 body {

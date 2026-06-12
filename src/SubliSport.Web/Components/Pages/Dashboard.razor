@@ -36,11 +36,11 @@ else if (isAdmin)
 
     <div class="stats-rings-grid">
         <StatRing Label="Total pedidos" Value="@orders.Count.ToString()" Percent="100" />
-        <StatRing Label="Sin diseñador" Value="@pendingAssignment.Count.ToString()" Percent="@RingPct(pendingAssignment.Count, orders.Count)" Color="#FF2D9A" />
-        <StatRing Label="Urgentes" Value="@urgentOrders.Count.ToString()" Percent="@RingPct(urgentOrders.Count, orders.Count)" Color="#FF6BB5" />
-        <StatRing Label="En producción" Value="@inProductionCount.ToString()" Percent="@RingPct(inProductionCount, orders.Count)" Color="#14B8A6" />
-        <StatRing Label="Por recoger" Value="@readyPickupCount.ToString()" Percent="@RingPct(readyPickupCount, orders.Count)" Color="#5EFFF0" />
-        <StatRing Label="Cobrado" Value="@($"S/ {totalBilled:N0}")" Percent="@RingPct((int)totalBilled, Math.Max((int)totalBilled, 1))" Color="#00E5CC" SubLabel="total registrado" />
+        <StatRing Label="Sin diseñador" Value="@pendingAssignment.Count.ToString()" Percent="@RingPct(pendingAssignment.Count, orders.Count)" Color="#FFD166" />
+        <StatRing Label="Urgentes" Value="@urgentOrders.Count.ToString()" Percent="@RingPct(urgentOrders.Count, orders.Count)" Color="#FF2D9A" />
+        <StatRing Label="En producción" Value="@inProductionCount.ToString()" Percent="@RingPct(inProductionCount, orders.Count)" Color="#F0A500" />
+        <StatRing Label="Por recoger" Value="@readyPickupCount.ToString()" Percent="@RingPct(readyPickupCount, orders.Count)" Color="#81C784" />
+        <StatRing Label="Cobrado" Value="@($"S/ {totalBilled:N0}")" Percent="@RingPct((int)totalBilled, Math.Max((int)totalBilled, 1))" Color="#F0A500" SubLabel="total registrado" />
     </div>
 
     @if (adminMetrics is not null && statusLegend.Count > 0)
@@ -53,8 +53,8 @@ else if (isAdmin)
             <section class="panel-section">
                 <h2>Tiempos promedio</h2>
                 <div class="stats-rings-grid" style="margin:0">
-                    <StatRing Label="Diseño" Value="@FormatHours(adminMetrics.AvgDesignHours)" Percent="@HoursPct(adminMetrics.AvgDesignHours)" Color="#00E5CC" />
-                    <StatRing Label="Producción" Value="@FormatHours(adminMetrics.AvgProductionHours)" Percent="@HoursPct(adminMetrics.AvgProductionHours)" Color="#FF2D9A" />
+                    <StatRing Label="Diseño" Value="@FormatHours(adminMetrics.AvgDesignHours)" Percent="@HoursPct(adminMetrics.AvgDesignHours)" Color="#F0A500" />
+                    <StatRing Label="Producción" Value="@FormatHours(adminMetrics.AvgProductionHours)" Percent="@HoursPct(adminMetrics.AvgProductionHours)" Color="#00E5CC" />
                 </div>
             </section>
         </div>
@@ -161,11 +161,11 @@ else if (isDesigner)
     @if (designerMetrics is not null)
     {
         <div class="stats-rings-grid">
-            <StatRing Label="Por aceptar" Value="@designerMetrics.PendingAcceptance.ToString()" Percent="@RingPct(designerMetrics.PendingAcceptance, TotalDesignerPending(designerMetrics))" Color="#FF2D9A" />
-            <StatRing Label="Por iniciar" Value="@designerMetrics.AcceptedNotStarted.ToString()" Percent="@RingPct(designerMetrics.AcceptedNotStarted, TotalDesignerPending(designerMetrics))" Color="#FF6BB5" />
-            <StatRing Label="En diseño" Value="@designerMetrics.InProgress.ToString()" Percent="@RingPct(designerMetrics.InProgress, TotalDesignerPending(designerMetrics))" Color="#00E5CC" />
-            <StatRing Label="Culminados" Value="@designerMetrics.CompletedTotal.ToString()" Percent="@RingPct(designerMetrics.CompletedThisMonth, Math.Max(designerMetrics.CompletedTotal, 1))" Color="#5EFFF0" SubLabel="@($"{designerMetrics.CompletedThisMonth} este mes")" />
-            <StatRing Label="Urgentes" Value="@designerMetrics.UrgentPending.ToString()" Percent="@RingPct(designerMetrics.UrgentPending, TotalDesignerPending(designerMetrics))" Color="#E91E8C" />
+            <StatRing Label="Por aceptar" Value="@designerMetrics.PendingAcceptance.ToString()" Percent="@RingPct(designerMetrics.PendingAcceptance, TotalDesignerPending(designerMetrics))" Color="#FFD166" />
+            <StatRing Label="Por iniciar" Value="@designerMetrics.AcceptedNotStarted.ToString()" Percent="@RingPct(designerMetrics.AcceptedNotStarted, TotalDesignerPending(designerMetrics))" Color="#F0A500" />
+            <StatRing Label="En diseño" Value="@designerMetrics.InProgress.ToString()" Percent="@RingPct(designerMetrics.InProgress, TotalDesignerPending(designerMetrics))" Color="#F0A500" />
+            <StatRing Label="Culminados" Value="@designerMetrics.CompletedTotal.ToString()" Percent="@RingPct(designerMetrics.CompletedThisMonth, Math.Max(designerMetrics.CompletedTotal, 1))" Color="#81C784" SubLabel="@($"{designerMetrics.CompletedThisMonth} este mes")" />
+            <StatRing Label="Urgentes" Value="@designerMetrics.UrgentPending.ToString()" Percent="@RingPct(designerMetrics.UrgentPending, TotalDesignerPending(designerMetrics))" Color="#FF2D9A" />
         </div>
 
         @if (designerMetrics.AvgHoursToComplete.HasValue)
@@ -245,11 +245,11 @@ else if (isProduccion)
     <p class="dashboard-insight">Calculadora por <strong>metraje × S/ 15/m</strong> (impresión + planchado). Cliente directo se cotiza aparte en la web.</p>
 
     <div class="stats-rings-grid">
-        <StatRing Label="Por aceptar" Value="@toAcceptImp.ToString()" Percent="@RingPct(toAcceptImp, orders.Count)" Color="#FF2D9A" />
-        <StatRing Label="En trabajo" Value="@inProgressImp.ToString()" Percent="@RingPct(inProgressImp, orders.Count)" Color="#00E5CC" />
-        <StatRing Label="Por recoger" Value="@readyImp.ToString()" Percent="@RingPct(readyImp, orders.Count)" Color="#5EFFF0" />
-        <StatRing Label="Historial" Value="@historyCount.ToString()" Percent="@RingPct(historyCount, historyCount + orders.Count)" Color="#14B8A6" />
-        <StatRing Label="Cobrado" Value="@($"S/ {totalChargedImp:N0}")" Percent="75" Color="#FF6BB5" SubLabel="historial" />
+        <StatRing Label="Por aceptar" Value="@toAcceptImp.ToString()" Percent="@RingPct(toAcceptImp, orders.Count)" Color="#FFD166" />
+        <StatRing Label="En trabajo" Value="@inProgressImp.ToString()" Percent="@RingPct(inProgressImp, orders.Count)" Color="#F0A500" />
+        <StatRing Label="Por recoger" Value="@readyImp.ToString()" Percent="@RingPct(readyImp, orders.Count)" Color="#81C784" />
+        <StatRing Label="Historial" Value="@historyCount.ToString()" Percent="@RingPct(historyCount, historyCount + orders.Count)" Color="#00E5CC" />
+        <StatRing Label="Cobrado" Value="@($"S/ {totalChargedImp:N0}")" Percent="75" Color="#F0A500" SubLabel="historial" />
     </div>
 
     <section class="panel-section">
@@ -385,7 +385,7 @@ else
 
     private static string ChartColor(int i)
     {
-        string[] colors = ["#00E5CC", "#FF2D9A", "#5EFFF0", "#FF6BB5", "#14B8A6", "#E91E8C"];
+        string[] colors = ["#F0A500", "#FFD166", "#00E5CC", "#FF2D9A", "#81C784", "#4FC3F7"];
         return colors[i % colors.Length];
     }
 }
