@@ -33,7 +33,20 @@
         @if (model.PricingTier == ClientPricingTier.MypeB2B)
         {
             <p class="field-hint" style="margin-top:14px;">Tipo de servicio para taller / MYPE:</p>
-            <ServiceTypeSelector SelectedService="model.MypeServiceType" SelectedServiceChanged="SelectMypeService" />
+            <div class="service-type-grid service-type-grid-3">
+                @foreach (var opt in ServiceTypeHelper.Options)
+                {
+                    var serviceKey = opt.Key;
+                    <button type="button"
+                            class="service-type-card-v2 service-type-@serviceKey.Replace("_", "-") @(model.MypeServiceType == serviceKey ? "active" : "")"
+                            @onclick="() => SelectMypeService(serviceKey)">
+                        <span class="service-type-icon">@opt.Icon</span>
+                        <strong>@opt.Title</strong>
+                        <span>@opt.Description</span>
+                        <span class="client-type-check" aria-hidden="true">✓</span>
+                    </button>
+                }
+            </div>
         }
     </section>
 

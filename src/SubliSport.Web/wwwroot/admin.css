@@ -567,7 +567,13 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 }
 @media (min-width: 640px) {
     .client-type-grid,
-    .service-type-grid { grid-template-columns: 1fr 1fr; }
+    .service-type-grid:not(.service-type-grid-3) { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 900px) {
+    .service-type-grid-3 { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 640px) and (max-width: 899px) {
+    .service-type-grid-3 { grid-template-columns: 1fr 1fr; }
 }
 
 .client-type-card,
@@ -732,6 +738,15 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
     color: var(--gray);
 }
 .service-type-card-v2.active strong { color: var(--gold); }
+.service-type-with-laser.active {
+    border-color: rgba(180, 120, 255, 0.65);
+    box-shadow: 0 10px 36px rgba(180, 120, 255, 0.15), inset 0 0 0 1px rgba(180, 120, 255, 0.2);
+}
+.service-type-with-laser.active strong { color: #c4a0ff; }
+.service-type-with-laser.active .client-type-check {
+    background: #b478ff;
+    border-color: #b478ff;
+}
 
 .pricing-tier-card, .service-type-card {
     background: rgba(255,255,255,0.04);

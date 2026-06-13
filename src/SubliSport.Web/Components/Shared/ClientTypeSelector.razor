@@ -1,4 +1,5 @@
 @using SubliSport.Domain.Enums
+@rendermode InteractiveServer
 
 <div class="client-type-grid">
     <button type="button"
@@ -40,5 +41,14 @@
     [Parameter] public ClientPricingTier SelectedTier { get; set; } = ClientPricingTier.DirectRetail;
     [Parameter] public EventCallback<ClientPricingTier> SelectedTierChanged { get; set; }
 
-    private Task Select(ClientPricingTier tier) => SelectedTierChanged.InvokeAsync(tier);
+    private Task Select(ClientPricingTier tier)
+    {
+        if (SelectedTier == tier)
+        {
+            return Task.CompletedTask;
+        }
+
+        SelectedTier = tier;
+        return SelectedTierChanged.InvokeAsync(tier);
+    }
 }

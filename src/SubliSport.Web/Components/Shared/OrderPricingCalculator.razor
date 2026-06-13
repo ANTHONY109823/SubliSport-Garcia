@@ -65,16 +65,7 @@ else
             <p class="field-hint">Servicio B2B: metraje × S/ @settings.PrintPressPricePerMeter.ToString("N2")/m (impresión + planchado). La confección suma aparte si aplica.</p>
         }
 
-        <div class="service-type-cards">
-            <button type="button" class="service-type-card @(selectedService == ServiceTypeHelper.PrintPressOnly ? "active" : "")" @onclick="() => SelectService(ServiceTypeHelper.PrintPressOnly)">
-                <strong>Diseño + impresión + planchado</strong>
-                <span>Sin confección — tela del taller o del cliente.</span>
-            </button>
-            <button type="button" class="service-type-card @(selectedService == ServiceTypeHelper.WithConfection ? "active" : "")" @onclick="() => SelectService(ServiceTypeHelper.WithConfection)">
-                <strong>Con confección</strong>
-                <span>Incluye armado de prenda (polo, short, medias según pedido).</span>
-            </button>
-        </div>
+        <ServiceTypeSelector SelectedService="selectedService" SelectedServiceChanged="SelectServiceAsync" />
 
         <div class="form-grid">
             @if (!clientOwnFabric)
@@ -110,10 +101,17 @@ else
         </div>
 
         <div class="toggle-row production-options-grid">
-            <label class="checkbox-row">
-                <input type="checkbox" @bind="includesLaserCut" @bind:after="Recalculate" />
-                Corte láser
-            </label>
+            @if (selectedService != ServiceTypeHelper.WithLaserCut)
+            {
+                <label class="checkbox-row">
+                    <input type="checkbox" @bind="includesLaserCut" @bind:after="Recalculate" />
+                    Corte láser (adicional)
+                </label>
+            }
+            else
+            {
+                <p class="field-hint" style="margin:0;">Corte láser incluido en el servicio seleccionado.</p>
+            }
             <label class="checkbox-row">
                 <input type="checkbox" @bind="clientOwnFabric" @bind:after="OnClientOwnFabricChanged" />
                 Cliente trae tela propia
@@ -134,6 +132,10 @@ else
                 @if (result.FabricRipCost > 0)
                 {
                     <div class="rrow"><span>Tela RIP</span><strong>S/ @result.FabricRipCost.ToString("N2")</strong></div>
+                }
+                @if (result.LaserCost > 0)
+                {
+                    <div class="rrow"><span>Corte láser</span><strong>S/ @result.LaserCost.ToString("N2")</strong></div>
                 }
                 <div class="rrow"><span>Impresión + planchado</span><strong>S/ @result.PrintPressCost.ToString("N2")</strong></div>
                 @if (result.ConfectionCost > 0)
@@ -225,9 +227,7 @@ else
             }
             else
             {
-                selectedService = serviceOnlyPrintPress || !includesConfection
-                    ? ServiceTypeHelper.PrintPressOnly
-                    : ServiceTypeHelper.WithConfection;
+                selectedService = ServiceTypeHelper.ResolveFromOrder(order);
             }
 
             Recalculate();
@@ -238,18 +238,32 @@ else
         }
     }
 
+    private Task SelectServiceAsync(string serviceType)
+    {
+        SelectService(serviceType);
+        return Task.CompletedTask;
+    }
+
     private void SelectService(string serviceType)
     {
         selectedService = serviceType;
-        if (serviceType == ServiceTypeHelper.PrintPressOnly)
+        switch (serviceType)
         {
-            serviceOnlyPrintPress = true;
-            includesConfection = false;
-        }
-        else
-        {
-            serviceOnlyPrintPress = false;
-            includesConfection = true;
+            case ServiceTypeHelper.WithConfection:
+                serviceOnlyPrintPress = false;
+                includesConfection = true;
+                includesLaserCut = false;
+                break;
+            case ServiceTypeHelper.WithLaserCut:
+                serviceOnlyPrintPress = true;
+                includesConfection = false;
+                includesLaserCut = true;
+                break;
+            default:
+                serviceOnlyPrintPress = true;
+                includesConfection = false;
+                includesLaserCut = false;
+                break;
         }
 
         Recalculate();
