@@ -27,12 +27,14 @@ public static class RosterCsvImportHelper
         var nameIdx = 0;
         var sizeIdx = 1;
         var numIdx = 2;
+        var genderIdx = 3;
 
         if (hasHeader)
         {
             nameIdx = Array.FindIndex(header, h => h.Contains("nombre", StringComparison.Ordinal));
             sizeIdx = Array.FindIndex(header, h => h.Contains("talla", StringComparison.Ordinal));
             numIdx = Array.FindIndex(header, h => h.Contains("numero", StringComparison.Ordinal) || h is "n" or "nro");
+            genderIdx = Array.FindIndex(header, h => h.Contains("genero", StringComparison.Ordinal) || h.Contains("sexo", StringComparison.Ordinal));
             if (nameIdx < 0) nameIdx = 0;
             if (sizeIdx < 0) sizeIdx = 1;
             if (numIdx < 0) numIdx = 2;
@@ -45,7 +47,10 @@ public static class RosterCsvImportHelper
                 {
                     Name = GetCell(row, nameIdx),
                     Size = GetCell(row, sizeIdx),
-                    Number = GetCell(row, numIdx)
+                    Number = GetCell(row, numIdx),
+                    Gender = genderIdx >= 0
+                        ? RosterGenderHelper.Normalize(GetCell(row, genderIdx))
+                        : RosterGenderHelper.Varon
                 };
                 return line;
             })

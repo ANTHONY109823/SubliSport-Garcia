@@ -33,7 +33,8 @@ public static class LandingQuoteOrderAssembler
             {
                 Name = r.Name.Trim(),
                 Size = r.Size.Trim(),
-                Number = r.Number.Trim()
+                Number = r.Number.Trim(),
+                Gender = RosterGenderHelper.Normalize(r.Gender)
             })
             .ToList();
 
@@ -71,7 +72,8 @@ public static class LandingQuoteOrderAssembler
         }
 
         var sizeRange = roster.Count > 0
-            ? string.Join(" · ", roster.Select(l => $"{l.Name} T{l.Size} N°{l.Number}".Trim()))
+            ? string.Join(" · ", roster.Select(l =>
+                $"{l.Name} T{l.Size} N°{l.Number} {RosterGenderHelper.GetCutLabel(l.Gender)}".Trim()))
             : request.SizeRangeSummary;
 
         var pricingTier = request.PricingTier == (int)ClientPricingTier.MypeB2B

@@ -1,8 +1,5 @@
 <div class="roster-panel @(Compact ? "roster-panel-compact" : "")">
-    @if (!Compact)
-    {
-        <p class="roster-panel-subtitle">Lista por jugador / prenda (nombre · talla · número)</p>
-    }
+    <span class="quote-ultra-kicker">Lista de datos</span>
 
     <div class="roster-import-row">
         <a href="/templates/plantilla-lista-sublisport.csv" download class="roster-import-link">⬇ CSV</a>
@@ -17,23 +14,34 @@
         <p class="roster-import-status @(importError ? "text-error" : "text-ok")">@importMessage</p>
     }
 
+    <div class="roster-entry roster-entry-header">
+        <span>Nombre</span>
+        <span>Talla</span>
+        <span>Número</span>
+        <span>Género</span>
+        <span></span>
+    </div>
+
     <div class="roster-entries">
         @for (var i = 0; i < Rows.Count; i++)
         {
             var row = Rows[i];
             var index = i;
-            <div class="roster-entry">
+            <div class="roster-entry roster-entry-data">
                 <div class="roster-field roster-field-name">
-                    @if (!Compact) { <label>Nombre</label> }
                     <input class="form-control form-control-sm" @bind="row.Name" placeholder="Nombre" />
                 </div>
                 <div class="roster-field">
-                    @if (!Compact) { <label>Talla</label> }
                     <input class="form-control form-control-sm" @bind="row.Size" placeholder="M" />
                 </div>
                 <div class="roster-field">
-                    @if (!Compact) { <label>Número</label> }
                     <input class="form-control form-control-sm" @bind="row.Number" placeholder="10" />
+                </div>
+                <div class="roster-field roster-field-gender">
+                    <select class="form-control form-control-sm" @bind="row.Gender">
+                        <option value="@RosterGenderHelper.Varon">Varón</option>
+                        <option value="@RosterGenderHelper.Femenino">Femenino</option>
+                    </select>
                 </div>
                 <div class="roster-entry-actions">
                     @if (Rows.Count > 1)
@@ -95,7 +103,8 @@
                 {
                     Name = line.Name,
                     Size = line.Size,
-                    Number = line.Number
+                    Number = line.Number,
+                    Gender = line.Gender
                 });
             }
 
@@ -113,5 +122,6 @@
         public string Name { get; set; } = string.Empty;
         public string Size { get; set; } = string.Empty;
         public string Number { get; set; } = string.Empty;
+        public string Gender { get; set; } = RosterGenderHelper.Varon;
     }
 }

@@ -47,6 +47,10 @@
                     <input type="text" @bind="line.Name" class="form-control" placeholder="Nombre" />
                     <input type="text" @bind="line.Size" class="form-control" placeholder="Talla" />
                     <input type="text" @bind="line.Number" class="form-control" placeholder="N°" />
+                    <select @bind="line.Gender" class="form-control">
+                        <option value="@RosterGenderHelper.Varon">Varón</option>
+                        <option value="@RosterGenderHelper.Femenino">Femenino</option>
+                    </select>
                     @if (rosterLines.Count > 1)
                     {
                         <button type="button" class="btn-action btn-warn" @onclick="() => RemoveRosterLine(index)">✕</button>

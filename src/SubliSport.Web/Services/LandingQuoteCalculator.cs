@@ -1,5 +1,6 @@
 using System.Text;
 using SubliSport.Domain.Landing;
+using SubliSport.Web.Helpers;
 namespace SubliSport.Web.Services;
 
 public static class LandingQuoteCalculator
@@ -289,9 +290,9 @@ public static class LandingQuoteCalculator
         if (roster.Count > 0)
         {
             sb.AppendLine();
-            sb.AppendLine("  Lista (nombre · talla · número):");
+            sb.AppendLine("  Lista (nombre · talla · número · corte):");
             foreach (var r in roster)
-                sb.AppendLine($"    · {r.Name} | {r.Size} | N°{r.Number}");
+                sb.AppendLine($"    · {r.Name} | {r.Size} | N°{r.Number} | {RosterGenderHelper.GetCutLabel(r.Gender)}");
         }
 
         sb.AppendLine();
@@ -364,9 +365,9 @@ public static class LandingQuoteCalculator
         if (roster.Count > 0)
         {
             sb.AppendLine();
-            sb.AppendLine("  Lista (nombre · talla · número):");
+            sb.AppendLine("  Lista (nombre · talla · número · corte):");
             foreach (var r in roster)
-                sb.AppendLine($"    · {r.Name} | {r.Size} | N°{r.Number}");
+                sb.AppendLine($"    · {r.Name} | {r.Size} | N°{r.Number} | {RosterGenderHelper.GetCutLabel(r.Gender)}");
         }
 
         sb.AppendLine();
@@ -423,7 +424,7 @@ public static class LandingQuoteCalculator
             sb.AppendLine();
             sb.AppendLine("*Lista jugadores:*");
             foreach (var r in roster)
-                sb.AppendLine($"· {r.Name} | Talla {r.Size} | N°{r.Number}");
+                sb.AppendLine($"· {r.Name} | Talla {r.Size} | N°{r.Number} | {RosterGenderHelper.GetCutLabel(r.Gender)}");
         }
 
         sb.AppendLine();

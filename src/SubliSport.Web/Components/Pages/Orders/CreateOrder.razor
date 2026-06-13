@@ -173,17 +173,16 @@
         </div>
     </div>
 
-    <div class="quote-ultra-split">
-        <div class="quote-ultra-split-col">
-            <AdminQuoteRosterEditor Rows="model.RosterRows" Compact="true" />
-        </div>
-        <div class="quote-ultra-split-col">
-            <AdminQuotePhotoSlots Slots="model.PhotoSlots" Compact="true" />
-        </div>
+    <div class="quote-ultra-block">
+        <AdminQuoteRosterEditor Rows="model.RosterRows" Compact="true" />
+    </div>
+
+    <div class="quote-ultra-block quote-ultra-photos-block">
+        <span class="quote-ultra-kicker">Fotos de referencia</span>
+        <AdminQuotePhotoSlots Slots="model.PhotoSlots" Compact="true" />
     </div>
 
     <div class="quote-ultra-block quote-ultra-footer">
-        <InputTextArea @bind-value="model.Notes" class="form-control form-control-xs" rows="2" placeholder="Notas..." />
         <div class="circle-pick-row">
             @foreach (var gift in GiftOptionHelper.Options)
             {
@@ -408,7 +407,8 @@
             {
                 Name = r.Name.Trim(),
                 Size = r.Size.Trim(),
-                Number = r.Number.Trim()
+                Number = r.Number.Trim(),
+                Gender = RosterGenderHelper.Normalize(r.Gender)
             })
             .ToList();
 

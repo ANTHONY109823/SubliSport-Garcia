@@ -1121,14 +1121,28 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 }
 .roster-entry {
     display: grid;
-    grid-template-columns: 1fr 72px 72px 32px;
+    grid-template-columns: 1fr 56px 56px 88px 28px;
     gap: 8px;
-    align-items: end;
+    align-items: center;
     padding: 10px 12px;
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.05);
     border-radius: 8px;
 }
+.roster-entry-header {
+    padding: 0 12px 6px;
+    background: none;
+    border: none;
+    border-radius: 0;
+}
+.roster-entry-header span {
+    font-size: 0.62rem;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--gold);
+}
+.roster-entry-data { margin-bottom: 0; }
+.roster-field-gender select { padding: 5px 4px; font-size: 0.72rem; }
 .roster-field label {
     display: block;
     font-size: 0.62rem;
@@ -1361,7 +1375,7 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 
 .roster-line-row {
     display: grid;
-    grid-template-columns: 1fr 100px 80px auto;
+    grid-template-columns: 1fr 100px 80px 120px auto;
     gap: 8px;
     align-items: center;
     margin-bottom: 8px;
@@ -1570,9 +1584,18 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
     font-size: 0.72rem;
 }
 .form-quote-ultra .roster-panel-compact .roster-entry {
-    grid-template-columns: 1fr 52px 52px 24px;
+    grid-template-columns: 1fr 48px 48px 80px 22px;
     padding: 6px 8px;
     gap: 6px;
+}
+.form-quote-ultra .roster-panel-compact .roster-entry-header {
+    padding: 0 8px 4px;
+}
+.form-quote-ultra .quote-ultra-photos-block {
+    margin-bottom: 8px;
+}
+.form-quote-ultra .quote-ultra-photos-block .photo-slots-admin-compact {
+    justify-content: flex-start;
 }
 .form-quote-ultra .roster-panel-compact .form-control-sm {
     padding: 5px 7px;
