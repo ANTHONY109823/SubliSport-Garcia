@@ -9,11 +9,11 @@ public static class ServiceTypeHelper
     public const string WithConfection = "with_confection";
 
     /// <summary>Orden del flujo de producción: impresión → láser → confección.</summary>
-    public static readonly (string Key, string Icon, string Title, string Description)[] Options =
+    public static readonly (string Key, string Icon, string Title)[] Options =
     [
-        (PrintPressOnly, "🖨️", "Impresión + planchado", "Paso 1 — diseño, impresión y planchado de tela."),
-        (WithLaserCut, "⚡", "Corte láser", "Paso 2 — corte láser de piezas."),
-        (WithConfection, "✂️", "Confección", "Paso 3 — armado de polo, short y medias.")
+        (PrintPressOnly, "🖨️", "Impresión + planchado"),
+        (WithLaserCut, "⚡", "Corte láser"),
+        (WithConfection, "✂️", "Confección")
     ];
 
     public static (bool PrintPress, bool LaserCut, bool Confection) FromOrder(Order order) =>

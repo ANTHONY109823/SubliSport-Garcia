@@ -1,16 +1,15 @@
 @rendermode InteractiveServer
 
-<div class="service-type-grid service-type-grid-3">
+<div class="service-type-grid service-type-grid-3 service-type-grid-compact">
     @foreach (var opt in ServiceTypeHelper.Options)
     {
         var key = opt.Key;
         var isActive = IsSelected(key);
         <button type="button"
-                class="service-type-card-v2 service-type-@key.Replace("_", "-") @(isActive ? "active" : "")"
+                class="service-type-card-v2 service-type-card-compact service-type-@key.Replace("_", "-") @(isActive ? "active" : "")"
                 @onclick="() => ToggleAsync(key)">
             <span class="service-type-icon">@opt.Icon</span>
             <strong>@opt.Title</strong>
-            <span>@opt.Description</span>
             <span class="client-type-check" aria-hidden="true">✓</span>
         </button>
     }

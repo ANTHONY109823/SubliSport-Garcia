@@ -748,6 +748,116 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
     border-color: #b478ff;
 }
 
+/* ── Selectores compactos (admin) ── */
+.field-hint-compact {
+    margin: 10px 0 0;
+    font-size: 0.78rem;
+}
+
+.client-type-grid-compact,
+.service-type-grid-compact {
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.client-type-card-compact {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    min-height: 0;
+}
+.client-type-card-compact .client-type-glow { display: none; }
+.client-type-card-compact:hover { transform: translateY(-1px); }
+.client-type-card-compact.active {
+    box-shadow: 0 4px 18px rgba(240,165,0,0.14), inset 0 0 0 1px rgba(240,165,0,0.1);
+}
+.client-type-service.client-type-card-compact.active {
+    box-shadow: 0 4px 18px rgba(0,229,204,0.1), inset 0 0 0 1px rgba(0,229,204,0.12);
+}
+
+.client-type-card-compact .client-type-icon-wrap {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    margin-bottom: 0;
+    border-radius: 8px;
+}
+.client-type-card-compact .client-type-icon-wrap svg {
+    width: 18px;
+    height: 18px;
+}
+
+.client-type-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+.client-type-card-compact .client-type-tag {
+    margin-bottom: 0;
+    padding: 2px 6px;
+    font-size: 0.58rem;
+}
+.client-type-card-compact .client-type-title {
+    font-size: 0.9rem;
+    margin-bottom: 0;
+    line-height: 1.2;
+}
+
+.client-type-card-compact .client-type-check,
+.service-type-card-compact .client-type-check {
+    position: static;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    font-size: 0.65rem;
+    margin-left: auto;
+}
+
+.service-type-card-compact {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    min-height: 0;
+}
+.service-type-card-compact:hover { transform: translateY(-1px); }
+.service-type-card-compact.active {
+    box-shadow: 0 4px 18px rgba(240,165,0,0.14), inset 0 0 0 1px rgba(240,165,0,0.1);
+}
+.service-type-card-compact .service-type-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    margin-bottom: 0;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+}
+.service-type-card-compact strong {
+    flex: 1;
+    margin-bottom: 0;
+    font-size: 0.84rem;
+    line-height: 1.25;
+}
+.service-type-with-laser.service-type-card-compact.active {
+    box-shadow: 0 4px 18px rgba(180, 120, 255, 0.12), inset 0 0 0 1px rgba(180, 120, 255, 0.18);
+}
+
+.form-quote-admin .panel-section.form-section-compact:first-of-type h2 {
+    margin-bottom: 6px;
+}
+.form-quote-admin .panel-section.form-section-compact:first-of-type {
+    padding-bottom: 14px;
+}
+
 .pricing-tier-card, .service-type-card {
     background: rgba(255,255,255,0.04);
     border: 1px solid var(--border);

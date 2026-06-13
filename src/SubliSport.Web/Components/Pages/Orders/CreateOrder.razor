@@ -28,22 +28,20 @@
 
     <section class="panel-section form-section-compact">
         <h2>1. Tipo de cliente</h2>
-        <p class="field-hint">Elija cómo se cotizará este pedido en el panel.</p>
         <ClientTypeSelector SelectedTier="model.PricingTier" SelectedTierChanged="SelectPricingTier" />
         @if (model.PricingTier == ClientPricingTier.MypeB2B)
         {
-            <p class="field-hint" style="margin-top:14px;">Tipo de servicio para taller / MYPE — puede marcar uno o más pasos:</p>
-            <div class="service-type-grid service-type-grid-3">
+            <p class="field-hint field-hint-compact">Servicios del pedido (marque los que apliquen):</p>
+            <div class="service-type-grid service-type-grid-3 service-type-grid-compact">
                 @foreach (var opt in ServiceTypeHelper.Options)
                 {
                     var serviceKey = opt.Key;
                     var isActive = IsMypeServiceSelected(serviceKey);
                     <button type="button"
-                            class="service-type-card-v2 service-type-@serviceKey.Replace("_", "-") @(isActive ? "active" : "")"
+                            class="service-type-card-v2 service-type-card-compact service-type-@serviceKey.Replace("_", "-") @(isActive ? "active" : "")"
                             @onclick="() => ToggleMypeService(serviceKey)">
                         <span class="service-type-icon">@opt.Icon</span>
                         <strong>@opt.Title</strong>
-                        <span>@opt.Description</span>
                         <span class="client-type-check" aria-hidden="true">✓</span>
                     </button>
                 }
