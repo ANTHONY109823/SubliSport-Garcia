@@ -319,12 +319,12 @@
         '<td><input type="text" data-field="size" value="' + esc(row.size) + '" placeholder="M"></td>' +
         '<td><input type="text" data-field="number" value="' + esc(row.number) + '" placeholder="10"></td>' +
         '<td><select data-field="gender" class="roster-select">' +
-          '<option value="Varon"' + (gender === 'Varon' ? ' selected' : '') + '>Varón</option>' +
-          '<option value="Femenino"' + (gender === 'Femenino' ? ' selected' : '') + '>Femenino</option>' +
+          '<option value="Varon"' + (gender === 'Varon' ? ' selected' : '') + ' style="background:#1a1a1a;color:#fff">Varón</option>' +
+          '<option value="Femenino"' + (gender === 'Femenino' ? ' selected' : '') + ' style="background:#1a1a1a;color:#fff">Femenino</option>' +
         '</select></td>' +
         '<td><select data-field="kit" class="roster-select">' +
-          '<option value="conjunto"' + (kit === 'conjunto' ? ' selected' : '') + '>Conjunto</option>' +
-          '<option value="camiseta"' + (kit === 'camiseta' ? ' selected' : '') + '>Camiseta sola</option>' +
+          '<option value="conjunto"' + (kit === 'conjunto' ? ' selected' : '') + ' style="background:#1a1a1a;color:#fff">Conjunto</option>' +
+          '<option value="camiseta"' + (kit === 'camiseta' ? ' selected' : '') + ' style="background:#1a1a1a;color:#fff">Camiseta sola</option>' +
         '</select></td>' +
         '<td>' + (rosterRows.length > 1 ? '<button type="button" class="btn-roster-del" data-remove="' + i + '">✕</button>' : '') + '</td>' +
         '</tr>';
