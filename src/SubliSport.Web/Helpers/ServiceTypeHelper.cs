@@ -5,15 +5,33 @@ namespace SubliSport.Web.Helpers;
 public static class ServiceTypeHelper
 {
     public const string PrintPressOnly = "print_press";
-    public const string WithConfection = "with_confection";
     public const string WithLaserCut = "with_laser";
+    public const string WithConfection = "with_confection";
 
+    /// <summary>Orden del flujo de producción: impresión → láser → confección.</summary>
     public static readonly (string Key, string Icon, string Title, string Description)[] Options =
     [
-        (PrintPressOnly, "🖨️", "Solo impresión + planchado", "Sin confección — tela del taller o del cliente."),
-        (WithConfection, "✂️", "Con confección", "Incluye armado de polo, short y medias según pedido."),
-        (WithLaserCut, "⚡", "Corte láser", "Impresión + planchado + corte láser — sin confección.")
+        (PrintPressOnly, "🖨️", "Impresión + planchado", "Paso 1 — diseño, impresión y planchado de tela."),
+        (WithLaserCut, "⚡", "Corte láser", "Paso 2 — corte láser de piezas."),
+        (WithConfection, "✂️", "Confección", "Paso 3 — armado de polo, short y medias.")
     ];
+
+    public static (bool PrintPress, bool LaserCut, bool Confection) FromOrder(Order order) =>
+        (
+            PrintPress: order.ServiceOnlyPrintPress || order.IncludesConfection,
+            LaserCut: order.IncludesLaserCut,
+            Confection: order.IncludesConfection
+        );
+
+    public static void ApplyServiceFlags(Order order, bool printPress, bool laserCut, bool confection)
+    {
+        order.IncludesLaserCut = laserCut;
+        order.IncludesConfection = confection;
+        order.ServiceOnlyPrintPress = printPress && !confection;
+    }
+
+    public static bool HasAnyService(bool printPress, bool laserCut, bool confection) =>
+        printPress || laserCut || confection;
 
     public static string GetLabel(Order order)
     {
@@ -22,12 +40,8 @@ public static class ServiceTypeHelper
             return "Venta directa (precio por prenda)";
         }
 
-        return ResolveFromOrder(order) switch
-        {
-            WithConfection => "Servicio: diseño + impresión + planchado + confección",
-            WithLaserCut => "Servicio: diseño + impresión + planchado + corte láser",
-            _ => "Servicio: diseño + impresión + planchado"
-        };
+        var (printPress, laserCut, confection) = FromOrder(order);
+        return BuildServiceLabel(printPress, laserCut, confection);
     }
 
     public static string GetShortLabel(Order order)
@@ -37,48 +51,22 @@ public static class ServiceTypeHelper
             return "Directo";
         }
 
-        return ResolveFromOrder(order) switch
-        {
-            WithConfection => "Con confección",
-            WithLaserCut => "Corte láser",
-            _ => "Solo impresión"
-        };
+        var (printPress, laserCut, confection) = FromOrder(order);
+        var parts = new List<string>();
+        if (printPress || confection) parts.Add("Impresión");
+        if (laserCut) parts.Add("Láser");
+        if (confection) parts.Add("Confección");
+        return parts.Count == 0 ? "Sin servicio" : string.Join(" + ", parts);
     }
 
-    public static string ResolveFromOrder(Order order)
+    public static string BuildServiceLabel(bool printPress, bool laserCut, bool confection)
     {
-        if (order.IncludesConfection && !order.ServiceOnlyPrintPress)
-        {
-            return WithConfection;
-        }
-
-        if (order.IncludesLaserCut)
-        {
-            return WithLaserCut;
-        }
-
-        return PrintPressOnly;
-    }
-
-    public static void ApplyServiceType(Order order, string serviceType)
-    {
-        switch (serviceType)
-        {
-            case WithConfection:
-                order.ServiceOnlyPrintPress = false;
-                order.IncludesConfection = true;
-                order.IncludesLaserCut = false;
-                break;
-            case WithLaserCut:
-                order.ServiceOnlyPrintPress = true;
-                order.IncludesConfection = false;
-                order.IncludesLaserCut = true;
-                break;
-            default:
-                order.ServiceOnlyPrintPress = true;
-                order.IncludesConfection = false;
-                order.IncludesLaserCut = false;
-                break;
-        }
+        var steps = new List<string>();
+        if (printPress || confection) steps.Add("impresión + planchado");
+        if (laserCut) steps.Add("corte láser");
+        if (confection) steps.Add("confección");
+        return steps.Count == 0
+            ? "Servicio sin etapas seleccionadas"
+            : $"Servicio: diseño + {string.Join(" + ", steps)}";
     }
 }

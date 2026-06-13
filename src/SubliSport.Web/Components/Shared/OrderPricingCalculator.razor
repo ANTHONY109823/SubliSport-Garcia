@@ -62,10 +62,13 @@ else
         }
         else
         {
-            <p class="field-hint">Servicio B2B: metraje × S/ @settings.PrintPressPricePerMeter.ToString("N2")/m (impresión + planchado). La confección suma aparte si aplica.</p>
+            <p class="field-hint">Marque uno o más pasos del proceso. Metraje × S/ @settings.PrintPressPricePerMeter.ToString("N2")/m (impresión + planchado).</p>
         }
 
-        <ServiceTypeSelector SelectedService="selectedService" SelectedServiceChanged="SelectServiceAsync" />
+        <ServiceTypeSelector PrintPress="servicePrintPress"
+                             LaserCut="includesLaserCut"
+                             Confection="includesConfection"
+                             SelectionChanged="OnServiceSelectionChanged" />
 
         <div class="form-grid">
             @if (!clientOwnFabric)
@@ -101,17 +104,6 @@ else
         </div>
 
         <div class="toggle-row production-options-grid">
-            @if (selectedService != ServiceTypeHelper.WithLaserCut)
-            {
-                <label class="checkbox-row">
-                    <input type="checkbox" @bind="includesLaserCut" @bind:after="Recalculate" />
-                    Corte láser (adicional)
-                </label>
-            }
-            else
-            {
-                <p class="field-hint" style="margin:0;">Corte láser incluido en el servicio seleccionado.</p>
-            }
             <label class="checkbox-row">
                 <input type="checkbox" @bind="clientOwnFabric" @bind:after="OnClientOwnFabricChanged" />
                 Cliente trae tela propia
@@ -197,8 +189,8 @@ else
     private bool includesLaserCut;
     private bool includesIgv;
     private decimal chargeAmount;
+    private bool servicePrintPress = true;
     private string? pricingNotes;
-    private string selectedService = ServiceTypeHelper.WithConfection;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -211,23 +203,19 @@ else
             fabricRipIdStr = order.FabricTypeRipId?.ToString() ?? "";
             fabricMeters = order.FabricMeters ?? 0;
             fabricMetersRip = order.FabricMetersRip ?? 0;
-            includesConfection = order.IncludesConfection;
-            serviceOnlyPrintPress = order.ServiceOnlyPrintPress;
             clientOwnFabric = order.ClientOwnFabric;
-            includesLaserCut = order.IncludesLaserCut;
             includesIgv = order.IncludesIgv;
             chargeAmount = order.ChargeAmount > 0 ? order.ChargeAmount : order.CalculatedTotal;
             pricingNotes = ProductionMode ? null : order.PricingNotes;
+
+            (servicePrintPress, includesLaserCut, includesConfection) = ServiceTypeHelper.FromOrder(order);
+            serviceOnlyPrintPress = servicePrintPress && !includesConfection;
 
             if (clientOwnFabric)
             {
                 serviceOnlyPrintPress = true;
                 includesConfection = false;
-                selectedService = ServiceTypeHelper.PrintPressOnly;
-            }
-            else
-            {
-                selectedService = ServiceTypeHelper.ResolveFromOrder(order);
+                servicePrintPress = true;
             }
 
             Recalculate();
@@ -238,42 +226,23 @@ else
         }
     }
 
-    private Task SelectServiceAsync(string serviceType)
+    private Task OnServiceSelectionChanged((bool PrintPress, bool LaserCut, bool Confection) selection)
     {
-        SelectService(serviceType);
-        return Task.CompletedTask;
-    }
-
-    private void SelectService(string serviceType)
-    {
-        selectedService = serviceType;
-        switch (serviceType)
-        {
-            case ServiceTypeHelper.WithConfection:
-                serviceOnlyPrintPress = false;
-                includesConfection = true;
-                includesLaserCut = false;
-                break;
-            case ServiceTypeHelper.WithLaserCut:
-                serviceOnlyPrintPress = true;
-                includesConfection = false;
-                includesLaserCut = true;
-                break;
-            default:
-                serviceOnlyPrintPress = true;
-                includesConfection = false;
-                includesLaserCut = false;
-                break;
-        }
-
+        servicePrintPress = selection.PrintPress;
+        includesLaserCut = selection.LaserCut;
+        includesConfection = selection.Confection;
+        serviceOnlyPrintPress = servicePrintPress && !includesConfection;
         Recalculate();
+        return Task.CompletedTask;
     }
 
     private void OnClientOwnFabricChanged()
     {
         if (clientOwnFabric)
         {
-            SelectService(ServiceTypeHelper.PrintPressOnly);
+            servicePrintPress = true;
+            serviceOnlyPrintPress = true;
+            includesConfection = false;
         }
 
         Recalculate();
@@ -296,10 +265,9 @@ else
             serviceOnlyPrintPress = true;
             includesConfection = false;
         }
-
-        if (serviceOnlyPrintPress)
+        else
         {
-            includesConfection = false;
+            serviceOnlyPrintPress = servicePrintPress && !includesConfection;
         }
 
         if (fabricMeters <= 0)

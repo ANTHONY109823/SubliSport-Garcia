@@ -4,9 +4,10 @@
     @foreach (var opt in ServiceTypeHelper.Options)
     {
         var key = opt.Key;
+        var isActive = IsSelected(key);
         <button type="button"
-                class="service-type-card-v2 service-type-@key.Replace('_', '-') @(SelectedService == key ? "active" : "")"
-                @onclick="() => SelectAsync(key)">
+                class="service-type-card-v2 service-type-@key.Replace("_", "-") @(isActive ? "active" : "")"
+                @onclick="() => ToggleAsync(key)">
             <span class="service-type-icon">@opt.Icon</span>
             <strong>@opt.Title</strong>
             <span>@opt.Description</span>
@@ -16,17 +17,34 @@
 </div>
 
 @code {
-    [Parameter] public string SelectedService { get; set; } = ServiceTypeHelper.PrintPressOnly;
-    [Parameter] public EventCallback<string> SelectedServiceChanged { get; set; }
+    [Parameter] public bool PrintPress { get; set; } = true;
+    [Parameter] public bool LaserCut { get; set; }
+    [Parameter] public bool Confection { get; set; }
+    [Parameter] public EventCallback<(bool PrintPress, bool LaserCut, bool Confection)> SelectionChanged { get; set; }
 
-    private async Task SelectAsync(string service)
+    private bool IsSelected(string key) => key switch
     {
-        if (SelectedService == service)
+        ServiceTypeHelper.PrintPressOnly => PrintPress,
+        ServiceTypeHelper.WithLaserCut => LaserCut,
+        ServiceTypeHelper.WithConfection => Confection,
+        _ => false
+    };
+
+    private async Task ToggleAsync(string key)
+    {
+        switch (key)
         {
-            return;
+            case ServiceTypeHelper.PrintPressOnly:
+                PrintPress = !PrintPress;
+                break;
+            case ServiceTypeHelper.WithLaserCut:
+                LaserCut = !LaserCut;
+                break;
+            case ServiceTypeHelper.WithConfection:
+                Confection = !Confection;
+                break;
         }
 
-        SelectedService = service;
-        await SelectedServiceChanged.InvokeAsync(service);
+        await SelectionChanged.InvokeAsync((PrintPress, LaserCut, Confection));
     }
 }

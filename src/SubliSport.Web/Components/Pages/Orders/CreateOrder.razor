@@ -32,14 +32,15 @@
         <ClientTypeSelector SelectedTier="model.PricingTier" SelectedTierChanged="SelectPricingTier" />
         @if (model.PricingTier == ClientPricingTier.MypeB2B)
         {
-            <p class="field-hint" style="margin-top:14px;">Tipo de servicio para taller / MYPE:</p>
+            <p class="field-hint" style="margin-top:14px;">Tipo de servicio para taller / MYPE — puede marcar uno o más pasos:</p>
             <div class="service-type-grid service-type-grid-3">
                 @foreach (var opt in ServiceTypeHelper.Options)
                 {
                     var serviceKey = opt.Key;
+                    var isActive = IsMypeServiceSelected(serviceKey);
                     <button type="button"
-                            class="service-type-card-v2 service-type-@serviceKey.Replace("_", "-") @(model.MypeServiceType == serviceKey ? "active" : "")"
-                            @onclick="() => SelectMypeService(serviceKey)">
+                            class="service-type-card-v2 service-type-@serviceKey.Replace("_", "-") @(isActive ? "active" : "")"
+                            @onclick="() => ToggleMypeService(serviceKey)">
                         <span class="service-type-icon">@opt.Icon</span>
                         <strong>@opt.Title</strong>
                         <span>@opt.Description</span>
@@ -291,9 +292,34 @@
 
     private Task SelectMypeService(string serviceType)
     {
-        model.MypeServiceType = serviceType;
-        StateHasChanged();
+        ToggleMypeService(serviceType);
         return Task.CompletedTask;
+    }
+
+    private bool IsMypeServiceSelected(string key) => key switch
+    {
+        ServiceTypeHelper.PrintPressOnly => model.MypePrintPress,
+        ServiceTypeHelper.WithLaserCut => model.MypeLaserCut,
+        ServiceTypeHelper.WithConfection => model.MypeConfection,
+        _ => false
+    };
+
+    private void ToggleMypeService(string key)
+    {
+        switch (key)
+        {
+            case ServiceTypeHelper.PrintPressOnly:
+                model.MypePrintPress = !model.MypePrintPress;
+                break;
+            case ServiceTypeHelper.WithLaserCut:
+                model.MypeLaserCut = !model.MypeLaserCut;
+                break;
+            case ServiceTypeHelper.WithConfection:
+                model.MypeConfection = !model.MypeConfection;
+                break;
+        }
+
+        StateHasChanged();
     }
 
     private void SelectSport(string value)
@@ -455,10 +481,17 @@
             order.PricingTier = model.PricingTier;
             if (model.PricingTier == ClientPricingTier.MypeB2B)
             {
+                if (!ServiceTypeHelper.HasAnyService(model.MypePrintPress, model.MypeLaserCut, model.MypeConfection))
+                {
+                    error = "Seleccione al menos un paso de servicio (impresión, láser o confección).";
+                    isSaving = false;
+                    return;
+                }
+
                 order.ChargeAmount = 0;
                 order.CalculatedTotal = 0;
                 order.PricingNotes = null;
-                ServiceTypeHelper.ApplyServiceType(order, model.MypeServiceType);
+                ServiceTypeHelper.ApplyServiceFlags(order, model.MypePrintPress, model.MypeLaserCut, model.MypeConfection);
             }
 
             var created = await OrderService.CreateManualOrderAsync(
@@ -515,7 +548,9 @@
         public DateTime? ReceivedAt { get; set; } = DateTime.Today;
         public GiftOption GiftOption { get; set; } = GiftOption.None;
         public ClientPricingTier PricingTier { get; set; } = ClientPricingTier.DirectRetail;
-        public string MypeServiceType { get; set; } = ServiceTypeHelper.PrintPressOnly;
+        public bool MypePrintPress { get; set; } = true;
+        public bool MypeLaserCut { get; set; }
+        public bool MypeConfection { get; set; }
         public string? DesignerId { get; set; }
         public List<AdminQuoteRosterEditor.RosterRowModel> RosterRows { get; } = [];
         public List<AdminQuotePhotoSlots.PhotoSlotModel> PhotoSlots { get; } = [];
