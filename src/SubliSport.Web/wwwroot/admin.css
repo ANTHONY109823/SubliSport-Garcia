@@ -1376,7 +1376,73 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 }
 
 /* ── Registrar pedido ultra-compacto ── */
-.page-title-compact { margin-bottom: 12px; font-size: 1.35rem; }
+.page-title-compact { margin-bottom: 0; font-size: 1.35rem; }
+.page-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    max-width: 980px;
+    margin-bottom: 12px;
+}
+.quote-priority-top { gap: 10px; margin-top: 4px; }
+.quote-ultra-kicker {
+    display: block;
+    font-size: 0.62rem;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+}
+
+.designer-picker-metrics {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+.designer-card-metrics {
+    padding: 12px 14px;
+    min-height: 0;
+    text-align: left;
+}
+.designer-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    margin-bottom: 10px;
+}
+.designer-card-head strong { font-size: 0.92rem; flex: 1; min-width: 120px; }
+.designer-total-badge {
+    font-size: 0.65rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--gray);
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    white-space: nowrap;
+}
+.designer-metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 10px;
+}
+.designer-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.72rem;
+}
+.designer-metric span { color: var(--gray); }
+.designer-metric b { color: var(--white); font-size: 0.85rem; }
+.designer-metric-warn b { color: #ffb347; }
+
 .form-quote-ultra { max-width: 980px; }
 .form-quote-ultra .quote-ultra-block {
     padding: 10px 12px;

@@ -11,7 +11,6 @@ public static class OrderFormOptions
     [
         ("Conjunto completo (camiseta + short + medias)", "Conjunto completo"),
         ("Solo camiseta", "Solo camiseta"),
-        ("Short deportivo", "Short deportivo"),
         ("Mixta", "Ambos tipos")
     ];
 

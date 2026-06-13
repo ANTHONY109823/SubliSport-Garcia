@@ -3,11 +3,19 @@ using SubliSport.Domain.Enums;
 
 namespace SubliSport.Web.Helpers;
 
-public sealed record DesignerWorkloadInfo(int SinAceptar, int Pendientes, int TotalPendientes);
+public sealed record DesignerWorkloadInfo(
+    int SinAceptar,
+    int PorIniciar,
+    int EnDiseno,
+    int AprobacionCliente)
+{
+    public int TotalPendientes => SinAceptar + PorIniciar + EnDiseno + AprobacionCliente;
+    public int Pendientes => PorIniciar + EnDiseno + AprobacionCliente;
+}
 
 public static class DesignerWorkloadHelper
 {
-    public static readonly DesignerWorkloadInfo Empty = new(0, 0, 0);
+    public static readonly DesignerWorkloadInfo Empty = new(0, 0, 0, 0);
 
     public static Dictionary<string, DesignerWorkloadInfo> BuildWorkloads(
         IEnumerable<Order> orders,
@@ -27,11 +35,11 @@ public static class DesignerWorkloadHelper
             .ToList();
 
         var sinAceptar = mine.Count(DesignerOrderHelper.CanAccept);
-        var pendientes = mine.Count(o =>
-            DesignerOrderHelper.CanStart(o) ||
-            o.Status == OrderStatus.EnDiseno ||
-            DesignerOrderHelper.IsPendingClientApproval(o));
+        var porIniciar = mine.Count(DesignerOrderHelper.CanStart);
+        var enDiseno = mine.Count(o =>
+            o.Status == OrderStatus.EnDiseno && !DesignerOrderHelper.IsPendingClientApproval(o));
+        var aprobacionCliente = mine.Count(DesignerOrderHelper.IsPendingClientApproval);
 
-        return new DesignerWorkloadInfo(sinAceptar, pendientes, sinAceptar + pendientes);
+        return new DesignerWorkloadInfo(sinAceptar, porIniciar, enDiseno, aprobacionCliente);
     }
 }

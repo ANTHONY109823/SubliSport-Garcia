@@ -1,6 +1,47 @@
 @using SubliSport.Domain.Entities
 
-@if (UltraCompact)
+@if (DetailedMetrics)
+{
+    <div class="designer-picker designer-picker-metrics">
+        @foreach (var designer in SortedDesigners)
+        {
+            var workload = Workloads.GetValueOrDefault(designer.Id) ?? DesignerWorkloadHelper.Empty;
+            var isSelected = SelectedDesignerId == designer.Id;
+            var isRecommended = designer.Id == LightestDesignerId;
+            <button type="button"
+                    class="designer-card designer-card-metrics @(isSelected ? "selected" : "") @(isRecommended ? "recommended" : "")"
+                    @onclick="() => SelectDesigner(designer.Id)">
+                <div class="designer-card-head">
+                    <strong>@designer.FullName</strong>
+                    @if (isRecommended)
+                    {
+                        <em class="designer-tag">Menor carga</em>
+                    }
+                    <span class="designer-total-badge">@workload.TotalPendientes activos</span>
+                </div>
+                <div class="designer-metrics-grid">
+                    <div class="designer-metric">
+                        <span>Sin aceptar</span>
+                        <b>@workload.SinAceptar</b>
+                    </div>
+                    <div class="designer-metric">
+                        <span>Por iniciar</span>
+                        <b>@workload.PorIniciar</b>
+                    </div>
+                    <div class="designer-metric">
+                        <span>En diseño</span>
+                        <b>@workload.EnDiseno</b>
+                    </div>
+                    <div class="designer-metric designer-metric-warn">
+                        <span>Aprob. cliente</span>
+                        <b>@workload.AprobacionCliente</b>
+                    </div>
+                </div>
+            </button>
+        }
+    </div>
+}
+else if (UltraCompact)
 {
     <div class="circle-pick-row">
         @foreach (var designer in SortedDesigners)
@@ -40,7 +81,7 @@ else
                 }
                 <ul class="designer-workload-list">
                     <li><span>Sin aceptar</span><b>@workload.SinAceptar</b></li>
-                    <li><span>Pendientes</span><b>@workload.Pendientes</b></li>
+                    <li><span>Activos</span><b>@workload.TotalPendientes</b></li>
                 </ul>
             </button>
         }
@@ -53,6 +94,7 @@ else
     [Parameter] public string? SelectedDesignerId { get; set; }
     [Parameter] public string? CurrentDesignerId { get; set; }
     [Parameter] public bool UltraCompact { get; set; }
+    [Parameter] public bool DetailedMetrics { get; set; }
     [Parameter] public EventCallback<string?> SelectedDesignerIdChanged { get; set; }
 
     private string? LightestDesignerId => Designers

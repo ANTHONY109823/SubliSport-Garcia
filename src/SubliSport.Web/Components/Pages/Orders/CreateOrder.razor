@@ -11,7 +11,21 @@
 
 <PageTitle>Nuevo pedido - SUBLISPORT GARCIA</PageTitle>
 
-<h1 class="page-title page-title-compact">Registrar pedido</h1>
+<div class="page-header-row">
+    <h1 class="page-title page-title-compact">Registrar pedido</h1>
+    <div class="circle-pick-row quote-priority-top">
+        @foreach (var p in OrderFormOptions.PriorityQuick)
+        {
+            var priority = p.Value;
+            <button type="button"
+                    class="circle-pick @PriorityToneClass(priority) @(model.Priority == priority ? "active" : "")"
+                    @onclick="() => SelectPriority(priority)">
+                <span class="circle-pick-ring">@PriorityIcon(priority)</span>
+                <span class="circle-pick-label">@p.Label</span>
+            </button>
+        }
+    </div>
+</div>
 
 @if (!string.IsNullOrEmpty(message))
 {
@@ -22,7 +36,7 @@
     <div class="alert-error">@error</div>
 }
 
-<EditForm Model="model" FormName="createOrderForm" OnValidSubmit="HandleSubmit" class="form-panel form-quote-admin form-quote-ultra">
+<EditForm Model="model" FormName="createOrderForm" id="createOrderForm" OnValidSubmit="HandleSubmit" class="form-panel form-quote-admin form-quote-ultra">
     <DataAnnotationsValidator />
 
     <div class="quote-ultra-block">
@@ -142,10 +156,11 @@
     </div>
 
     <div class="quote-ultra-block">
+        <span class="quote-ultra-kicker">Bordado</span>
         <div class="circle-pick-row">
             <button type="button" class="circle-pick @(model.EmbroideryEscudo ? "active" : "")" @onclick="ToggleEmbroideryEscudo">
-                <span class="circle-pick-ring">🛡️</span>
-                <span class="circle-pick-label">Escudo</span>
+                <span class="circle-pick-ring">🎯</span>
+                <span class="circle-pick-label">Logo</span>
             </button>
             <button type="button" class="circle-pick @(model.EmbroideryMarca ? "active" : "")" @onclick="ToggleEmbroideryMarca">
                 <span class="circle-pick-ring">🏷️</span>
@@ -170,18 +185,6 @@
     <div class="quote-ultra-block quote-ultra-footer">
         <InputTextArea @bind-value="model.Notes" class="form-control form-control-xs" rows="2" placeholder="Notas..." />
         <div class="circle-pick-row">
-            @foreach (var p in OrderFormOptions.PriorityQuick)
-            {
-                var priority = p.Value;
-                <button type="button"
-                        class="circle-pick @PriorityToneClass(priority) @(model.Priority == priority ? "active" : "")"
-                        @onclick="() => SelectPriority(priority)">
-                    <span class="circle-pick-ring">@PriorityIcon(priority)</span>
-                    <span class="circle-pick-label">@p.Label</span>
-                </button>
-            }
-        </div>
-        <div class="circle-pick-row">
             @foreach (var gift in GiftOptionHelper.Options)
             {
                 var giftValue = gift.Value;
@@ -193,7 +196,8 @@
                 </button>
             }
         </div>
-        <DesignerPickerCards Designers="designers" Workloads="designerWorkloads" UltraCompact="true" @bind-SelectedDesignerId="model.DesignerId" />
+        <span class="quote-ultra-kicker">Diseñador</span>
+        <DesignerPickerCards Designers="designers" Workloads="designerWorkloads" DetailedMetrics="true" @bind-SelectedDesignerId="model.DesignerId" />
     </div>
 
     <div class="form-actions-sticky form-actions-compact">
@@ -224,7 +228,6 @@
     {
         "Conjunto completo" => "Conjunto",
         "Solo camiseta" => "Camiseta",
-        "Short deportivo" => "Short",
         "Ambos tipos" => "Mixto",
         _ => label
     };
@@ -233,7 +236,6 @@
     {
         "Conjunto completo (camiseta + short + medias)" => "🎽",
         "Solo camiseta" => "👕",
-        "Short deportivo" => "🩳",
         "Mixta" => "📦",
         _ => "👕"
     };

@@ -218,7 +218,7 @@ public static class LandingQuoteCalculator
     private static string DescribeEmbroidery(LandingQuoteSubmitRequest request)
     {
         var parts = new List<string>();
-        if (request.EmbroideryEscudo) parts.Add("Bordado escudo");
+        if (request.EmbroideryEscudo) parts.Add("Bordado logo");
         if (request.EmbroideryMarca) parts.Add("Bordado marca");
         if (request.EmbroideryShort) parts.Add("Bordado short");
         return parts.Count == 0 ? "Sublimado (sin bordado)" : string.Join(" · ", parts);
@@ -297,7 +297,7 @@ public static class LandingQuoteCalculator
         sb.AppendLine();
         sb.AppendLine($"  Subtotal prendas: S/ {subtotal:N2}");
         if (escudoTotal > 0)
-            sb.AppendLine($"  Bordado escudo: S/ {escudoTotal:N2}");
+            sb.AppendLine($"  Bordado logo: S/ {escudoTotal:N2}");
         if (marcaTotal > 0)
             sb.AppendLine($"  Bordado marca: S/ {marcaTotal:N2}");
         if (shortTotal > 0)
