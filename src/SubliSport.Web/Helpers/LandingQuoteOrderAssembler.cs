@@ -96,7 +96,7 @@ public static class LandingQuoteOrderAssembler
             GarmentType = isMixed ? "Mixta" : request.GarmentType.Trim(),
             MixedGarmentDetails = mixedJson,
             GiftOption = giftOption,
-            Sport = request.Sport.Trim(),
+            Sport = string.IsNullOrWhiteSpace(request.Sport) ? OrderFormOptions.DefaultSport : request.Sport.Trim(),
             Quantity = quantity,
             SizeRange = string.IsNullOrWhiteSpace(sizeRange) ? null : sizeRange.Trim(),
             Notes = string.IsNullOrWhiteSpace(notes) ? null : notes,

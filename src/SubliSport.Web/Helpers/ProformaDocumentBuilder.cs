@@ -114,11 +114,6 @@ public static class ProformaDocumentBuilder
     {
         var parts = new List<string> { garmentLabel };
 
-        if (!string.IsNullOrWhiteSpace(order.Sport))
-        {
-            parts.Add($"Deporte: {order.Sport}");
-        }
-
         if (!string.IsNullOrWhiteSpace(order.FabricTypeName))
         {
             parts.Add($"Tela: {order.FabricTypeName}");

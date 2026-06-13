@@ -33,11 +33,7 @@
         'Otro'
       ],
       sports: [
-        { label: '⚽ Fútbol', value: 'Fútbol' },
-        { label: '🏐 Vóley', value: 'Vóley' },
-        { label: '🏀 Básquet', value: 'Básquet' },
-        { label: '🚴 Ciclismo', value: 'Ciclismo' },
-        { label: '🏅 Otro', value: 'Otro' }
+        { label: '⚽ Fútbol', value: 'Fútbol' }
       ],
       sizes: [
         { label: 'XS / S', value: 'XS / S' },
@@ -60,7 +56,7 @@
   };
 
   var selectedPrenda = '';
-  var selectedSport = '';
+  var selectedSport = 'Fútbol';
   var selectedClientType = 'direct';
   var isMixedMode = false;
   var whatsAppPhone = DEFAULTS.quote.whatsAppPhone;
@@ -287,21 +283,8 @@
       });
   }
 
-  function renderSports(sports) {
-    var wrap = $('sportTabs');
-    if (!wrap || !sports || !sports.length) return;
-    wrap.innerHTML = sports.map(function (s, i) {
-      return '<div class="sport-tab' + (i === 0 ? ' active' : '') + '" data-value="' + esc(s.value) + '">' + esc(s.label) + '</div>';
-    }).join('');
-    selectedSport = sports[0].value;
-    wrap.querySelectorAll('.sport-tab').forEach(function (el) {
-      el.addEventListener('click', function () {
-        wrap.querySelectorAll('.sport-tab').forEach(function (t) { t.classList.remove('active'); });
-        el.classList.add('active');
-        selectedSport = el.getAttribute('data-value') || '';
-      });
-    });
-    wireHover(wrap.querySelectorAll('.sport-tab'));
+  function ensureSport() {
+    selectedSport = 'Fútbol';
   }
 
   function renderSizes(sizes) {
@@ -732,7 +715,7 @@
     renderCatalog(catalog);
     renderClientTypes();
     renderGarments(quote.garments || DEFAULTS.quote.garments);
-    renderSports(quote.sports || DEFAULTS.quote.sports);
+    ensureSport();
     renderSizes(quote.sizes || DEFAULTS.quote.sizes);
     renderFabrics(quote.fabrics || DEFAULTS.quote.fabrics);
     applyQuoteTexts(quote);

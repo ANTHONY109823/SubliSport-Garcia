@@ -147,11 +147,7 @@ public class LandingSettingsData
             ],
             Sports =
             [
-                new LandingSportOption { Label = "⚽ Fútbol", Value = "Fútbol" },
-                new LandingSportOption { Label = "🏐 Vóley", Value = "Vóley" },
-                new LandingSportOption { Label = "🏀 Básquet", Value = "Básquet" },
-                new LandingSportOption { Label = "🚴 Ciclismo", Value = "Ciclismo" },
-                new LandingSportOption { Label = "🏅 Otro", Value = "Otro" }
+                new LandingSportOption { Label = "⚽ Fútbol", Value = "Fútbol" }
             ],
             Sizes =
             [

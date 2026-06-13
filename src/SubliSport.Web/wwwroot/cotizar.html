@@ -100,6 +100,25 @@ body { background: var(--black); color: var(--white); font-family: 'Barlow', san
 .option-chip { display:flex; align-items:center; gap:8px; padding:10px 14px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:8px; cursor:pointer; transition:all 0.25s; font-size:0.88rem; color:var(--gray); }
 .option-chip input { accent-color:var(--gold); width:16px; height:16px; cursor:pointer; }
 .option-chip:has(input:checked) { border-color:var(--gold); color:var(--gold); background:rgba(240,165,0,0.1); }
+.embroidery-circles { display:flex; flex-wrap:wrap; gap:18px; margin-top:8px; }
+.embroidery-circle { display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; color:var(--gray); }
+.embroidery-circle input { position:absolute; opacity:0; pointer-events:none; }
+.embroidery-circle-ring {
+  width:58px; height:58px; border-radius:50%; border:2px solid var(--border);
+  display:flex; align-items:center; justify-content:center; font-size:1.35rem;
+  background:rgba(255,255,255,0.04); transition:all 0.25s; position:relative;
+}
+.embroidery-circle:hover .embroidery-circle-ring { border-color:rgba(240,165,0,0.45); transform:translateY(-2px); }
+.embroidery-circle:has(input:checked) .embroidery-circle-ring {
+  border-color:var(--gold); background:rgba(240,165,0,0.14); box-shadow:0 0 0 3px rgba(240,165,0,0.1);
+}
+.embroidery-circle:has(input:checked) .embroidery-circle-ring::after {
+  content:'✓'; position:absolute; top:-3px; right:-3px; width:18px; height:18px; border-radius:50%;
+  background:var(--gold); color:#111; font-size:0.6rem; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+}
+.embroidery-circle-label { font-size:0.68rem; letter-spacing:0.8px; text-transform:uppercase; text-align:center; max-width:72px; }
+.embroidery-circle:has(input:checked) .embroidery-circle-label { color:var(--gold); }
 .mixed-panel { display:none; margin-top:8px; padding:16px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,0.02); }
 .mixed-panel.visible { display:block; }
 .mixed-row { display:grid; grid-template-columns:1fr 100px 36px; gap:10px; margin-bottom:8px; align-items:center; }
@@ -246,8 +265,6 @@ footer a { color:var(--gold); text-decoration:none; }
       <button type="button" class="btn-roster-add" id="btnAddMixedLine">+ Agregar línea</button>
     </div>
 
-    <span class="control-label">Deporte</span>
-    <div class="sport-tabs" id="sportTabs"></div>
 
     <span class="control-label">Datos del pedido</span>
     <div class="quote-grid">
@@ -264,10 +281,22 @@ footer a { color:var(--gold); text-decoration:none; }
 
     <span class="control-label">Acabado / bordado (opcional)</span>
     <p class="quote-hint">Si no marca ninguna opción, todo el pedido será <strong style="color:var(--white);">sublimado</strong>.</p>
-    <div class="option-chips">
-      <label class="option-chip"><input type="checkbox" id="chkEmbroideryEscudo"> Bordado escudo</label>
-      <label class="option-chip"><input type="checkbox" id="chkEmbroideryMarca"> Bordado marca</label>
-      <label class="option-chip"><input type="checkbox" id="chkEmbroideryShort"> Bordado short</label>
+    <div class="embroidery-circles">
+      <label class="embroidery-circle">
+        <input type="checkbox" id="chkEmbroideryEscudo">
+        <span class="embroidery-circle-ring">🛡️</span>
+        <span class="embroidery-circle-label">Escudo</span>
+      </label>
+      <label class="embroidery-circle">
+        <input type="checkbox" id="chkEmbroideryMarca">
+        <span class="embroidery-circle-ring">🏷️</span>
+        <span class="embroidery-circle-label">Marca</span>
+      </label>
+      <label class="embroidery-circle">
+        <input type="checkbox" id="chkEmbroideryShort">
+        <span class="embroidery-circle-ring">🩳</span>
+        <span class="embroidery-circle-label">Short</span>
+      </label>
     </div>
 
     <span class="control-label">Fecha de entrega deseada</span>
@@ -354,7 +383,7 @@ document.addEventListener('mousemove', e => {
   cursor.style.left = e.clientX-6+'px'; cursor.style.top = e.clientY-6+'px';
   ring.style.left = e.clientX-18+'px'; ring.style.top = e.clientY-18+'px';
 });
-document.querySelectorAll('a,button,.prenda-opt,.sport-tab,.client-type-card').forEach(el => {
+document.querySelectorAll('a,button,.prenda-opt,.embroidery-circle,.client-type-card').forEach(el => {
   el.addEventListener('mouseenter',()=>{cursor.style.transform='scale(2)';ring.style.transform='scale(1.4)';ring.style.opacity='1';});
   el.addEventListener('mouseleave',()=>{cursor.style.transform='scale(1)';ring.style.transform='scale(1)';ring.style.opacity='0.6';});
 });

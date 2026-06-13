@@ -11,8 +11,7 @@
 
 <PageTitle>Nuevo pedido - SUBLISPORT GARCIA</PageTitle>
 
-<h1 class="page-title">Registrar pedido</h1>
-<p class="page-subtitle">Mismo formulario que cotizar.html — use esto cuando el cliente no pueda ingresar la solicitud.</p>
+<h1 class="page-title page-title-compact">Registrar pedido</h1>
 
 @if (!string.IsNullOrEmpty(message))
 {
@@ -23,73 +22,61 @@
     <div class="alert-error">@error</div>
 }
 
-<EditForm Model="model" FormName="createOrderForm" OnValidSubmit="HandleSubmit" class="form-panel form-quote-admin">
+<EditForm Model="model" FormName="createOrderForm" OnValidSubmit="HandleSubmit" class="form-panel form-quote-admin form-quote-ultra">
     <DataAnnotationsValidator />
 
-    <section class="panel-section form-section-compact">
-        <h2>1. Tipo de cliente</h2>
+    <div class="quote-ultra-block">
         <ClientTypeSelector SelectedTier="model.PricingTier" SelectedTierChanged="SelectPricingTier" />
         @if (model.PricingTier == ClientPricingTier.MypeB2B)
         {
-            <p class="field-hint field-hint-compact">Servicios del pedido (marque los que apliquen):</p>
-            <div class="service-type-grid service-type-grid-3 service-type-grid-compact">
+            <div class="chip-row chip-row-xs">
                 @foreach (var opt in ServiceTypeHelper.Options)
                 {
                     var serviceKey = opt.Key;
                     var isActive = IsMypeServiceSelected(serviceKey);
                     <button type="button"
-                            class="service-type-card-v2 service-type-card-compact service-type-@serviceKey.Replace("_", "-") @(isActive ? "active" : "")"
+                            class="chip-xs @(isActive ? "active" : "")"
                             @onclick="() => ToggleMypeService(serviceKey)">
-                        <span class="service-type-icon">@opt.Icon</span>
-                        <strong>@opt.Title</strong>
-                        <span class="client-type-check" aria-hidden="true">✓</span>
+                        @opt.Icon @ShortServiceLabel(serviceKey)
                     </button>
                 }
             </div>
         }
-    </section>
+    </div>
 
-    <section class="panel-section form-section-compact">
-        <h2>2. Cliente</h2>
-        <div class="form-grid form-grid-2">
-            <div class="form-group">
-                <label>Nombre o club *</label>
-                <InputText @bind-value="model.ClientName" class="form-control" placeholder="Ej. Club Deportivo Lima" />
-                <ValidationMessage For="() => model.ClientName" />
-            </div>
-            <div class="form-group">
-                <label>WhatsApp *</label>
-                <InputText @bind-value="model.ClientPhone" class="form-control" placeholder="999 999 999" />
-            </div>
+    <div class="quote-ultra-block quote-ultra-fields">
+        <div class="form-group form-group-xs">
+            <label>Cliente *</label>
+            <InputText @bind-value="model.ClientName" class="form-control form-control-xs" placeholder="Club o nombre" />
+            <ValidationMessage For="() => model.ClientName" />
         </div>
-    </section>
+        <div class="form-group form-group-xs">
+            <label>WhatsApp *</label>
+            <InputText @bind-value="model.ClientPhone" class="form-control form-control-xs" placeholder="999 999 999" />
+        </div>
+    </div>
 
-    <section class="panel-section form-section-compact">
-        <h2>3. Tipo de prenda</h2>
-        <p class="field-hint">Si necesita conjunto y camiseta (u otros), elija <strong>Ambos tipos</strong>.</p>
-        <div class="garment-chips">
+    <div class="quote-ultra-block">
+        <div class="chip-row chip-row-xs">
             @foreach (var g in OrderFormOptions.GarmentChips)
             {
                 var value = g.Value;
                 <button type="button"
-                        class="garment-chip @(model.GarmentType == value ? "active" : "")"
+                        class="chip-xs @(model.GarmentType == value ? "active" : "")"
                         @onclick="() => SelectGarment(value)">
-                    @g.Label
+                    @ShortGarmentLabel(g.Label)
                 </button>
             }
         </div>
-
         @if (GarmentTypeHelper.IsMixed(model.GarmentType))
         {
-            <div class="mixed-garment-section">
-                <label>Detalle — ambos tipos *</label>
-                <p class="field-hint">Ejemplo: 6 conjuntos + 5 polos.</p>
+            <div class="mixed-inline">
                 @for (var i = 0; i < model.MixedLines.Count; i++)
                 {
                     var line = model.MixedLines[i];
                     var index = i;
-                    <div class="mixed-line-row">
-                        <select @bind="line.ItemType" class="form-control">
+                    <div class="mixed-inline-row">
+                        <select @bind="line.ItemType" class="form-control form-control-xs">
                             @foreach (var itemType in OrderFormOptions.MixedGarmentItemTypes)
                             {
                                 <option value="@itemType">@itemType</option>
@@ -97,142 +84,110 @@
                         </select>
                         @if (line.ItemType == "Otro")
                         {
-                            <input type="text" @bind="line.OtherDescription" class="form-control" placeholder="Especifique" />
+                            <input type="text" @bind="line.OtherDescription" class="form-control form-control-xs" placeholder="Otro" />
                         }
-                        <input type="number" min="1" @bind="line.Quantity" class="form-control mixed-qty" />
+                        <input type="number" min="1" @bind="line.Quantity" class="form-control form-control-xs mixed-qty-xs" />
                         @if (model.MixedLines.Count > 1)
                         {
-                            <button type="button" class="btn-action btn-warn" @onclick="() => RemoveMixedLine(index)">✕</button>
+                            <button type="button" class="chip-remove-xs" @onclick="() => RemoveMixedLine(index)">✕</button>
                         }
                     </div>
                 }
-                <button type="button" class="btn-secondary btn-sm" @onclick="AddMixedLine">+ Agregar línea</button>
+                <button type="button" class="chip-add-xs" @onclick="AddMixedLine">+ línea</button>
             </div>
         }
-    </section>
+    </div>
 
-    <section class="panel-section form-section-compact">
-        <h2>4. Deporte</h2>
-        <div class="sport-chips">
-            @foreach (var s in OrderFormOptions.Sports)
-            {
-                var sport = s.Value;
-                <button type="button"
-                        class="sport-chip @(model.Sport == sport ? "active" : "")"
-                        @onclick="() => SelectSport(sport)">
-                    @s.Label
-                </button>
-            }
-        </div>
-        @if (model.Sport == "Otro")
+    <div class="quote-ultra-block quote-ultra-fields form-grid-ultra">
+        @if (!GarmentTypeHelper.IsMixed(model.GarmentType))
         {
-            <InputText @bind-value="model.SportOther" class="form-control form-control-mt" placeholder="Especifique deporte" />
+            <div class="form-group form-group-xs">
+                <label>Cant. *</label>
+                <InputNumber @bind-value="model.Quantity" class="form-control form-control-xs" />
+                <ValidationMessage For="() => model.Quantity" />
+            </div>
         }
-    </section>
+        <div class="form-group form-group-xs">
+            <label>Tela</label>
+            <InputSelect @bind-value="model.FabricKey" class="form-control form-control-xs">
+                @foreach (var fabric in OrderFormOptions.Fabrics)
+                {
+                    <option value="@fabric.Key">@fabric.Label</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="form-group form-group-xs">
+            <label>Tallas</label>
+            <InputSelect @bind-value="model.SizeRangeSummary" class="form-control form-control-xs">
+                <option value="">—</option>
+                @foreach (var size in OrderFormOptions.SizeRanges)
+                {
+                    <option value="@size.Value">@size.Label</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="form-group form-group-xs">
+            <label>Ingreso *</label>
+            <InputDate @bind-value="model.ReceivedAt" class="form-control form-control-xs" />
+        </div>
+        <div class="form-group form-group-xs">
+            <label>Entrega *</label>
+            <div class="date-inline">
+                <InputDate @bind-value="model.AgreedDeliveryDate" class="form-control form-control-xs" />
+                <button type="button" class="chip-add-xs" @onclick="ApplySuggestedDelivery" title="7 días hábiles">+7d</button>
+            </div>
+        </div>
+    </div>
 
-    <section class="panel-section form-section-compact">
-        <h2>5. Datos del pedido</h2>
-        <div class="form-grid">
-            @if (!GarmentTypeHelper.IsMixed(model.GarmentType))
+    <div class="quote-ultra-block">
+        <div class="embroidery-circles embroidery-circles-xs">
+            <button type="button" class="embroidery-circle @(model.EmbroideryEscudo ? "active" : "")" @onclick="ToggleEmbroideryEscudo">
+                <span class="embroidery-circle-ring">🛡️</span>
+                <span class="embroidery-circle-label">Escudo</span>
+            </button>
+            <button type="button" class="embroidery-circle @(model.EmbroideryMarca ? "active" : "")" @onclick="ToggleEmbroideryMarca">
+                <span class="embroidery-circle-ring">🏷️</span>
+                <span class="embroidery-circle-label">Marca</span>
+            </button>
+            <button type="button" class="embroidery-circle @(model.EmbroideryShort ? "active" : "")" @onclick="ToggleEmbroideryShort">
+                <span class="embroidery-circle-ring">🩳</span>
+                <span class="embroidery-circle-label">Short</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="quote-ultra-split">
+        <div class="quote-ultra-split-col">
+            <AdminQuoteRosterEditor Rows="model.RosterRows" Compact="true" />
+        </div>
+        <div class="quote-ultra-split-col">
+            <AdminQuotePhotoSlots Slots="model.PhotoSlots" Compact="true" />
+        </div>
+    </div>
+
+    <div class="quote-ultra-block quote-ultra-footer">
+        <InputTextArea @bind-value="model.Notes" class="form-control form-control-xs" rows="2" placeholder="Notas..." />
+        <div class="chip-row chip-row-xs">
+            @foreach (var p in OrderFormOptions.PriorityQuick)
             {
-                <div class="form-group">
-                    <label>Cantidad de prendas *</label>
-                    <InputNumber @bind-value="model.Quantity" class="form-control" />
-                    <ValidationMessage For="() => model.Quantity" />
-                </div>
+                var priority = p.Value;
+                <button type="button" class="chip-xs priority-@priority.ToString().ToLower() @(model.Priority == priority ? "active" : "")" @onclick="() => SelectPriority(priority)">@p.Label</button>
             }
-            <div class="form-group">
-                <label>Tipo de tela</label>
-                <InputSelect @bind-value="model.FabricKey" class="form-control">
-                    @foreach (var fabric in OrderFormOptions.Fabrics)
-                    {
-                        <option value="@fabric.Key">@fabric.Label</option>
-                    }
-                </InputSelect>
-            </div>
-            <div class="form-group">
-                <label>Rango de tallas general</label>
-                <InputSelect @bind-value="model.SizeRangeSummary" class="form-control">
-                    <option value="">— Seleccione —</option>
-                    @foreach (var size in OrderFormOptions.SizeRanges)
-                    {
-                        <option value="@size.Value">@size.Label</option>
-                    }
-                </InputSelect>
-            </div>
-            <div class="form-group">
-                <label>Fecha de ingreso de pedido *</label>
-                <InputDate @bind-value="model.ReceivedAt" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label>Fecha de entrega de pedido *</label>
-                <InputDate @bind-value="model.AgreedDeliveryDate" class="form-control" />
-                <button type="button" class="btn-secondary btn-sm" style="margin-top:8px;" @onclick="ApplySuggestedDelivery">
-                    Usar sugerencia (7 días hábiles)
-                </button>
-            </div>
+            <span class="chip-divider"></span>
+            @foreach (var gift in GiftOptionHelper.Options)
+            {
+                var giftValue = gift.Value;
+                <button type="button" class="chip-xs @(model.GiftOption == giftValue ? "active" : "")" @onclick="() => SelectGift(giftValue)">@ShortGiftLabel(gift.Label)</button>
+            }
         </div>
-    </section>
+        <DesignerPickerCards Designers="designers" Workloads="designerWorkloads" UltraCompact="true" @bind-SelectedDesignerId="model.DesignerId" />
+    </div>
 
-    <section class="panel-section form-section-compact">
-        <h2>6. Acabado / bordado (opcional)</h2>
-        <p class="field-hint">Si no marca ninguna opción, todo será <strong>sublimado</strong>.</p>
-        <div class="option-chips">
-            <button type="button" class="option-chip @(model.EmbroideryEscudo ? "active" : "")" @onclick="ToggleEmbroideryEscudo">Bordado escudo</button>
-            <button type="button" class="option-chip @(model.EmbroideryMarca ? "active" : "")" @onclick="ToggleEmbroideryMarca">Bordado marca</button>
-            <button type="button" class="option-chip @(model.EmbroideryShort ? "active" : "")" @onclick="ToggleEmbroideryShort">Bordado short</button>
-        </div>
-    </section>
-
-    <section class="panel-section form-section-compact">
-        <h2>7. Lista de jugadores</h2>
-        <AdminQuoteRosterEditor Rows="model.RosterRows" />
-    </section>
-
-    <section class="panel-section form-section-compact">
-        <h2>8. Fotos de referencia</h2>
-        <AdminQuotePhotoSlots Slots="model.PhotoSlots" />
-    </section>
-
-    <section class="panel-section form-section-compact">
-        <h2>9. Detalles y opciones admin</h2>
-        <div class="form-group">
-            <label>Detalles adicionales</label>
-            <InputTextArea @bind-value="model.Notes" class="form-control" rows="3" placeholder="Colores, diseño, escudo, observaciones..." />
-        </div>
-        <div class="form-group">
-            <label>Prioridad</label>
-            <div class="option-chips">
-                @foreach (var p in OrderFormOptions.PriorityQuick)
-                {
-                    var priority = p.Value;
-                    <button type="button" class="option-chip priority-@priority.ToString().ToLower() @(model.Priority == priority ? "active" : "")" @onclick="() => SelectPriority(priority)">@p.Label</button>
-                }
-            </div>
-        </div>
-        <div class="form-group">
-            <label>Obsequio (opcional)</label>
-            <div class="option-chips">
-                @foreach (var gift in GiftOptionHelper.Options)
-                {
-                    var giftValue = gift.Value;
-                    <button type="button" class="option-chip @(model.GiftOption == giftValue ? "active" : "")" @onclick="() => SelectGift(giftValue)">@gift.Label</button>
-                }
-            </div>
-        </div>
-    </section>
-
-    <section class="panel-section form-section-compact">
-        <h2>10. Asignar diseñador (opcional)</h2>
-        <p class="field-hint">Elija quien tenga menos pendientes.</p>
-        <DesignerPickerCards Designers="designers" Workloads="designerWorkloads" @bind-SelectedDesignerId="model.DesignerId" />
-    </section>
-
-    <div class="form-actions-sticky">
-        <button type="submit" class="btn-primary btn-primary-lg" disabled="@isSaving">
-            @(isSaving ? "Guardando..." : "Registrar pedido y generar proforma")
+    <div class="form-actions-sticky form-actions-compact">
+        <button type="submit" class="btn-primary btn-primary-sm" disabled="@isSaving">
+            @(isSaving ? "Guardando..." : "Registrar pedido")
         </button>
-        <a href="/pedidos" class="btn-secondary">Cancelar</a>
+        <a href="/pedidos" class="btn-secondary btn-secondary-sm">Cancelar</a>
     </div>
 </EditForm>
 
@@ -251,6 +206,30 @@
     private bool isSaving;
     private string? message;
     private string? error;
+
+    private static string ShortGarmentLabel(string label) => label switch
+    {
+        "Conjunto completo" => "Conjunto",
+        "Solo camiseta" => "Camiseta",
+        "Short deportivo" => "Short",
+        "Ambos tipos" => "Mixto",
+        _ => label
+    };
+
+    private static string ShortServiceLabel(string key) => key switch
+    {
+        ServiceTypeHelper.PrintPressOnly => "Impresión",
+        ServiceTypeHelper.WithLaserCut => "Láser",
+        ServiceTypeHelper.WithConfection => "Confección",
+        _ => key
+    };
+
+    private static string ShortGiftLabel(string label) => label switch
+    {
+        "Sin obsequio" => "Sin regalo",
+        "Camiseta extra" => "+Camiseta",
+        _ => label
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -288,12 +267,6 @@
         return Task.CompletedTask;
     }
 
-    private Task SelectMypeService(string serviceType)
-    {
-        ToggleMypeService(serviceType);
-        return Task.CompletedTask;
-    }
-
     private bool IsMypeServiceSelected(string key) => key switch
     {
         ServiceTypeHelper.PrintPressOnly => model.MypePrintPress,
@@ -317,12 +290,6 @@
                 break;
         }
 
-        StateHasChanged();
-    }
-
-    private void SelectSport(string value)
-    {
-        model.Sport = value;
         StateHasChanged();
     }
 
@@ -377,7 +344,7 @@
 
     private LandingQuoteSubmitRequest BuildQuoteRequest()
     {
-        var sport = model.Sport == "Otro" ? model.SportOther?.Trim() ?? "Otro" : model.Sport;
+        var sport = OrderFormOptions.DefaultSport;
         var garment = GarmentTypeHelper.IsMixed(model.GarmentType) ? "Mixta" : model.GarmentType;
 
         var roster = model.RosterRows
@@ -529,8 +496,7 @@
         public string? ClientPhone { get; set; }
         public string GarmentType { get; set; } = OrderFormOptions.GarmentChips[0].Value;
         public List<MixedGarmentLineModel> MixedLines { get; } = [];
-        public string Sport { get; set; } = "Fútbol";
-        public string? SportOther { get; set; }
+        public string Sport { get; set; } = OrderFormOptions.DefaultSport;
 
         [Range(1, 10000, ErrorMessage = "Cantidad inválida.")]
         public int Quantity { get; set; } = 1;

@@ -257,7 +257,6 @@ public static class LandingQuoteCalculator
         sb.AppendLine($"  Nombre/Club: {request.ClientName}");
         if (!string.IsNullOrWhiteSpace(request.ClientPhone))
             sb.AppendLine($"  WhatsApp: {request.ClientPhone}");
-        sb.AppendLine($"  Deporte: {request.Sport}");
         if (!string.IsNullOrWhiteSpace(request.DesiredDeliveryDeadline))
             sb.AppendLine($"  Fecha de entrega de pedido: {request.DesiredDeliveryDeadline.Trim()}");
         sb.AppendLine();
@@ -337,7 +336,6 @@ public static class LandingQuoteCalculator
         sb.AppendLine($"  Nombre/Club: {request.ClientName}");
         if (!string.IsNullOrWhiteSpace(request.ClientPhone))
             sb.AppendLine($"  WhatsApp: {request.ClientPhone}");
-        sb.AppendLine($"  Deporte: {request.Sport}");
         if (!string.IsNullOrWhiteSpace(request.DesiredDeliveryDeadline))
             sb.AppendLine($"  Fecha de entrega de pedido: {request.DesiredDeliveryDeadline.Trim()}");
         sb.AppendLine();
@@ -414,7 +412,6 @@ public static class LandingQuoteCalculator
         }
         sb.AppendLine($"🧵 *Tela:* {fabricLabel}");
         sb.AppendLine($"✨ *Acabado:* {DescribeEmbroidery(request)}");
-        sb.AppendLine($"⚽ *Deporte:* {request.Sport}");
         if (!string.IsNullOrWhiteSpace(request.DesiredDeliveryDeadline))
             sb.AppendLine($"📅 *Fecha de entrega de pedido:* {request.DesiredDeliveryDeadline.Trim()}");
         if (!string.IsNullOrWhiteSpace(request.Notes))

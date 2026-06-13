@@ -84,10 +84,6 @@ else
                 {
                     <div><dt>Obsequio</dt><dd>@GiftOptionHelper.GetLabel(order.GiftOption)</dd></div>
                 }
-                @if (UiLabelHelper.IsVisible(ui, panelKey, "sport"))
-                {
-                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "sport", "Deporte")</dt><dd>@order.Sport</dd></div>
-                }
                 @if (UiLabelHelper.IsVisible(ui, panelKey, "quantity"))
                 {
                     <div><dt>@UiLabelHelper.Label(ui, panelKey, "quantity", "Cantidad")</dt><dd>@order.Quantity uds.</dd></div>

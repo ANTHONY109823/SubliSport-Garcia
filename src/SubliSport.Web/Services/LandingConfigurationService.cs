@@ -166,20 +166,10 @@ public class LandingConfigurationService(AppDbContext db, IConfiguration configu
             });
         }
 
-        settings.Quote.Sports = settings.Quote.Sports
-            .Where(s => !string.IsNullOrWhiteSpace(s.Label) && !string.IsNullOrWhiteSpace(s.Value))
-            .Select(s =>
-            {
-                s.Label = s.Label.Trim();
-                s.Value = s.Value.Trim();
-                return s;
-            })
-            .ToList();
-
-        if (settings.Quote.Sports.Count == 0)
-        {
-            settings.Quote.Sports = LandingSettingsData.CreateDefault().Quote.Sports;
-        }
+        settings.Quote.Sports =
+        [
+            new LandingSportOption { Label = "⚽ Fútbol", Value = "Fútbol" }
+        ];
 
         settings.Quote.Sizes = settings.Quote.Sizes
             .Where(s => !string.IsNullOrWhiteSpace(s.Label) && !string.IsNullOrWhiteSpace(s.Value))

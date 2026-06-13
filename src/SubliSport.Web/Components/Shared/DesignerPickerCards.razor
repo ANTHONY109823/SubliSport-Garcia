@@ -1,33 +1,55 @@
 @using SubliSport.Domain.Entities
 
-<div class="designer-picker designer-picker-compact">
-    @foreach (var designer in SortedDesigners)
-    {
-        var workload = Workloads.GetValueOrDefault(designer.Id) ?? DesignerWorkloadHelper.Empty;
-        var isSelected = SelectedDesignerId == designer.Id;
-        var isCurrent = CurrentDesignerId == designer.Id;
-        var isRecommended = designer.Id == LightestDesignerId;
-        <button type="button"
-                class="designer-card designer-card-compact @(isSelected ? "selected" : "") @(isCurrent ? "current" : "") @(isRecommended ? "recommended" : "")"
-                @onclick="() => SelectDesigner(designer.Id)">
-            <strong>@designer.FullName</strong>
-            @if (isRecommended)
-            {
-                <em class="designer-tag">Menor carga</em>
-            }
-            <ul class="designer-workload-list">
-                <li><span>Sin aceptar</span><b>@workload.SinAceptar</b></li>
-                <li><span>Pendientes</span><b>@workload.Pendientes</b></li>
-            </ul>
-        </button>
-    }
-</div>
+@if (UltraCompact)
+{
+    <div class="designer-chips-xs">
+        @foreach (var designer in SortedDesigners)
+        {
+            var workload = Workloads.GetValueOrDefault(designer.Id) ?? DesignerWorkloadHelper.Empty;
+            var isSelected = SelectedDesignerId == designer.Id;
+            var isRecommended = designer.Id == LightestDesignerId;
+            var firstName = designer.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? designer.FullName;
+            <button type="button"
+                    class="chip-xs designer-chip-xs @(isSelected ? "active" : "") @(isRecommended ? "recommended" : "")"
+                    @onclick="() => SelectDesigner(designer.Id)">
+                @firstName
+                <span class="designer-pending-badge">@workload.TotalPendientes</span>
+            </button>
+        }
+    </div>
+}
+else
+{
+    <div class="designer-picker designer-picker-compact">
+        @foreach (var designer in SortedDesigners)
+        {
+            var workload = Workloads.GetValueOrDefault(designer.Id) ?? DesignerWorkloadHelper.Empty;
+            var isSelected = SelectedDesignerId == designer.Id;
+            var isCurrent = CurrentDesignerId == designer.Id;
+            var isRecommended = designer.Id == LightestDesignerId;
+            <button type="button"
+                    class="designer-card designer-card-compact @(isSelected ? "selected" : "") @(isCurrent ? "current" : "") @(isRecommended ? "recommended" : "")"
+                    @onclick="() => SelectDesigner(designer.Id)">
+                <strong>@designer.FullName</strong>
+                @if (isRecommended)
+                {
+                    <em class="designer-tag">Menor carga</em>
+                }
+                <ul class="designer-workload-list">
+                    <li><span>Sin aceptar</span><b>@workload.SinAceptar</b></li>
+                    <li><span>Pendientes</span><b>@workload.Pendientes</b></li>
+                </ul>
+            </button>
+        }
+    </div>
+}
 
 @code {
     [Parameter] public IReadOnlyList<ApplicationUser> Designers { get; set; } = [];
     [Parameter] public Dictionary<string, DesignerWorkloadInfo> Workloads { get; set; } = new();
     [Parameter] public string? SelectedDesignerId { get; set; }
     [Parameter] public string? CurrentDesignerId { get; set; }
+    [Parameter] public bool UltraCompact { get; set; }
     [Parameter] public EventCallback<string?> SelectedDesignerIdChanged { get; set; }
 
     private string? LightestDesignerId => Designers

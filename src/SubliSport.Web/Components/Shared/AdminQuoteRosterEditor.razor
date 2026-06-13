@@ -1,42 +1,56 @@
-<div class="admin-quote-block">
-    <label>Lista por jugador / prenda (nombre · talla · número)</label>
-    <div class="roster-tools">
-        <a href="/templates/plantilla-lista-sublisport.csv" download class="btn-link-sm">⬇ Descargar plantilla CSV</a>
-        <InputFile OnChange="ImportCsvAsync" accept=".csv,text/csv" class="roster-file-input" />
-        <span class="field-hint">o cargue CSV exportado desde Excel</span>
+<div class="roster-panel @(Compact ? "roster-panel-compact" : "")">
+    @if (!Compact)
+    {
+        <p class="roster-panel-subtitle">Lista por jugador / prenda (nombre · talla · número)</p>
+    }
+
+    <div class="roster-import-row">
+        <a href="/templates/plantilla-lista-sublisport.csv" download class="roster-import-link">⬇ CSV</a>
+        <div class="roster-upload-wrap">
+            <InputFile OnChange="ImportCsvAsync" accept=".csv,text/csv" class="roster-file-overlay" />
+            <span class="roster-upload-label">📄 CSV</span>
+        </div>
     </div>
+
     @if (!string.IsNullOrEmpty(importMessage))
     {
-        <p class="field-hint @(importError ? "text-error" : "text-ok")">@importMessage</p>
+        <p class="roster-import-status @(importError ? "text-error" : "text-ok")">@importMessage</p>
     }
-    <div class="roster-table-wrap">
-        <table class="roster-table-admin">
-            <thead><tr><th>Nombre</th><th>Talla</th><th>Número</th><th></th></tr></thead>
-            <tbody>
-                @for (var i = 0; i < Rows.Count; i++)
-                {
-                    var row = Rows[i];
-                    var index = i;
-                    <tr>
-                        <td><input class="form-control form-control-sm" @bind="row.Name" placeholder="Nombre" /></td>
-                        <td><input class="form-control form-control-sm" @bind="row.Size" placeholder="M" /></td>
-                        <td><input class="form-control form-control-sm" @bind="row.Number" placeholder="10" /></td>
-                        <td>
-                            @if (Rows.Count > 1)
-                            {
-                                <button type="button" class="btn-action btn-warn btn-xs" @onclick="() => RemoveRow(index)">✕</button>
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+
+    <div class="roster-entries">
+        @for (var i = 0; i < Rows.Count; i++)
+        {
+            var row = Rows[i];
+            var index = i;
+            <div class="roster-entry">
+                <div class="roster-field roster-field-name">
+                    @if (!Compact) { <label>Nombre</label> }
+                    <input class="form-control form-control-sm" @bind="row.Name" placeholder="Nombre" />
+                </div>
+                <div class="roster-field">
+                    @if (!Compact) { <label>Talla</label> }
+                    <input class="form-control form-control-sm" @bind="row.Size" placeholder="M" />
+                </div>
+                <div class="roster-field">
+                    @if (!Compact) { <label>Número</label> }
+                    <input class="form-control form-control-sm" @bind="row.Number" placeholder="10" />
+                </div>
+                <div class="roster-entry-actions">
+                    @if (Rows.Count > 1)
+                    {
+                        <button type="button" class="roster-remove-btn" title="Quitar fila" @onclick="() => RemoveRow(index)">✕</button>
+                    }
+                </div>
+            </div>
+        }
     </div>
-    <button type="button" class="btn-secondary btn-sm" @onclick="AddRow">+ Agregar fila</button>
+
+    <button type="button" class="roster-add-btn" @onclick="AddRow">+ fila</button>
 </div>
 
 @code {
     [Parameter] public List<RosterRowModel> Rows { get; set; } = [];
+    [Parameter] public bool Compact { get; set; }
 
     private string? importMessage;
     private bool importError;
@@ -70,7 +84,7 @@
             if (parsed.Count == 0)
             {
                 importError = true;
-                importMessage = "No se encontraron filas válidas en el archivo.";
+                importMessage = "Sin filas válidas.";
                 return;
             }
 
@@ -85,7 +99,7 @@
                 });
             }
 
-            importMessage = $"{parsed.Count} jugador(es) importados.";
+            importMessage = $"{parsed.Count} importados.";
         }
         catch (Exception ex)
         {

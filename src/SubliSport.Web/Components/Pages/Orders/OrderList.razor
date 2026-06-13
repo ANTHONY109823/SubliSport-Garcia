@@ -86,7 +86,7 @@ else if (isDesigner)
                 </div>
                 <div class="order-card-body">
                     <p><span>Cliente</span> @order.ClientName</p>
-                    <p><span>Prenda</span> @order.GarmentType · @order.Sport · @order.Quantity uds.</p>
+                    <p><span>Prenda</span> @order.GarmentType · @order.Quantity uds.</p>
                     <p><span>Entrega</span> @(order.AgreedDeliveryDate?.ToString("dd/MM/yyyy") ?? "—")</p>
                     @if (waUrl is not null)
                     {

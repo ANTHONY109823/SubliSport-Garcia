@@ -1,7 +1,10 @@
-<div class="admin-quote-block">
-    <label>Fotos del modelo de referencia</label>
-    <p class="field-hint">Hasta 3 diseños o bocetos (JPG/PNG · máx. 4 MB c/u)</p>
-    <div class="photo-slots-admin">
+<div class="@(Compact ? "photo-slots-compact-wrap" : "admin-quote-block")">
+    @if (!Compact)
+    {
+        <label>Fotos del modelo de referencia</label>
+        <p class="field-hint">Hasta 3 diseños o bocetos (JPG/PNG · máx. 4 MB c/u)</p>
+    }
+    <div class="photo-slots-admin @(Compact ? "photo-slots-admin-compact" : "")">
         @for (var i = 0; i < Slots.Count; i++)
         {
             var slot = Slots[i];
@@ -14,7 +17,7 @@
                 }
                 else
                 {
-                    <span class="photo-slot-label">Diseño @(index + 1)</span>
+                    <span class="photo-slot-label">@(index + 1)</span>
                     <InputFile OnChange="e => UploadPhotoAsync(e, index)" accept="image/jpeg,image/png,image/webp,image/*" />
                 }
             </div>
@@ -28,6 +31,7 @@
 
 @code {
     [Parameter] public List<PhotoSlotModel> Slots { get; set; } = [];
+    [Parameter] public bool Compact { get; set; }
 
     private string? photoError;
 
@@ -42,7 +46,7 @@
 
         if (file.Size > 4 * 1024 * 1024)
         {
-            photoError = "La imagen supera 4 MB.";
+            photoError = "Máx. 4 MB.";
             return;
         }
 

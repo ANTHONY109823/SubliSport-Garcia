@@ -103,26 +103,6 @@
 </section>
 
 <section class="panel-section">
-    <h2>Deportes</h2>
-    <div class="table-wrap">
-        <table class="data-table">
-            <thead><tr><th>Etiqueta visible</th><th>Valor en WhatsApp</th><th></th></tr></thead>
-            <tbody>
-                @foreach (var s in model.Quote.Sports)
-                {
-                    <tr>
-                        <td><input @bind="s.Label" class="form-control form-control-sm" placeholder="⚽ Fútbol" /></td>
-                        <td><input @bind="s.Value" class="form-control form-control-sm" /></td>
-                        <td><button type="button" class="btn-action btn-danger" @onclick="() => model.Quote.Sports.Remove(s)">×</button></td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-    <button type="button" class="btn-secondary" @onclick="AddSport">+ Agregar deporte</button>
-</section>
-
-<section class="panel-section">
     <h2>Tallas (selector)</h2>
     <div class="table-wrap">
         <table class="data-table">
@@ -166,9 +146,6 @@
 
     private void AddGarment() =>
         model.Quote.Garments.Add(new LandingGarmentOption { Label = "Nueva prenda", Value = "Nueva prenda" });
-
-    private void AddSport() =>
-        model.Quote.Sports.Add(new LandingSportOption { Label = "🏅 Otro", Value = "Otro" });
 
     private void AddSize() =>
         model.Quote.Sizes.Add(new LandingSizeOption { Label = "Nueva talla", Value = "Nueva talla" });

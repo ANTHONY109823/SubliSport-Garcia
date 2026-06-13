@@ -5,6 +5,8 @@ using SubliSport.Domain.Landing;
 
 public static class OrderFormOptions
 {
+    public const string DefaultSport = "Fútbol";
+
     public static readonly (string Value, string Label)[] GarmentChips =
     [
         ("Conjunto completo (camiseta + short + medias)", "Conjunto completo"),
@@ -20,15 +22,6 @@ public static class OrderFormOptions
         "Short / Pantaloneta",
         "Medias",
         "Otro"
-    ];
-
-    public static readonly (string Value, string Label)[] Sports =
-    [
-        ("Fútbol", "⚽ Fútbol"),
-        ("Vóley", "🏐 Vóley"),
-        ("Básquet", "🏀 Básquet"),
-        ("Ciclismo", "🚴 Ciclismo"),
-        ("Otro", "🏅 Otro")
     ];
 
     public static readonly (string Value, string Label)[] SizeRanges =

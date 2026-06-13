@@ -73,11 +73,7 @@ else
                 }
                 @if (UiLabelHelper.IsVisible(ui, UiPanelKeys.ProductionOrderDetail, "garmentType"))
                 {
-                    <div><dt>@UiLabelHelper.Label(ui, UiPanelKeys.ProductionOrderDetail, "garmentType", "Prenda")</dt><dd>@OrderDisplayHelper.GetGarmentDisplay(order)@if (UiLabelHelper.IsVisible(ui, UiPanelKeys.ProductionOrderDetail, "sport")){<text> · @order.Sport</text>}</dd></div>
-                }
-                else if (UiLabelHelper.IsVisible(ui, UiPanelKeys.ProductionOrderDetail, "sport"))
-                {
-                    <div><dt>@UiLabelHelper.Label(ui, UiPanelKeys.ProductionOrderDetail, "sport", "Deporte")</dt><dd>@order.Sport</dd></div>
+                    <div><dt>@UiLabelHelper.Label(ui, UiPanelKeys.ProductionOrderDetail, "garmentType", "Prenda")</dt><dd>@OrderDisplayHelper.GetGarmentDisplay(order)</dd></div>
                 }
                 @if (UiLabelHelper.IsVisible(ui, UiPanelKeys.ProductionOrderDetail, "quantity"))
                 {
