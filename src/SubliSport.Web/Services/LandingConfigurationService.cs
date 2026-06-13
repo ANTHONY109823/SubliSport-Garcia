@@ -17,21 +17,35 @@ public class LandingConfigurationService(AppDbContext db, IConfiguration configu
 
     public async Task<LandingSettingsData> GetSettingsAsync()
     {
+        LandingSettingsData settings;
         try
         {
             var row = await db.LandingConfigurations.AsNoTracking().FirstOrDefaultAsync(p => p.Id == 1);
             if (row is null || string.IsNullOrWhiteSpace(row.JsonData))
             {
-                return CreateDefaultWithFallback();
+                settings = CreateDefaultWithFallback();
             }
-
-            return JsonSerializer.Deserialize<LandingSettingsData>(row.JsonData, JsonOptions)
-                   ?? CreateDefaultWithFallback();
+            else
+            {
+                settings = JsonSerializer.Deserialize<LandingSettingsData>(row.JsonData, JsonOptions)
+                           ?? CreateDefaultWithFallback();
+            }
         }
         catch
         {
-            return CreateDefaultWithFallback();
+            settings = CreateDefaultWithFallback();
         }
+
+        EnsureFabrics(settings);
+        return settings;
+    }
+
+    private static void EnsureFabrics(LandingSettingsData settings)
+    {
+        if (settings.Quote.Fabrics.Count > 0) return;
+        settings.Quote.Fabrics = LandingFabricCatalog.Fabrics
+            .Select(f => new LandingFabricOption { Key = f.Key, Label = f.Label })
+            .ToList();
     }
 
     public async Task SaveSettingsAsync(LandingSettingsData settings, string userId)
@@ -171,6 +185,8 @@ public class LandingConfigurationService(AppDbContext db, IConfiguration configu
         {
             settings.Quote.Sizes = LandingSettingsData.CreateDefault().Quote.Sizes;
         }
+
+        EnsureFabrics(settings);
 
         return settings;
     }

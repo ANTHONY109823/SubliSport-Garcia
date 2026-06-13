@@ -6,24 +6,24 @@ public static class LandingQuoteCalculator
 {
     private static readonly Dictionary<string, decimal[]> ConjuntoPrices = new()
     {
-        ["xxl_xl"] = [49, 50, 51, 52, 55, 58],
-        ["l_m_s"] = [48, 49, 50, 51, 54, 57],
-        ["s_14_16"] = [46, 47, 48, 49, 51, 52],
-        ["s_10_12"] = [45, 46, 47, 48, 50, 54],
-        ["s_4_6_8"] = [44, 45, 46, 47, 49, 50]
+        ["xxl_xl"] = [49, 49, 50, 51, 52, 52, 55, 55, 58],
+        ["l_m_s"] = [48, 48, 49, 50, 51, 51, 54, 54, 57],
+        ["s_14_16"] = [46, 46, 47, 48, 49, 49, 51, 51, 52],
+        ["s_10_12"] = [45, 45, 46, 47, 48, 48, 50, 50, 54],
+        ["s_4_6_8"] = [44, 44, 45, 46, 47, 47, 49, 49, 50]
     };
 
     private static readonly Dictionary<string, decimal[]> CamisetaPrices = new()
     {
-        ["xxl_xl"] = [32, 33, 34, 35, 36, 37],
-        ["l_m_s"] = [30, 31, 32, 33, 34, 35],
-        ["s_14_16"] = [28, 29, 30, 31, 32, 33],
-        ["s_10_12"] = [26, 27, 28, 29, 30, 31],
-        ["s_4_6_8"] = [24, 25, 26, 27, 28, 29]
+        ["xxl_xl"] = [32, 32, 33, 34, 35, 35, 36, 36, 37],
+        ["l_m_s"] = [30, 30, 31, 32, 33, 33, 34, 34, 35],
+        ["s_14_16"] = [28, 28, 29, 30, 31, 31, 32, 32, 33],
+        ["s_10_12"] = [26, 26, 27, 28, 29, 29, 30, 30, 31],
+        ["s_4_6_8"] = [24, 24, 25, 26, 27, 27, 28, 28, 29]
     };
 
     private static readonly string[] FabricKeys =
-        ["dry_fit", "poly_exagonal", "puma", "gota_sig_sag", "marathon_micro", "labrado_brillo"];
+        ["dry_fit", "win_fresch", "poly_exagonal", "puma", "gota", "sig_sag", "marathon", "micro_nike", "labrado_brillo"];
 
     public const decimal EmbroideryEscudoUnit = 3m;
     public const decimal EmbroideryMarcaUnit = 2m;
@@ -35,7 +35,7 @@ public static class LandingQuoteCalculator
         var fabricIndex = Array.IndexOf(FabricKeys, fabricKey);
         if (fabricIndex < 0) fabricIndex = 0;
 
-        var fabricLabel = LandingFabricCatalog.Fabrics.First(f => f.Key == FabricKeys[fabricIndex]).Label;
+        var fabricLabel = LandingFabricCatalog.GetLabel(fabricKey);
         var isMixed = IsMixedOrder(request);
         var category = isMixed ? "mixta" : ResolveGarmentCategory(request.GarmentType);
         var lines = BuildLines(request, category, fabricIndex, isMixed);
@@ -191,12 +191,7 @@ public static class LandingQuoteCalculator
         return "conjunto";
     }
 
-    private static string NormalizeFabricKey(string? key)
-    {
-        if (string.IsNullOrWhiteSpace(key)) return FabricKeys[0];
-        var k = key.Trim().ToLowerInvariant();
-        return FabricKeys.Contains(k) ? k : FabricKeys[0];
-    }
+    private static string NormalizeFabricKey(string? key) => LandingFabricCatalog.NormalizeKey(key);
 
     public static string ResolveSizeTier(string? size)
     {

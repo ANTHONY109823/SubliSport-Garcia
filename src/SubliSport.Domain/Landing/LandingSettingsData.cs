@@ -28,6 +28,12 @@ public class LandingSizeOption
     public string Value { get; set; } = string.Empty;
 }
 
+public class LandingFabricOption
+{
+    public string Key { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+}
+
 public class LandingQuoteSettings
 {
     public string WhatsAppPhone { get; set; } = "51960840874";
@@ -38,6 +44,7 @@ public class LandingQuoteSettings
     public List<LandingGarmentOption> Garments { get; set; } = [];
     public List<LandingSportOption> Sports { get; set; } = [];
     public List<LandingSizeOption> Sizes { get; set; } = [];
+    public List<LandingFabricOption> Fabrics { get; set; } = [];
 }
 
 public class LandingSettingsData
@@ -152,7 +159,10 @@ public class LandingSettingsData
                 new LandingSizeOption { Label = "M / L", Value = "M / L" },
                 new LandingSizeOption { Label = "XL / XXL", Value = "XL / XXL" },
                 new LandingSizeOption { Label = "Tallas mixtas", Value = "Tallas mixtas" }
-            ]
+            ],
+            Fabrics = LandingFabricCatalog.Fabrics
+                .Select(f => new LandingFabricOption { Key = f.Key, Label = f.Label })
+                .ToList()
         }
     };
 }

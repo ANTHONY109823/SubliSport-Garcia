@@ -44,6 +44,17 @@
         { label: 'M / L', value: 'M / L' },
         { label: 'XL / XXL', value: 'XL / XXL' },
         { label: 'Tallas mixtas', value: 'Tallas mixtas' }
+      ],
+      fabrics: [
+        { key: 'dry_fit', label: 'DRY FIT' },
+        { key: 'win_fresch', label: 'WIN FRESCH' },
+        { key: 'poly_exagonal', label: 'POLY EXAGONAL' },
+        { key: 'puma', label: 'PUMA' },
+        { key: 'gota', label: 'GOTA' },
+        { key: 'sig_sag', label: 'SIG SAG' },
+        { key: 'marathon', label: 'MARATON' },
+        { key: 'micro_nike', label: 'MICRO NIKE' },
+        { key: 'labrado_brillo', label: 'LABRADO CON BRILLO' }
       ]
     }
   };
@@ -172,6 +183,17 @@
       });
     }
     return list;
+  }
+
+  function renderFabrics(fabrics) {
+    var select = $('fabricType');
+    if (!select) return;
+    var list = fabrics && fabrics.length ? fabrics : DEFAULTS.quote.fabrics;
+    select.innerHTML = list.map(function (f, i) {
+      var key = f.key || f.Key || '';
+      var label = f.label || f.Label || key;
+      return '<option value="' + esc(key) + '" style="background:#111"' + (i === 0 ? ' selected' : '') + '>' + esc(label) + '</option>';
+    }).join('');
   }
 
   function renderGarments(garments) {
@@ -712,6 +734,7 @@
     renderGarments(quote.garments || DEFAULTS.quote.garments);
     renderSports(quote.sports || DEFAULTS.quote.sports);
     renderSizes(quote.sizes || DEFAULTS.quote.sizes);
+    renderFabrics(quote.fabrics || DEFAULTS.quote.fabrics);
     applyQuoteTexts(quote);
     mixedTypes = quote.mixedTypes || DEFAULTS.quote.mixedTypes;
     renderRoster();
