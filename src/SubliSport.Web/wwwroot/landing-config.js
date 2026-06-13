@@ -15,7 +15,7 @@
     ],
     quote: {
       whatsAppPhone: '51960840874',
-      responseNote: 'Wilber revisará su pedido y le enviará la proforma con precios',
+      responseNote: 'Respuesta en menos de 2 horas · Nuestro asesor le confirmará precios y plazos',
       quantityPlaceholder: 'Cantidad de prendas',
       namePlaceholder: 'Tu nombre o club *',
       extraPlaceholder: 'Colores, diseño, fecha de entrega, escudo...',
@@ -669,7 +669,7 @@
 
         openBusinessWhatsApp(waText);
         setStatus(
-          '✓ Solicitud ' + (res.orderNumber || '') + ' registrada en el panel de Wilber. Complete el envío por WhatsApp; el asesor le enviará la proforma.',
+          '✓ Solicitud ' + (res.orderNumber || '') + ' registrada. Complete el envío por WhatsApp; nuestro asesor le enviará la proforma.',
           'ok'
         );
       })

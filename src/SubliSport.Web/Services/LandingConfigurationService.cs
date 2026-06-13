@@ -37,6 +37,7 @@ public class LandingConfigurationService(AppDbContext db, IConfiguration configu
         }
 
         EnsureFabrics(settings);
+        EnsurePublicCopy(settings);
         return settings;
     }
 
@@ -46,6 +47,15 @@ public class LandingConfigurationService(AppDbContext db, IConfiguration configu
         settings.Quote.Fabrics = LandingFabricCatalog.Fabrics
             .Select(f => new LandingFabricOption { Key = f.Key, Label = f.Label })
             .ToList();
+    }
+
+    private static void EnsurePublicCopy(LandingSettingsData settings)
+    {
+        if (settings.Quote.ResponseNote.Contains("Wilber", StringComparison.OrdinalIgnoreCase))
+        {
+            settings.Quote.ResponseNote =
+                "Respuesta en menos de 2 horas · Nuestro asesor le confirmará precios y plazos";
+        }
     }
 
     public async Task SaveSettingsAsync(LandingSettingsData settings, string userId)
@@ -187,6 +197,7 @@ public class LandingConfigurationService(AppDbContext db, IConfiguration configu
         }
 
         EnsureFabrics(settings);
+        EnsurePublicCopy(settings);
 
         return settings;
     }
