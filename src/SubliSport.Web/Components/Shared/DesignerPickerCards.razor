@@ -2,18 +2,21 @@
 
 @if (UltraCompact)
 {
-    <div class="designer-chips-xs">
+    <div class="circle-pick-row">
         @foreach (var designer in SortedDesigners)
         {
             var workload = Workloads.GetValueOrDefault(designer.Id) ?? DesignerWorkloadHelper.Empty;
             var isSelected = SelectedDesignerId == designer.Id;
-            var isRecommended = designer.Id == LightestDesignerId;
             var firstName = designer.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? designer.FullName;
+            var initials = GetInitials(designer.FullName);
             <button type="button"
-                    class="chip-xs designer-chip-xs @(isSelected ? "active" : "") @(isRecommended ? "recommended" : "")"
+                    class="circle-pick @(isSelected ? "active" : "")"
                     @onclick="() => SelectDesigner(designer.Id)">
-                @firstName
-                <span class="designer-pending-badge">@workload.TotalPendientes</span>
+                <span class="circle-pick-ring">
+                    <span class="circle-pick-ring-text">@initials</span>
+                    <span class="circle-pick-badge">@workload.TotalPendientes</span>
+                </span>
+                <span class="circle-pick-label">@firstName</span>
             </button>
         }
     </div>
@@ -63,4 +66,12 @@ else
 
     private Task SelectDesigner(string designerId) =>
         SelectedDesignerIdChanged.InvokeAsync(designerId);
+
+    private static string GetInitials(string fullName)
+    {
+        var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "?";
+        if (parts.Length == 1) return parts[0][..Math.Min(2, parts[0].Length)].ToUpperInvariant();
+        return $"{char.ToUpperInvariant(parts[0][0])}{char.ToUpperInvariant(parts[^1][0])}";
+    }
 }

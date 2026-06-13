@@ -26,18 +26,19 @@
     <DataAnnotationsValidator />
 
     <div class="quote-ultra-block">
-        <ClientTypeSelector SelectedTier="model.PricingTier" SelectedTierChanged="SelectPricingTier" />
+        <ClientTypeSelector CircleStyle="true" SelectedTier="model.PricingTier" SelectedTierChanged="SelectPricingTier" />
         @if (model.PricingTier == ClientPricingTier.MypeB2B)
         {
-            <div class="chip-row chip-row-xs">
+            <div class="circle-pick-row circle-pick-row-spaced">
                 @foreach (var opt in ServiceTypeHelper.Options)
                 {
                     var serviceKey = opt.Key;
                     var isActive = IsMypeServiceSelected(serviceKey);
                     <button type="button"
-                            class="chip-xs @(isActive ? "active" : "")"
+                            class="circle-pick @ServiceToneClass(serviceKey) @(isActive ? "active" : "")"
                             @onclick="() => ToggleMypeService(serviceKey)">
-                        @opt.Icon @ShortServiceLabel(serviceKey)
+                        <span class="circle-pick-ring">@opt.Icon</span>
+                        <span class="circle-pick-label">@ShortServiceLabel(serviceKey)</span>
                     </button>
                 }
             </div>
@@ -57,14 +58,15 @@
     </div>
 
     <div class="quote-ultra-block">
-        <div class="chip-row chip-row-xs">
+        <div class="circle-pick-row">
             @foreach (var g in OrderFormOptions.GarmentChips)
             {
                 var value = g.Value;
                 <button type="button"
-                        class="chip-xs @(model.GarmentType == value ? "active" : "")"
+                        class="circle-pick @(model.GarmentType == value ? "active" : "")"
                         @onclick="() => SelectGarment(value)">
-                    @ShortGarmentLabel(g.Label)
+                    <span class="circle-pick-ring">@GarmentIcon(value)</span>
+                    <span class="circle-pick-label">@ShortGarmentLabel(g.Label)</span>
                 </button>
             }
         </div>
@@ -140,18 +142,18 @@
     </div>
 
     <div class="quote-ultra-block">
-        <div class="embroidery-circles embroidery-circles-xs">
-            <button type="button" class="embroidery-circle @(model.EmbroideryEscudo ? "active" : "")" @onclick="ToggleEmbroideryEscudo">
-                <span class="embroidery-circle-ring">🛡️</span>
-                <span class="embroidery-circle-label">Escudo</span>
+        <div class="circle-pick-row">
+            <button type="button" class="circle-pick @(model.EmbroideryEscudo ? "active" : "")" @onclick="ToggleEmbroideryEscudo">
+                <span class="circle-pick-ring">🛡️</span>
+                <span class="circle-pick-label">Escudo</span>
             </button>
-            <button type="button" class="embroidery-circle @(model.EmbroideryMarca ? "active" : "")" @onclick="ToggleEmbroideryMarca">
-                <span class="embroidery-circle-ring">🏷️</span>
-                <span class="embroidery-circle-label">Marca</span>
+            <button type="button" class="circle-pick @(model.EmbroideryMarca ? "active" : "")" @onclick="ToggleEmbroideryMarca">
+                <span class="circle-pick-ring">🏷️</span>
+                <span class="circle-pick-label">Marca</span>
             </button>
-            <button type="button" class="embroidery-circle @(model.EmbroideryShort ? "active" : "")" @onclick="ToggleEmbroideryShort">
-                <span class="embroidery-circle-ring">🩳</span>
-                <span class="embroidery-circle-label">Short</span>
+            <button type="button" class="circle-pick @(model.EmbroideryShort ? "active" : "")" @onclick="ToggleEmbroideryShort">
+                <span class="circle-pick-ring">🩳</span>
+                <span class="circle-pick-label">Short</span>
             </button>
         </div>
     </div>
@@ -167,17 +169,28 @@
 
     <div class="quote-ultra-block quote-ultra-footer">
         <InputTextArea @bind-value="model.Notes" class="form-control form-control-xs" rows="2" placeholder="Notas..." />
-        <div class="chip-row chip-row-xs">
+        <div class="circle-pick-row">
             @foreach (var p in OrderFormOptions.PriorityQuick)
             {
                 var priority = p.Value;
-                <button type="button" class="chip-xs priority-@priority.ToString().ToLower() @(model.Priority == priority ? "active" : "")" @onclick="() => SelectPriority(priority)">@p.Label</button>
+                <button type="button"
+                        class="circle-pick @PriorityToneClass(priority) @(model.Priority == priority ? "active" : "")"
+                        @onclick="() => SelectPriority(priority)">
+                    <span class="circle-pick-ring">@PriorityIcon(priority)</span>
+                    <span class="circle-pick-label">@p.Label</span>
+                </button>
             }
-            <span class="chip-divider"></span>
+        </div>
+        <div class="circle-pick-row">
             @foreach (var gift in GiftOptionHelper.Options)
             {
                 var giftValue = gift.Value;
-                <button type="button" class="chip-xs @(model.GiftOption == giftValue ? "active" : "")" @onclick="() => SelectGift(giftValue)">@ShortGiftLabel(gift.Label)</button>
+                <button type="button"
+                        class="circle-pick @(model.GiftOption == giftValue ? "active" : "")"
+                        @onclick="() => SelectGift(giftValue)">
+                    <span class="circle-pick-ring">@GiftIcon(giftValue)</span>
+                    <span class="circle-pick-label">@ShortGiftLabel(gift.Label)</span>
+                </button>
             }
         </div>
         <DesignerPickerCards Designers="designers" Workloads="designerWorkloads" UltraCompact="true" @bind-SelectedDesignerId="model.DesignerId" />
@@ -216,12 +229,52 @@
         _ => label
     };
 
+    private static string GarmentIcon(string value) => value switch
+    {
+        "Conjunto completo (camiseta + short + medias)" => "🎽",
+        "Solo camiseta" => "👕",
+        "Short deportivo" => "🩳",
+        "Mixta" => "📦",
+        _ => "👕"
+    };
+
     private static string ShortServiceLabel(string key) => key switch
     {
         ServiceTypeHelper.PrintPressOnly => "Impresión",
         ServiceTypeHelper.WithLaserCut => "Láser",
         ServiceTypeHelper.WithConfection => "Confección",
         _ => key
+    };
+
+    private static string ServiceToneClass(string key) => key switch
+    {
+        ServiceTypeHelper.WithLaserCut => "tone-laser",
+        _ => string.Empty
+    };
+
+    private static string PriorityToneClass(OrderPriority priority) => priority switch
+    {
+        OrderPriority.Normal => "tone-normal",
+        OrderPriority.Alta => "tone-alta",
+        OrderPriority.Urgente => "tone-urgente",
+        _ => string.Empty
+    };
+
+    private static string PriorityIcon(OrderPriority priority) => priority switch
+    {
+        OrderPriority.Normal => "✓",
+        OrderPriority.Alta => "⚡",
+        OrderPriority.Urgente => "🔥",
+        _ => "•"
+    };
+
+    private static string GiftIcon(GiftOption gift) => gift switch
+    {
+        GiftOption.None => "—",
+        GiftOption.Pelota => "⚽",
+        GiftOption.Banderola => "🚩",
+        GiftOption.CamisetaExtra => "👕",
+        _ => "🎁"
     };
 
     private static string ShortGiftLabel(string label) => label switch

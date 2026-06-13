@@ -899,18 +899,21 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 .btn-link-sm { color: var(--gold); font-size: 0.82rem; text-decoration: none; }
 .btn-link-sm:hover { text-decoration: underline; }
 
-/* ── Acabado / bordado (círculos) ── */
+/* ── Selector circular unificado (admin + bordado) ── */
+.circle-pick-row,
 .embroidery-circles {
     display: flex;
     flex-wrap: wrap;
-    gap: 18px;
-    margin-top: 10px;
+    gap: 14px;
+    margin-top: 0;
+    align-items: flex-start;
 }
+.circle-pick,
 .embroidery-circle {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     padding: 0;
     border: none;
     background: none;
@@ -919,53 +922,134 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
     font-family: inherit;
     transition: transform 0.2s;
 }
+.circle-pick:hover,
 .embroidery-circle:hover { transform: translateY(-2px); }
+.circle-pick-ring,
 .embroidery-circle-ring {
-    width: 58px;
-    height: 58px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     border: 2px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.35rem;
+    font-size: 1.25rem;
     background: rgba(255,255,255,0.04);
     transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
     position: relative;
+    line-height: 1;
 }
+.circle-pick-ring-text {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--white);
+}
+.circle-pick:hover .circle-pick-ring,
 .embroidery-circle:hover .embroidery-circle-ring {
     border-color: rgba(240,165,0,0.45);
 }
+.circle-pick.active .circle-pick-ring,
 .embroidery-circle.active .embroidery-circle-ring {
     border-color: var(--gold);
     background: rgba(240,165,0,0.14);
     box-shadow: 0 0 0 3px rgba(240,165,0,0.1);
 }
+.circle-pick.active .circle-pick-ring::after,
 .embroidery-circle.active .embroidery-circle-ring::after {
     content: '✓';
     position: absolute;
     top: -3px;
     right: -3px;
-    width: 18px;
-    height: 18px;
+    width: 17px;
+    height: 17px;
     border-radius: 50%;
     background: var(--gold);
     color: #111;
-    font-size: 0.6rem;
+    font-size: 0.58rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
 }
+.circle-pick-label,
 .embroidery-circle-label {
-    font-size: 0.68rem;
-    letter-spacing: 0.8px;
+    font-size: 0.62rem;
+    letter-spacing: 0.6px;
     text-transform: uppercase;
     line-height: 1.2;
     text-align: center;
-    max-width: 72px;
+    max-width: 64px;
 }
+.circle-pick.active .circle-pick-label,
 .embroidery-circle.active .embroidery-circle-label { color: var(--gold); }
+
+.circle-pick.tone-teal.active .circle-pick-ring {
+    border-color: #00e5cc;
+    background: rgba(0,229,204,0.12);
+    box-shadow: 0 0 0 3px rgba(0,229,204,0.1);
+}
+.circle-pick.tone-teal.active .circle-pick-ring::after { background: #00e5cc; }
+.circle-pick.tone-teal.active .circle-pick-label { color: #00e5cc; }
+
+.circle-pick.tone-normal.active .circle-pick-ring {
+    border-color: #87b3ff;
+    background: rgba(100,149,237,0.14);
+    box-shadow: 0 0 0 3px rgba(100,149,237,0.1);
+}
+.circle-pick.tone-normal.active .circle-pick-ring::after { background: #87b3ff; }
+.circle-pick.tone-normal.active .circle-pick-label { color: #87b3ff; }
+
+.circle-pick.tone-alta.active .circle-pick-ring {
+    border-color: #ffb347;
+    background: rgba(255,165,0,0.14);
+    box-shadow: 0 0 0 3px rgba(255,165,0,0.1);
+}
+.circle-pick.tone-alta.active .circle-pick-ring::after { background: #ffb347; }
+.circle-pick.tone-alta.active .circle-pick-label { color: #ffb347; }
+
+.circle-pick.tone-urgente.active .circle-pick-ring {
+    border-color: #ff8080;
+    background: rgba(255,80,80,0.14);
+    box-shadow: 0 0 0 3px rgba(255,80,80,0.1);
+}
+.circle-pick.tone-urgente.active .circle-pick-ring::after { background: #ff8080; }
+.circle-pick.tone-urgente.active .circle-pick-label { color: #ff8080; }
+
+.circle-pick.tone-laser.active .circle-pick-ring {
+    border-color: #b478ff;
+    background: rgba(180,120,255,0.12);
+    box-shadow: 0 0 0 3px rgba(180,120,255,0.1);
+}
+.circle-pick.tone-laser.active .circle-pick-ring::after { background: #b478ff; }
+.circle-pick.tone-laser.active .circle-pick-label { color: #b478ff; }
+
+.circle-pick-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.15);
+    color: var(--white);
+    font-size: 0.55rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.circle-pick.active .circle-pick-badge { background: rgba(0,0,0,0.35); }
+
+/* alias legacy bordado */
+.embroidery-circles {
+    gap: 18px;
+    margin-top: 10px;
+}
+.embroidery-circle { gap: 8px; }
+.embroidery-circle-ring { width: 58px; height: 58px; font-size: 1.35rem; }
+.embroidery-circle-label { font-size: 0.68rem; max-width: 72px; }
 
 /* ── Lista de jugadores (admin) ── */
 .roster-panel {
@@ -1389,17 +1473,15 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 .mixed-inline-row:has(input[placeholder="Otro"]) {
     grid-template-columns: 1fr 80px 56px 28px;
 }
+.circle-pick-row-spaced {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
 .mixed-qty-xs { max-width: 56px; }
-.form-quote-ultra .client-type-grid-compact { gap: 8px; margin-top: 0; }
-.form-quote-ultra .client-type-card-compact { padding: 7px 10px; gap: 8px; border-radius: 8px; }
-.form-quote-ultra .client-type-icon-wrap { width: 26px; height: 26px; min-width: 26px; border-radius: 6px; }
-.form-quote-ultra .client-type-icon-wrap svg { width: 14px; height: 14px; }
-.form-quote-ultra .client-type-tag { display: none; }
-.form-quote-ultra .client-type-title { font-size: 0.78rem; }
-.form-quote-ultra .client-type-check { width: 16px; height: 16px; font-size: 0.55rem; }
-.form-quote-ultra .embroidery-circles-xs { gap: 12px; margin-top: 0; justify-content: flex-start; }
-.form-quote-ultra .embroidery-circles-xs .embroidery-circle-ring { width: 44px; height: 44px; font-size: 1.1rem; }
-.form-quote-ultra .embroidery-circles-xs .embroidery-circle-label { font-size: 0.6rem; }
+.form-quote-ultra .circle-pick-row { gap: 12px; }
+.form-quote-ultra .circle-pick-ring { width: 48px; height: 48px; font-size: 1.15rem; }
+.form-quote-ultra .circle-pick-label { font-size: 0.58rem; max-width: 58px; }
 .form-quote-ultra .quote-ultra-split {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1448,26 +1530,6 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 }
 .form-quote-ultra .photo-slots-admin-compact .photo-slot-label { font-size: 0.75rem; }
 .form-quote-ultra .quote-ultra-footer { display: flex; flex-direction: column; gap: 8px; }
-.form-quote-ultra .designer-chips-xs { display: flex; flex-wrap: wrap; gap: 6px; }
-.form-quote-ultra .designer-chip-xs.recommended:not(.active) {
-    border-color: rgba(110,231,160,0.35);
-}
-.form-quote-ultra .designer-pending-badge {
-    display: inline-flex;
-    min-width: 16px;
-    height: 16px;
-    padding: 0 4px;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.1);
-    font-size: 0.62rem;
-    font-weight: 700;
-    align-items: center;
-    justify-content: center;
-}
-.form-quote-ultra .designer-chip-xs.active .designer-pending-badge {
-    background: rgba(0,0,0,0.25);
-    color: var(--gold);
-}
 .form-actions-compact {
     padding: 10px 0;
     gap: 8px;
