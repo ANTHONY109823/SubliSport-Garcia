@@ -50,6 +50,7 @@
 
   var selectedPrenda = '';
   var selectedSport = '';
+  var selectedClientType = 'direct';
   var isMixedMode = false;
   var whatsAppPhone = DEFAULTS.quote.whatsAppPhone;
   var rosterRows = [{ name: '', size: '', number: '' }];
@@ -96,6 +97,47 @@
     items.forEach(function (item) { html += catalogCard(item); });
     track.innerHTML = html;
     wireHover(track.querySelectorAll('.jersey-card'));
+  }
+
+  function updateClientTypeUi() {
+    var panel = $('serviceInfoPanel');
+    if (panel) panel.classList.toggle('panel-hidden', selectedClientType !== 'service');
+    var wrap = $('clientTypeOpts');
+    if (!wrap) return;
+    wrap.querySelectorAll('.client-type-card').forEach(function (el) {
+      var type = el.getAttribute('data-type');
+      el.classList.toggle('active', type === selectedClientType);
+    });
+  }
+
+  function renderClientTypes() {
+    var wrap = $('clientTypeOpts');
+    if (!wrap) return;
+    wrap.innerHTML =
+      '<button type="button" class="client-type-card client-type-retail" data-type="direct">' +
+        '<span class="client-type-icon"><i class="fas fa-users"></i></span>' +
+        '<span class="client-type-tag">Retail</span>' +
+        '<strong class="client-type-title">Cliente directo</strong>' +
+        '<p class="client-type-desc">Persona natural o club — cotización por prenda completa.</p>' +
+        '<ul class="client-type-features"><li>Precio por conjunto</li><li>Ideal equipos</li></ul>' +
+        '<span class="client-type-check">✓</span>' +
+      '</button>' +
+      '<button type="button" class="client-type-card client-type-service" data-type="service">' +
+        '<span class="client-type-icon"><i class="fas fa-industry"></i></span>' +
+        '<span class="client-type-tag">B2B</span>' +
+        '<strong class="client-type-title">Por servicio</strong>' +
+        '<p class="client-type-desc">Taller o empresa — diseño, impresión, planchado y confección opcional.</p>' +
+        '<ul class="client-type-features"><li>Precio por metraje</li><li>Servicio profesional</li></ul>' +
+        '<span class="client-type-check">✓</span>' +
+      '</button>';
+    wrap.querySelectorAll('.client-type-card').forEach(function (el) {
+      el.addEventListener('click', function () {
+        selectedClientType = el.getAttribute('data-type') || 'direct';
+        updateClientTypeUi();
+      });
+    });
+    updateClientTypeUi();
+    wireHover(wrap.querySelectorAll('.client-type-card'));
   }
 
   function setMixedMode(mixed) {
@@ -555,7 +597,8 @@
       fabricKey: fabric && fabric.value ? fabric.value : 'dry_fit',
       embroideryEscudo: !!(chkEscudo && chkEscudo.checked),
       embroideryMarca: !!(chkMarca && chkMarca.checked),
-      embroideryShort: !!(chkShort && chkShort.checked)
+      embroideryShort: !!(chkShort && chkShort.checked),
+      pricingTier: selectedClientType === 'service' ? 1 : 0
     };
   }
 
@@ -665,6 +708,7 @@
     var catalog = (data && data.catalog && data.catalog.length) ? data.catalog : DEFAULTS.catalog;
     var quote = (data && data.quote) ? data.quote : DEFAULTS.quote;
     renderCatalog(catalog);
+    renderClientTypes();
     renderGarments(quote.garments || DEFAULTS.quote.garments);
     renderSports(quote.sports || DEFAULTS.quote.sports);
     renderSizes(quote.sizes || DEFAULTS.quote.sizes);

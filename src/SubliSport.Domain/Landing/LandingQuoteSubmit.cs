@@ -32,6 +32,8 @@ public class LandingQuoteSubmitRequest
     public bool EmbroideryEscudo { get; set; }
     public bool EmbroideryMarca { get; set; }
     public bool EmbroideryShort { get; set; }
+    /// <summary>0 = Cliente directo, 1 = Por servicio (MYPE/B2B).</summary>
+    public int PricingTier { get; set; }
 }
 
 public class LandingQuoteSubmitResponse

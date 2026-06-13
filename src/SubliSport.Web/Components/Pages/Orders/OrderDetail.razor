@@ -110,7 +110,15 @@ else
                 }
                 @if (UiLabelHelper.IsVisible(ui, panelKey, "notes"))
                 {
-                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "notes", "Notas admin")</dt><dd>@(order.Notes ?? "—")</dd></div>
+                    var notesSplit = ReferenceImageNotesHelper.Split(order.Notes);
+                    <div><dt>@UiLabelHelper.Label(ui, panelKey, "notes", "Notas admin")</dt><dd>@(string.IsNullOrWhiteSpace(notesSplit.TextNotes) ? "—" : notesSplit.TextNotes)</dd></div>
+                    @if (notesSplit.ImageUrls.Count > 0)
+                    {
+                        <div>
+                            <dt>Fotos referencia del cliente</dt>
+                            <dd><OrderReferencePhotos ImageUrls="notesSplit.ImageUrls" /></dd>
+                        </div>
+                    }
                 }
                 @if (!isDesignerView && UiLabelHelper.IsVisible(ui, panelKey, "assignedDesigner"))
                 {
@@ -119,7 +127,8 @@ else
             </dl>
         </section>
 
-        <AuthorizeView Roles="Admin">
+        @if (!isDesignerView)
+        {
             <section class="panel-section panel-highlight">
                 <h2>Recorrido por áreas</h2>
                 <p class="field-hint">Área, fecha y tiempo entre etapas.</p>
@@ -134,7 +143,7 @@ else
                                      CurrentDesignerId="order.AssignedDesignerId"
                                      @bind-SelectedDesignerId="selectedDesignerId" />
                 <div class="form-actions">
-                    <button class="btn-primary" @onclick="AssignDesigner" disabled="@string.IsNullOrEmpty(selectedDesignerId) || selectedDesignerId == order.AssignedDesignerId">
+                    <button type="button" class="btn-primary" @onclick="AssignDesigner" disabled="@(isBusy || string.IsNullOrEmpty(selectedDesignerId) || selectedDesignerId == order.AssignedDesignerId)">
                         @(order.AssignedDesignerId is null ? "Asignar diseñador" : "Reasignar")
                     </button>
                 </div>
@@ -210,17 +219,16 @@ else
                     </button>
                 </section>
             }
-        </AuthorizeView>
+        }
 
-        <AuthorizeView Roles="Designer">
-            @if (isDesignerView && !isOwnDesignOrder)
-            {
-                <section class="panel-section">
-                    <p class="field-hint">Este pedido no está asignado a usted. Solo puede consultar la información general.</p>
-                </section>
-            }
-            else if (isOwnDesignOrder)
-            {
+        @if (isDesignerView && !isOwnDesignOrder)
+        {
+            <section class="panel-section">
+                <p class="field-hint">Este pedido no está asignado a usted. Solo puede consultar la información general.</p>
+            </section>
+        }
+        else if (isDesignerView && isOwnDesignOrder)
+        {
                 @if (DesignerOrderHelper.IsPending(order) || DesignerOrderHelper.IsDesignPhaseComplete(order))
                 {
                     <section class="panel-section">
@@ -235,13 +243,30 @@ else
                                 <label>Notas de diseño</label>
                                 <InputTextArea @bind-value="editNotes" class="form-control" rows="3" />
                             </div>
+                            @if (referenceImageUrls.Count > 0)
+                            {
+                                <div class="form-group">
+                                    <label>Fotos referencia del cliente</label>
+                                    <OrderReferencePhotos ImageUrls="referenceImageUrls" />
+                                </div>
+                            }
                             <button type="button" class="btn-secondary" @onclick="SaveDesignerDetails">Guardar detalles</button>
                         }
                         else
                         {
                             <dl class="detail-list">
                                 <div><dt>Tallas / medidas</dt><dd>@(string.IsNullOrWhiteSpace(order.SizeRange) ? "—" : order.SizeRange)</dd></div>
-                                <div><dt>Notas de diseño</dt><dd>@(string.IsNullOrWhiteSpace(order.Notes) ? "—" : order.Notes)</dd></div>
+                                @{
+                                    var designNotesSplit = ReferenceImageNotesHelper.Split(order.Notes);
+                                }
+                                <div><dt>Notas de diseño</dt><dd>@(string.IsNullOrWhiteSpace(designNotesSplit.TextNotes) ? "—" : designNotesSplit.TextNotes)</dd></div>
+                                @if (designNotesSplit.ImageUrls.Count > 0)
+                                {
+                                    <div>
+                                        <dt>Fotos referencia del cliente</dt>
+                                        <dd><OrderReferencePhotos ImageUrls="designNotesSplit.ImageUrls" /></dd>
+                                    </div>
+                                }
                                 @if (order.FabricMeters.HasValue)
                                 {
                                     <div><dt>Metraje tela</dt><dd>@order.FabricMeters.Value.ToString("N2") m</dd></div>
@@ -309,8 +334,7 @@ else
                         }
                     </div>
                 </section>
-            }
-        </AuthorizeView>
+        }
 
         @if (isDesignerView)
         {
@@ -348,6 +372,7 @@ else
     private decimal editChargeAmount;
     private string? editSizeRange;
     private string? editNotes;
+    private List<string> referenceImageUrls = [];
     private string? returnComment;
     private decimal finishFabricMeters;
     private decimal finishFabricMetersRip;
@@ -365,7 +390,9 @@ else
 
         selectedDesignerId = order.AssignedDesignerId;
         editSizeRange = order.SizeRange;
-        editNotes = order.Notes;
+        var notesSplit = ReferenceImageNotesHelper.Split(order.Notes);
+        editNotes = notesSplit.TextNotes;
+        referenceImageUrls = notesSplit.ImageUrls;
         finishFabricMeters = order.FabricMeters ?? 0;
         finishFabricMetersRip = order.FabricMetersRip ?? 0;
         finishHasRip = order.FabricMetersRip is > 0 || order.FabricTypeRipId.HasValue;
@@ -397,6 +424,15 @@ else
             designerWorkloads = DesignerWorkloadHelper.BuildWorkloads(
                 allOrders,
                 designers.Select(d => d.Id));
+
+            if (order.AssignedDesignerId is null && designers.Count > 0)
+            {
+                selectedDesignerId = designers
+                    .OrderBy(d => designerWorkloads.GetValueOrDefault(d.Id)?.TotalPendientes ?? 0)
+                    .ThenBy(d => d.FullName)
+                    .First()
+                    .Id;
+            }
         }
     }
 
@@ -479,7 +515,11 @@ else
         if (order is null || currentUserId is null) return;
         try
         {
-            await OrderService.DesignerUpdateDetailsAsync(order.Id, currentUserId, editSizeRange, editNotes);
+            await OrderService.DesignerUpdateDetailsAsync(
+                order.Id,
+                currentUserId,
+                editSizeRange,
+                ReferenceImageNotesHelper.Merge(editNotes, referenceImageUrls));
             await LoadOrderAsync();
             message = "Detalles guardados.";
         }

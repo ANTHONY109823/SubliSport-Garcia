@@ -40,6 +40,5 @@
             .ThenBy(d => d.FullName);
 
     private Task SelectDesigner(string designerId) =>
-        SelectedDesignerIdChanged.InvokeAsync(
-            SelectedDesignerId == designerId ? null : designerId);
+        SelectedDesignerIdChanged.InvokeAsync(designerId);
 }

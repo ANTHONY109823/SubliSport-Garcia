@@ -97,7 +97,15 @@ else
                 }
                 @if (UiLabelHelper.IsVisible(ui, UiPanelKeys.ProductionOrderDetail, "notes"))
                 {
-                    <div><dt>@UiLabelHelper.Label(ui, UiPanelKeys.ProductionOrderDetail, "notes", "Notas")</dt><dd>@(order.Notes ?? "—")</dd></div>
+                    var notesSplit = ReferenceImageNotesHelper.Split(order.Notes);
+                    <div><dt>@UiLabelHelper.Label(ui, UiPanelKeys.ProductionOrderDetail, "notes", "Notas")</dt><dd>@(string.IsNullOrWhiteSpace(notesSplit.TextNotes) ? "—" : notesSplit.TextNotes)</dd></div>
+                    @if (notesSplit.ImageUrls.Count > 0)
+                    {
+                        <div>
+                            <dt>Fotos referencia del cliente</dt>
+                            <dd><OrderReferencePhotos ImageUrls="notesSplit.ImageUrls" /></dd>
+                        </div>
+                    }
                 }
                 @if (order.FabricMeters is > 0)
                 {

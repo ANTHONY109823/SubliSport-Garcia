@@ -42,4 +42,23 @@ public static partial class ReferenceImageNotesHelper
 
         return (string.Join("\n", textLines), urls);
     }
+
+    public static string Merge(string? textNotes, IReadOnlyList<string> imageUrls)
+    {
+        var lines = new List<string>();
+        if (!string.IsNullOrWhiteSpace(textNotes))
+        {
+            lines.AddRange(textNotes.Trim().Split('\n').Select(l => l.Trim()).Where(l => !string.IsNullOrEmpty(l)));
+        }
+
+        for (var i = 0; i < imageUrls.Count; i++)
+        {
+            var label = imageUrls.Count > 1
+                ? $"Foto modelo referencia {i + 1}"
+                : "Foto modelo referencia";
+            lines.Add($"{label}: {imageUrls[i].Trim()}");
+        }
+
+        return lines.Count == 0 ? string.Empty : string.Join("\n", lines);
+    }
 }

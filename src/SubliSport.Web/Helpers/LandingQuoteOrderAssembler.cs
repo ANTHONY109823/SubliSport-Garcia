@@ -74,9 +74,23 @@ public static class LandingQuoteOrderAssembler
             ? string.Join(" · ", roster.Select(l => $"{l.Name} T{l.Size} N°{l.Number}".Trim()))
             : request.SizeRangeSummary;
 
+        var pricingTier = request.PricingTier == (int)ClientPricingTier.MypeB2B
+            ? ClientPricingTier.MypeB2B
+            : ClientPricingTier.DirectRetail;
+
+        var calculatedTotal = quote.Total;
+        var chargeAmount = quote.Total;
+        string? pricingNotes = LandingQuoteNotesHelper.Pack(quote.AdminSuggestionText, quote.ClientProformaDraft);
+        if (pricingTier == ClientPricingTier.MypeB2B)
+        {
+            calculatedTotal = 0;
+            chargeAmount = 0;
+            pricingNotes = null;
+        }
+
         return new Order
         {
-            PricingTier = ClientPricingTier.DirectRetail,
+            PricingTier = pricingTier,
             ClientName = request.ClientName.Trim(),
             ClientPhone = string.IsNullOrWhiteSpace(request.ClientPhone) ? null : request.ClientPhone.Trim(),
             GarmentType = isMixed ? "Mixta" : request.GarmentType.Trim(),
@@ -87,9 +101,9 @@ public static class LandingQuoteOrderAssembler
             SizeRange = string.IsNullOrWhiteSpace(sizeRange) ? null : sizeRange.Trim(),
             Notes = string.IsNullOrWhiteSpace(notes) ? null : notes,
             FabricTypeName = quote.FabricLabel,
-            CalculatedTotal = quote.Total,
-            ChargeAmount = quote.Total,
-            PricingNotes = LandingQuoteNotesHelper.Pack(quote.AdminSuggestionText, quote.ClientProformaDraft),
+            CalculatedTotal = calculatedTotal,
+            ChargeAmount = chargeAmount,
+            PricingNotes = pricingNotes,
             PricingUpdatedAt = DateTime.UtcNow,
             ConfectionRosterDetails = roster.Count > 0
                 ? JsonSerializer.Serialize(roster, JsonOptions)

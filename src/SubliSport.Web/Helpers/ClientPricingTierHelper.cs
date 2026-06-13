@@ -7,14 +7,14 @@ public static class ClientPricingTierHelper
     public static string GetLabel(ClientPricingTier tier) => tier switch
     {
         ClientPricingTier.DirectRetail => "Cliente directo",
-        ClientPricingTier.MypeB2B => "MYPE / taller",
+        ClientPricingTier.MypeB2B => "Por servicio",
         _ => "—"
     };
 
     public static string GetDescription(ClientPricingTier tier) => tier switch
     {
         ClientPricingTier.DirectRetail => "Persona natural o club que cotiza por prenda (ej. S/ 55–58 conjunto).",
-        ClientPricingTier.MypeB2B => "Empresa que compra servicio: diseño, impresión, planchado y opcional confección (precio por metraje).",
+        ClientPricingTier.MypeB2B => "Taller o empresa — servicio por metraje (diseño, impresión, planchado y confección opcional).",
         _ => ""
     };
 

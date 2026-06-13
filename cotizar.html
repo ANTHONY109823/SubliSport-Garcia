@@ -112,6 +112,73 @@ body { background: var(--black); color: var(--white); font-family: 'Barlow', san
 .excel-upload-zone.has-file { border-color:var(--gold); background:rgba(240,165,0,0.05); }
 .panel-hidden { display:none !important; }
 
+/* ── Tipo de cliente ── */
+.client-type-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:10px 0 4px; }
+.client-type-card {
+  position:relative; text-align:left; padding:22px 18px 18px; border-radius:14px;
+  border:1px solid var(--border); background:linear-gradient(155deg,rgba(255,255,255,0.06) 0%,rgba(255,255,255,0.02) 100%);
+  cursor:pointer; transition:transform 0.25s, border-color 0.25s, box-shadow 0.25s; overflow:hidden;
+  font-family:'Barlow',sans-serif; color:var(--gray);
+}
+.client-type-card::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(circle at 15% 0%,rgba(240,165,0,0.14),transparent 58%);
+  opacity:0; transition:opacity 0.25s; pointer-events:none;
+}
+.client-type-card.client-type-service::before {
+  background:radial-gradient(circle at 15% 0%,rgba(0,229,204,0.12),transparent 58%);
+}
+.client-type-card:hover { transform:translateY(-3px); border-color:rgba(240,165,0,0.45); }
+.client-type-card.client-type-service:hover { border-color:rgba(0,229,204,0.4); }
+.client-type-card.active {
+  border-color:var(--gold);
+  box-shadow:0 10px 36px rgba(240,165,0,0.18), inset 0 0 0 1px rgba(240,165,0,0.12);
+}
+.client-type-card.client-type-service.active {
+  border-color:rgba(0,229,204,0.65);
+  box-shadow:0 10px 36px rgba(0,229,204,0.12), inset 0 0 0 1px rgba(0,229,204,0.15);
+}
+.client-type-card.active::before { opacity:1; }
+.client-type-icon {
+  width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+  margin-bottom:12px; font-size:1.35rem;
+  background:rgba(240,165,0,0.12); border:1px solid rgba(240,165,0,0.35);
+}
+.client-type-service .client-type-icon {
+  background:rgba(0,229,204,0.1); border-color:rgba(0,229,204,0.35);
+}
+.client-type-tag {
+  display:inline-block; padding:3px 8px; border-radius:4px; font-family:'Barlow Condensed';
+  font-size:0.65rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;
+  background:rgba(240,165,0,0.15); color:var(--gold); margin-bottom:8px;
+}
+.client-type-service .client-type-tag { background:rgba(0,229,204,0.12); color:#00E5CC; }
+.client-type-title {
+  display:block; font-family:'Bebas Neue'; font-size:1.35rem; letter-spacing:1.5px;
+  color:var(--white); margin-bottom:6px; line-height:1.1;
+}
+.client-type-card.active .client-type-title { color:var(--gold); }
+.client-type-service.active .client-type-title { color:#00E5CC; }
+.client-type-desc { margin:0 0 10px; font-size:0.82rem; line-height:1.45; }
+.client-type-features { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px; }
+.client-type-features li {
+  font-size:0.72rem; padding:4px 9px; border-radius:20px;
+  background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); color:rgba(255,255,255,0.65);
+}
+.client-type-check {
+  position:absolute; top:14px; right:14px; width:24px; height:24px; border-radius:50%;
+  border:1.5px solid rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center;
+  font-size:0.75rem; color:transparent; transition:0.2s;
+}
+.client-type-card.active .client-type-check { background:var(--gold); border-color:var(--gold); color:var(--black); font-weight:700; }
+.client-type-service.active .client-type-check { background:#00E5CC; border-color:#00E5CC; }
+.service-info-panel {
+  margin:12px 0 4px; padding:14px 16px; border-radius:10px;
+  border:1px solid rgba(0,229,204,0.25); background:rgba(0,229,204,0.06);
+  font-size:0.85rem; line-height:1.5; color:rgba(255,255,255,0.8);
+}
+.service-info-panel strong { color:#00E5CC; }
+
 footer { background:var(--dark); border-top:1px solid var(--border); padding:28px 6%; text-align:center; }
 footer p { color:var(--gray); font-size:0.82rem; }
 footer a { color:var(--gold); text-decoration:none; }
@@ -128,6 +195,7 @@ footer a { color:var(--gold); text-decoration:none; }
   .quote-wrap{padding:28px 20px;}
   .quote-grid{grid-template-columns:1fr;}
   .prenda-opts{flex-wrap:wrap;}
+  .client-type-grid{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -158,6 +226,14 @@ footer a { color:var(--gold); text-decoration:none; }
   </div>
 
   <div class="quote-wrap reveal">
+    <span class="control-label" style="margin-top:0;">Tipo de cliente</span>
+    <p class="quote-hint" style="margin-top:0;">¿Cómo desea cotizar? Elija la opción que mejor describe su pedido.</p>
+    <div class="client-type-grid" id="clientTypeOpts"></div>
+    <div id="serviceInfoPanel" class="service-info-panel panel-hidden">
+      <strong>Por servicio:</strong> cotizamos por metraje (diseño, impresión y planchado).
+      Nuestro asesor le enviará la proforma con el detalle del servicio.
+    </div>
+
     <span class="control-label">Tipo de prenda</span>
     <p class="quote-hint" style="margin-top:0;">Si necesita conjunto y camiseta (u otros), elija <strong style="color:var(--gold);">Ambos tipos</strong>.</p>
     <div class="prenda-opts" id="garmentOpts"></div>
@@ -284,7 +360,7 @@ document.addEventListener('mousemove', e => {
   cursor.style.left = e.clientX-6+'px'; cursor.style.top = e.clientY-6+'px';
   ring.style.left = e.clientX-18+'px'; ring.style.top = e.clientY-18+'px';
 });
-document.querySelectorAll('a,button,.prenda-opt,.sport-tab').forEach(el => {
+document.querySelectorAll('a,button,.prenda-opt,.sport-tab,.client-type-card').forEach(el => {
   el.addEventListener('mouseenter',()=>{cursor.style.transform='scale(2)';ring.style.transform='scale(1.4)';ring.style.opacity='1';});
   el.addEventListener('mouseleave',()=>{cursor.style.transform='scale(1)';ring.style.transform='scale(1)';ring.style.opacity='0.6';});
 });

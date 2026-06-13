@@ -28,29 +28,12 @@
 
     <section class="panel-section form-section-compact">
         <h2>1. Tipo de cliente</h2>
-        <p class="field-hint">Cliente directo usa precios por prenda (cotizar.html). MYPE/taller usa calculadora por metraje en producción.</p>
-        <div class="pricing-tier-cards">
-            <button type="button" class="pricing-tier-card @(model.PricingTier == ClientPricingTier.DirectRetail ? "active" : "")" @onclick="() => model.PricingTier = ClientPricingTier.DirectRetail">
-                <strong>Cliente directo</strong>
-                <p>Persona natural o club — precio retail (ej. S/ 55–58 conjunto).</p>
-            </button>
-            <button type="button" class="pricing-tier-card @(model.PricingTier == ClientPricingTier.MypeB2B ? "active" : "")" @onclick="() => model.PricingTier = ClientPricingTier.MypeB2B">
-                <strong>MYPE / taller</strong>
-                <p>Servicio diseño, impresión, planchado y opcional confección (precio por metraje).</p>
-            </button>
-        </div>
+        <p class="field-hint">Elija cómo se cotizará este pedido en el panel.</p>
+        <ClientTypeSelector SelectedTier="model.PricingTier" SelectedTierChanged="SelectPricingTier" />
         @if (model.PricingTier == ClientPricingTier.MypeB2B)
         {
-            <div class="service-type-cards">
-                <button type="button" class="service-type-card @(model.MypeServiceType == ServiceTypeHelper.PrintPressOnly ? "active" : "")" @onclick="() => model.MypeServiceType = ServiceTypeHelper.PrintPressOnly">
-                    <strong>Solo impresión + planchado</strong>
-                    <span>Sin confección.</span>
-                </button>
-                <button type="button" class="service-type-card @(model.MypeServiceType == ServiceTypeHelper.WithConfection ? "active" : "")" @onclick="() => model.MypeServiceType = ServiceTypeHelper.WithConfection">
-                    <strong>Con confección</strong>
-                    <span>Incluye armado de prenda.</span>
-                </button>
-            </div>
+            <p class="field-hint" style="margin-top:14px;">Tipo de servicio para taller / MYPE:</p>
+            <ServiceTypeSelector SelectedService="model.MypeServiceType" SelectedServiceChanged="SelectMypeService" />
         }
     </section>
 
@@ -269,6 +252,14 @@
         var roles = auth.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value);
         var orders = await OrderService.GetOrdersForUserAsync(userId, roles);
         designerWorkloads = DesignerWorkloadHelper.BuildWorkloads(orders, designers.Select(d => d.Id));
+        if (designers.Count > 0)
+        {
+            model.DesignerId = designers
+                .OrderBy(d => designerWorkloads.GetValueOrDefault(d.Id)?.TotalPendientes ?? 0)
+                .ThenBy(d => d.FullName)
+                .First()
+                .Id;
+        }
         ApplySuggestedDelivery();
     }
 
@@ -276,6 +267,20 @@
     {
         model.GarmentType = value;
         StateHasChanged();
+    }
+
+    private Task SelectPricingTier(ClientPricingTier tier)
+    {
+        model.PricingTier = tier;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private Task SelectMypeService(string serviceType)
+    {
+        model.MypeServiceType = serviceType;
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 
     private void SelectSport(string value)

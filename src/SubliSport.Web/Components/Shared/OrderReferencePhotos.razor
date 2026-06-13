@@ -1,0 +1,16 @@
+@if (ImageUrls.Count > 0)
+{
+    <div class="order-ref-photos">
+        @foreach (var (url, index) in ImageUrls.Select((u, i) => (u, i)))
+        {
+            <a href="@url" target="_blank" rel="noopener noreferrer" class="order-ref-photo" title="Ver referencia @(index + 1)">
+                <img src="@url" alt="Referencia @(index + 1)" loading="lazy" />
+                <span class="order-ref-photo-label">Ref. @(index + 1)</span>
+            </a>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public IReadOnlyList<string> ImageUrls { get; set; } = [];
+}

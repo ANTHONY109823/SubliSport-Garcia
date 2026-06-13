@@ -1,0 +1,25 @@
+<div class="service-type-grid">
+    <button type="button"
+            class="service-type-card-v2 @(SelectedService == ServiceTypeHelper.PrintPressOnly ? "active" : "")"
+            @onclick="() => Select(ServiceTypeHelper.PrintPressOnly)">
+        <span class="service-type-icon">🖨️</span>
+        <strong>Solo impresión + planchado</strong>
+        <span>Sin confección — tela del taller o del cliente.</span>
+        <span class="client-type-check" aria-hidden="true">✓</span>
+    </button>
+    <button type="button"
+            class="service-type-card-v2 @(SelectedService == ServiceTypeHelper.WithConfection ? "active" : "")"
+            @onclick="() => Select(ServiceTypeHelper.WithConfection)">
+        <span class="service-type-icon">✂️</span>
+        <strong>Con confección</strong>
+        <span>Incluye armado de polo, short y medias según pedido.</span>
+        <span class="client-type-check" aria-hidden="true">✓</span>
+    </button>
+</div>
+
+@code {
+    [Parameter] public string SelectedService { get; set; } = ServiceTypeHelper.PrintPressOnly;
+    [Parameter] public EventCallback<string> SelectedServiceChanged { get; set; }
+
+    private Task Select(string service) => SelectedServiceChanged.InvokeAsync(service);
+}
