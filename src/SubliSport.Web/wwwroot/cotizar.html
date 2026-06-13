@@ -74,10 +74,11 @@ body { background: var(--black); color: var(--white); font-family: 'Barlow', san
 .quote-send-options { margin-top:20px; }
 .quote-preview { margin-top:14px; padding:14px; background:rgba(0,0,0,0.35); border:1px solid var(--border); border-radius:10px; color:var(--gray); font-size:0.75rem; white-space:pre-wrap; max-height:220px; overflow:auto; }
 .roster-table-wrap { overflow-x:auto; margin:10px 0 12px; border:1px solid var(--border); border-radius:10px; }
-.roster-table { width:100%; border-collapse:collapse; min-width:480px; }
+.roster-table { width:100%; border-collapse:collapse; min-width:680px; }
 .roster-table th { font-family:'Barlow Condensed'; font-size:0.72rem; letter-spacing:2px; text-transform:uppercase; color:var(--gold); padding:10px 8px; text-align:left; border-bottom:1px solid var(--border); }
 .roster-table td { padding:6px; border-bottom:1px solid rgba(255,255,255,0.04); }
-.roster-table input { width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--white); padding:8px 10px; border-radius:6px; font-size:0.88rem; outline:none; }
+.roster-table input, .roster-table select { width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--border); color:var(--white); padding:8px 10px; border-radius:6px; font-size:0.88rem; outline:none; }
+.roster-table select { cursor:pointer; }
 .btn-roster-add { background:rgba(255,255,255,0.05); border:1px dashed var(--border); color:var(--gray); padding:8px 14px; border-radius:8px; cursor:pointer; font-family:'Barlow Condensed'; letter-spacing:1.5px; text-transform:uppercase; font-size:0.78rem; }
 .btn-roster-del { background:transparent; border:none; color:#ff8080; cursor:pointer; }
 .photo-slots { display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; }
@@ -309,7 +310,7 @@ footer a { color:var(--gold); text-decoration:none; }
       Si necesita más tiempo, elija la fecha que prefiera (sujeto a disponibilidad).
     </p>
 
-    <span class="control-label">Lista por jugador / prenda (nombre · talla · número)</span>
+    <span class="control-label">Lista por jugador (nombre · talla · número · género · prenda)</span>
     <div class="excel-tools">
       <button type="button" class="btn-link" id="btnDownloadTemplate"><i class="fas fa-download"></i> Descargar plantilla Excel</button>
       <span class="quote-hint" style="margin:0;">o cargue su archivo (.xlsx, .xls, .csv)</span>
@@ -323,7 +324,7 @@ footer a { color:var(--gold); text-decoration:none; }
     <p class="quote-hint">También puede completar la tabla manualmente abajo.</p>
     <div class="roster-table-wrap">
       <table class="roster-table">
-        <thead><tr><th>Nombre</th><th>Talla</th><th>Número</th><th></th></tr></thead>
+        <thead><tr><th>Nombre</th><th>Talla</th><th>Número</th><th>Género</th><th>Prenda</th><th></th></tr></thead>
         <tbody id="rosterBody"></tbody>
       </table>
     </div>

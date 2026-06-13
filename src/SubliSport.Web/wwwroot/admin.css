@@ -397,6 +397,42 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 .header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
 .filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.filter-tabs-segmented {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    gap: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.02);
+    margin-bottom: 16px;
+    -webkit-overflow-scrolling: touch;
+}
+.filter-tabs-segmented .filter-tab {
+    border: none;
+    border-radius: 0;
+    border-right: 1px solid var(--border);
+    padding: 8px 16px;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    background: transparent;
+}
+.filter-tabs-segmented .filter-tab:last-child { border-right: none; }
+.filter-tabs-segmented .filter-tab.active {
+    background: rgba(240,165,0,0.14);
+}
+.filter-count {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.85);
+}
+.filter-count-warn { background: rgba(255,209,102,0.2); color: #FFD166; }
 .filter-tab {
     background: rgba(255,255,255,0.04);
     border: 1px solid var(--border);
@@ -1121,7 +1157,7 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 }
 .roster-entry {
     display: grid;
-    grid-template-columns: 1fr 56px 56px 88px 28px;
+    grid-template-columns: 1fr 56px 56px 88px 100px 28px;
     gap: 8px;
     align-items: center;
     padding: 10px 12px;
@@ -1143,6 +1179,7 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
 }
 .roster-entry-data { margin-bottom: 0; }
 .roster-field-gender select { padding: 5px 4px; font-size: 0.72rem; }
+.roster-field-kit select { padding: 5px 4px; font-size: 0.68rem; }
 .roster-field label {
     display: block;
     font-size: 0.62rem;
@@ -1584,7 +1621,7 @@ button.btn-support:hover { background: rgba(100,149,237,0.22); }
     font-size: 0.72rem;
 }
 .form-quote-ultra .roster-panel-compact .roster-entry {
-    grid-template-columns: 1fr 48px 48px 80px 22px;
+    grid-template-columns: 1fr 48px 48px 76px 92px 22px;
     padding: 6px 8px;
     gap: 6px;
 }

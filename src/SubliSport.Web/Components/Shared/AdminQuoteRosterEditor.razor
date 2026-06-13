@@ -19,6 +19,7 @@
         <span>Talla</span>
         <span>Número</span>
         <span>Género</span>
+        <span>Prenda</span>
         <span></span>
     </div>
 
@@ -41,6 +42,12 @@
                     <select class="form-control form-control-sm" @bind="row.Gender">
                         <option value="@RosterGenderHelper.Varon">Varón</option>
                         <option value="@RosterGenderHelper.Femenino">Femenino</option>
+                    </select>
+                </div>
+                <div class="roster-field roster-field-kit">
+                    <select class="form-control form-control-sm" @bind="row.KitType">
+                        <option value="@RosterKitHelper.Conjunto">Conjunto</option>
+                        <option value="@RosterKitHelper.Camiseta">Camiseta sola</option>
                     </select>
                 </div>
                 <div class="roster-entry-actions">
@@ -104,7 +111,8 @@
                     Name = line.Name,
                     Size = line.Size,
                     Number = line.Number,
-                    Gender = line.Gender
+                    Gender = line.Gender,
+                    KitType = line.KitType
                 });
             }
 
@@ -123,5 +131,6 @@
         public string Size { get; set; } = string.Empty;
         public string Number { get; set; } = string.Empty;
         public string Gender { get; set; } = RosterGenderHelper.Varon;
+        public string KitType { get; set; } = RosterKitHelper.Conjunto;
     }
 }

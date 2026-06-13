@@ -40,7 +40,8 @@ public static class ConfectionRosterHelper
                 Name = l.Name.Trim(),
                 Size = l.Size.Trim(),
                 Number = l.Number.Trim(),
-                Gender = RosterGenderHelper.Normalize(l.Gender)
+                Gender = RosterGenderHelper.Normalize(l.Gender),
+                KitType = RosterKitHelper.Normalize(l.KitType)
             })
             .ToList();
 }

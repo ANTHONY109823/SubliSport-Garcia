@@ -51,6 +51,10 @@
                         <option value="@RosterGenderHelper.Varon">Varón</option>
                         <option value="@RosterGenderHelper.Femenino">Femenino</option>
                     </select>
+                    <select @bind="line.KitType" class="form-control">
+                        <option value="@RosterKitHelper.Conjunto">Conjunto</option>
+                        <option value="@RosterKitHelper.Camiseta">Camiseta sola</option>
+                    </select>
                     @if (rosterLines.Count > 1)
                     {
                         <button type="button" class="btn-action btn-warn" @onclick="() => RemoveRosterLine(index)">✕</button>

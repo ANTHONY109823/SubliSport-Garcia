@@ -87,6 +87,12 @@ public static class LandingQuoteCalculator
 
     private static int ResolveShortPieceCount(LandingQuoteSubmitRequest request, bool isMixed)
     {
+        var roster = ActiveRoster(request);
+        if (roster.Count > 0)
+        {
+            return roster.Count(r => RosterKitHelper.ResolveCategory(r.KitType) == "conjunto");
+        }
+
         if (isMixed)
         {
             return request.MixedLines
@@ -116,11 +122,11 @@ public static class LandingQuoteCalculator
 
         if (roster.Count > 0)
         {
-            var rosterCategory = isMixed ? "conjunto" : category;
             return roster.Select(r =>
             {
                 var tier = ResolveSizeTier(r.Size);
-                var unit = UnitPrice(rosterCategory == "mixta" ? "conjunto" : rosterCategory, tier, fabricIndex);
+                var lineCategory = RosterKitHelper.ResolveCategory(r.KitType);
+                var unit = UnitPrice(lineCategory, tier, fabricIndex);
                 return new LandingQuoteLineItem(
                     string.IsNullOrWhiteSpace(r.Name) ? request.GarmentType : r.Name,
                     string.IsNullOrWhiteSpace(r.Size) ? tier : r.Size.Trim(),
@@ -290,9 +296,9 @@ public static class LandingQuoteCalculator
         if (roster.Count > 0)
         {
             sb.AppendLine();
-            sb.AppendLine("  Lista (nombre · talla · número · corte):");
+            sb.AppendLine("  Lista (nombre · talla · número · corte · prenda):");
             foreach (var r in roster)
-                sb.AppendLine($"    · {r.Name} | {r.Size} | N°{r.Number} | {RosterGenderHelper.GetCutLabel(r.Gender)}");
+                sb.AppendLine($"    · {r.Name} | {r.Size} | N°{r.Number} | {RosterGenderHelper.GetCutLabel(r.Gender)} | {RosterKitHelper.GetDisplayLabel(r.KitType)}");
         }
 
         sb.AppendLine();
@@ -365,9 +371,9 @@ public static class LandingQuoteCalculator
         if (roster.Count > 0)
         {
             sb.AppendLine();
-            sb.AppendLine("  Lista (nombre · talla · número · corte):");
+            sb.AppendLine("  Lista (nombre · talla · número · corte · prenda):");
             foreach (var r in roster)
-                sb.AppendLine($"    · {r.Name} | {r.Size} | N°{r.Number} | {RosterGenderHelper.GetCutLabel(r.Gender)}");
+                sb.AppendLine($"    · {r.Name} | {r.Size} | N°{r.Number} | {RosterGenderHelper.GetCutLabel(r.Gender)} | {RosterKitHelper.GetDisplayLabel(r.KitType)}");
         }
 
         sb.AppendLine();
@@ -424,7 +430,7 @@ public static class LandingQuoteCalculator
             sb.AppendLine();
             sb.AppendLine("*Lista jugadores:*");
             foreach (var r in roster)
-                sb.AppendLine($"· {r.Name} | Talla {r.Size} | N°{r.Number} | {RosterGenderHelper.GetCutLabel(r.Gender)}");
+                sb.AppendLine($"· {r.Name} | Talla {r.Size} | N°{r.Number} | {RosterGenderHelper.GetCutLabel(r.Gender)} | {RosterKitHelper.GetDisplayLabel(r.KitType)}");
         }
 
         sb.AppendLine();

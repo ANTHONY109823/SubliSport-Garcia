@@ -60,7 +60,7 @@
   var selectedClientType = 'direct';
   var isMixedMode = false;
   var whatsAppPhone = DEFAULTS.quote.whatsAppPhone;
-  var rosterRows = [{ name: '', size: '', number: '' }];
+  var rosterRows = [{ name: '', size: '', number: '', gender: 'Varon', kit: 'conjunto' }];
   var mixedLines = [{ itemType: 'Conjunto completo', quantity: 1, other: '' }];
   var mixedTypes = DEFAULTS.quote.mixedTypes;
   var referenceImagesBase64 = [null, null, null];
@@ -296,14 +296,36 @@
       }).join('');
   }
 
+  function normalizeGender(value) {
+    var g = String(value || '').toLowerCase();
+    if (g.indexOf('fem') >= 0 || g.indexOf('dam') >= 0) return 'Femenino';
+    return 'Varon';
+  }
+
+  function normalizeKit(value) {
+    var k = String(value || '').toLowerCase();
+    if (k.indexOf('camiseta') >= 0 || k.indexOf('polo') >= 0 || k.indexOf('sola') >= 0) return 'camiseta';
+    return 'conjunto';
+  }
+
   function renderRoster() {
     var body = $('rosterBody');
     if (!body) return;
     body.innerHTML = rosterRows.map(function (row, i) {
+      var gender = row.gender || 'Varon';
+      var kit = row.kit || 'conjunto';
       return '<tr data-idx="' + i + '">' +
         '<td><input type="text" data-field="name" value="' + esc(row.name) + '" placeholder="Nombre"></td>' +
         '<td><input type="text" data-field="size" value="' + esc(row.size) + '" placeholder="M"></td>' +
         '<td><input type="text" data-field="number" value="' + esc(row.number) + '" placeholder="10"></td>' +
+        '<td><select data-field="gender" class="roster-select">' +
+          '<option value="Varon"' + (gender === 'Varon' ? ' selected' : '') + '>Varón</option>' +
+          '<option value="Femenino"' + (gender === 'Femenino' ? ' selected' : '') + '>Femenino</option>' +
+        '</select></td>' +
+        '<td><select data-field="kit" class="roster-select">' +
+          '<option value="conjunto"' + (kit === 'conjunto' ? ' selected' : '') + '>Conjunto</option>' +
+          '<option value="camiseta"' + (kit === 'camiseta' ? ' selected' : '') + '>Camiseta sola</option>' +
+        '</select></td>' +
         '<td>' + (rosterRows.length > 1 ? '<button type="button" class="btn-roster-del" data-remove="' + i + '">✕</button>' : '') + '</td>' +
         '</tr>';
     }).join('');
@@ -314,6 +336,15 @@
         var idx = parseInt(tr.getAttribute('data-idx'), 10);
         var field = input.getAttribute('data-field');
         if (!isNaN(idx) && rosterRows[idx]) rosterRows[idx][field] = input.value;
+      });
+    });
+
+    body.querySelectorAll('select').forEach(function (select) {
+      select.addEventListener('change', function () {
+        var tr = select.closest('tr');
+        var idx = parseInt(tr.getAttribute('data-idx'), 10);
+        var field = select.getAttribute('data-field');
+        if (!isNaN(idx) && rosterRows[idx]) rosterRows[idx][field] = select.value;
       });
     });
 
@@ -329,14 +360,20 @@
   }
 
   function addRosterRow() {
-    rosterRows.push({ name: '', size: '', number: '' });
+    rosterRows.push({ name: '', size: '', number: '', gender: 'Varon', kit: 'conjunto' });
     renderRoster();
   }
 
   function getRosterFromDom() {
     return rosterRows
       .map(function (r) {
-        return { name: (r.name || '').trim(), size: (r.size || '').trim(), number: (r.number || '').trim() };
+        return {
+          name: (r.name || '').trim(),
+          size: (r.size || '').trim(),
+          number: (r.number || '').trim(),
+          gender: normalizeGender(r.gender),
+          kitType: normalizeKit(r.kit)
+        };
       })
       .filter(function (r) { return r.name || r.size || r.number; });
   }
@@ -432,10 +469,16 @@
     var nameIdx = 0;
     var sizeIdx = 1;
     var numIdx = 2;
+    var genderIdx = 3;
+    var kitIdx = 4;
     if (hasHeader) {
       nameIdx = header.findIndex(function (h) { return h.indexOf('nombre') >= 0; });
       sizeIdx = header.findIndex(function (h) { return h.indexOf('talla') >= 0; });
       numIdx = header.findIndex(function (h) { return h.indexOf('numero') >= 0 || h === 'n' || h.indexOf('nro') >= 0; });
+      genderIdx = header.findIndex(function (h) { return h.indexOf('genero') >= 0 || h.indexOf('sexo') >= 0; });
+      kitIdx = header.findIndex(function (h) {
+        return h.indexOf('prenda') >= 0 || h.indexOf('kit') >= 0 || h.indexOf('conjunto') >= 0;
+      });
       if (nameIdx < 0) nameIdx = 0;
       if (sizeIdx < 0) sizeIdx = 1;
       if (numIdx < 0) numIdx = 2;
@@ -444,13 +487,15 @@
       return {
         name: String(row[nameIdx] || '').trim(),
         size: String(row[sizeIdx] || '').trim(),
-        number: String(row[numIdx] || '').trim()
+        number: String(row[numIdx] || '').trim(),
+        gender: genderIdx >= 0 ? normalizeGender(row[genderIdx]) : 'Varon',
+        kit: kitIdx >= 0 ? normalizeKit(row[kitIdx]) : 'conjunto'
       };
     }).filter(function (r) { return r.name || r.size || r.number; });
   }
 
   function downloadRosterTemplate() {
-    var csv = 'Nombre,Talla,Numero\nEjemplo Juan Perez,M,10\nEjemplo Maria Lopez,S,7\n';
+    var csv = 'Nombre,Talla,Numero,Genero,Prenda\nEjemplo Juan Perez,M,10,Varon,Conjunto completo\nEjemplo Maria Lopez,S,7,Femenino,Camiseta sola\n';
     var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -488,7 +533,7 @@
             setStatus('No se encontraron filas válidas. Use la plantilla.', 'err');
             return;
           }
-          rosterRows = parsed.length ? parsed : [{ name: '', size: '', number: '' }];
+          rosterRows = parsed.length ? parsed : [{ name: '', size: '', number: '', gender: 'Varon', kit: 'conjunto' }];
           renderRoster();
           if (zone) zone.classList.add('has-file');
           if (label) label.textContent = file.name + ' · ' + parsed.length + ' filas cargadas';

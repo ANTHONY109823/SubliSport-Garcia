@@ -28,6 +28,7 @@ public static class RosterCsvImportHelper
         var sizeIdx = 1;
         var numIdx = 2;
         var genderIdx = 3;
+        var kitIdx = 4;
 
         if (hasHeader)
         {
@@ -35,6 +36,10 @@ public static class RosterCsvImportHelper
             sizeIdx = Array.FindIndex(header, h => h.Contains("talla", StringComparison.Ordinal));
             numIdx = Array.FindIndex(header, h => h.Contains("numero", StringComparison.Ordinal) || h is "n" or "nro");
             genderIdx = Array.FindIndex(header, h => h.Contains("genero", StringComparison.Ordinal) || h.Contains("sexo", StringComparison.Ordinal));
+            kitIdx = Array.FindIndex(header, h =>
+                h.Contains("prenda", StringComparison.Ordinal) ||
+                h.Contains("kit", StringComparison.Ordinal) ||
+                h.Contains("conjunto", StringComparison.Ordinal));
             if (nameIdx < 0) nameIdx = 0;
             if (sizeIdx < 0) sizeIdx = 1;
             if (numIdx < 0) numIdx = 2;
@@ -50,7 +55,10 @@ public static class RosterCsvImportHelper
                     Number = GetCell(row, numIdx),
                     Gender = genderIdx >= 0
                         ? RosterGenderHelper.Normalize(GetCell(row, genderIdx))
-                        : RosterGenderHelper.Varon
+                        : RosterGenderHelper.Varon,
+                    KitType = kitIdx >= 0
+                        ? RosterKitHelper.Normalize(GetCell(row, kitIdx))
+                        : RosterKitHelper.Conjunto
                 };
                 return line;
             })

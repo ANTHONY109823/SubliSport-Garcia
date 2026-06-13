@@ -29,42 +29,23 @@ else if (isAdmin)
     @if (adminMetrics is not null)
     {
         <p class="dashboard-insight">
-            <strong>@directRetailCount</strong> cliente directo · <strong>@mypeCount</strong> por servicio ·
-            Cobros registrados <strong>S/ @totalBilled.ToString("N2")</strong>
+            <strong>@directRetailCount</strong> directo · <strong>@mypeCount</strong> servicio ·
+            Cobrado <strong>S/ @totalBilled.ToString("N0")</strong>
         </p>
     }
 
-    <div class="stats-rings-grid">
-        <StatRing Label="Total pedidos" Value="@orders.Count.ToString()" Percent="100" />
+    <div class="stats-rings-grid stats-rings-compact">
+        <StatRing Label="Activos" Value="@activeCount.ToString()" Percent="@RingPct(activeCount, orders.Count)" Color="#F0A500" />
         <StatRing Label="Sin diseñador" Value="@pendingAssignment.Count.ToString()" Percent="@RingPct(pendingAssignment.Count, orders.Count)" Color="#FFD166" />
-        <StatRing Label="Urgentes" Value="@urgentOrders.Count.ToString()" Percent="@RingPct(urgentOrders.Count, orders.Count)" Color="#FF2D9A" />
-        <StatRing Label="En producción" Value="@inProductionCount.ToString()" Percent="@RingPct(inProductionCount, orders.Count)" Color="#F0A500" />
+        <StatRing Label="En producción" Value="@inProductionCount.ToString()" Percent="@RingPct(inProductionCount, orders.Count)" Color="#00E5CC" />
         <StatRing Label="Por recoger" Value="@readyPickupCount.ToString()" Percent="@RingPct(readyPickupCount, orders.Count)" Color="#81C784" />
-        <StatRing Label="Cobrado" Value="@($"S/ {totalBilled:N0}")" Percent="@RingPct((int)totalBilled, Math.Max((int)totalBilled, 1))" Color="#F0A500" SubLabel="total registrado" />
     </div>
-
-    @if (adminMetrics is not null && statusLegend.Count > 0)
-    {
-        <div class="dashboard-charts-row">
-            <section class="panel-section">
-                <h2>Distribución por estado</h2>
-                <DonutChart LegendItems="statusLegend" CenterLabel="Activos" />
-            </section>
-            <section class="panel-section">
-                <h2>Tiempos promedio</h2>
-                <div class="stats-rings-grid" style="margin:0">
-                    <StatRing Label="Diseño" Value="@FormatHours(adminMetrics.AvgDesignHours)" Percent="@HoursPct(adminMetrics.AvgDesignHours)" Color="#F0A500" />
-                    <StatRing Label="Producción" Value="@FormatHours(adminMetrics.AvgProductionHours)" Percent="@HoursPct(adminMetrics.AvgProductionHours)" Color="#00E5CC" />
-                </div>
-            </section>
-        </div>
-    }
 
     @if (pendingAssignment.Count > 0)
     {
-        <section class="panel-section panel-highlight">
+        <section class="panel-section">
             <div class="section-header-row">
-                <h2>Asignar diseñador (@pendingAssignment.Count)</h2>
+                <h2>Sin diseñador (@pendingAssignment.Count)</h2>
                 <a href="/pedidos/nuevo" class="quick-link">+ Nuevo pedido</a>
             </div>
             <div class="table-wrap">
@@ -92,10 +73,10 @@ else if (isAdmin)
 
     @if (designerLeaderboard.Count > 0)
     {
-        <section class="panel-section panel-highlight">
+        <section class="panel-section">
             <div class="section-header-row">
-                <h2>Rendimiento diseñadores</h2>
-                <a href="/pedidos/disenadores" class="quick-link">Ver detalle</a>
+                <h2>Diseñadores</h2>
+                <a href="/pedidos/disenadores" class="quick-link">Detalle</a>
             </div>
             <DesignerLeaderboardTable Entries="designerLeaderboard" />
         </section>
@@ -103,19 +84,18 @@ else if (isAdmin)
 
     @if (activeTracking.Count > 0)
     {
-        <section class="panel-section panel-highlight">
+        <section class="panel-section">
             <div class="section-header-row">
-                <h2>Seguimiento de pedidos (@activeTracking.Count)</h2>
+                <h2>En curso (@activeTracking.Count)</h2>
                 <a href="/pedidos" class="quick-link">Ver todos</a>
             </div>
-            <p class="field-hint">Recorrido por horas — abra un pedido para ver el historial completo.</p>
             <div class="table-wrap">
                 <table class="data-table">
                     <thead>
                         <tr><th>N°</th><th>Recepción</th><th>Cliente</th><th>Estado</th><th>Metraje</th><th>Último movimiento</th><th></th></tr>
                     </thead>
                     <tbody>
-                        @foreach (var order in activeTracking.Take(8))
+                        @foreach (var order in activeTracking.Take(5))
                         {
                             var milestones = OrderJourneyHelper.BuildMilestones(order);
                             var last = milestones.LastOrDefault();
@@ -144,12 +124,11 @@ else if (isAdmin)
         </section>
     }
 
-    <section class="panel-section">
-        <h2>Accesos rápidos</h2>
+    <section class="panel-section panel-section-minimal">
         <div class="quick-links">
-            <a href="/pedidos/nuevo" class="quick-link">+ Registrar pedido</a>
-            <a href="/pedidos" class="quick-link">Seguimiento de pedidos</a>
-            <a href="/pedidos/disenadores" class="quick-link">Rendimiento diseñadores</a>
+            <a href="/pedidos/nuevo" class="quick-link">+ Nuevo pedido</a>
+            <a href="/pedidos" class="quick-link">Pedidos</a>
+            <a href="/pedidos/disenadores" class="quick-link">Diseñadores</a>
         </div>
     </section>
 }
@@ -160,12 +139,10 @@ else if (isDesigner)
 
     @if (designerMetrics is not null)
     {
-        <div class="stats-rings-grid">
+        <div class="stats-rings-grid stats-rings-compact">
             <StatRing Label="Por aceptar" Value="@designerMetrics.PendingAcceptance.ToString()" Percent="@RingPct(designerMetrics.PendingAcceptance, TotalDesignerPending(designerMetrics))" Color="#FFD166" />
-            <StatRing Label="Por iniciar" Value="@designerMetrics.AcceptedNotStarted.ToString()" Percent="@RingPct(designerMetrics.AcceptedNotStarted, TotalDesignerPending(designerMetrics))" Color="#F0A500" />
             <StatRing Label="En diseño" Value="@designerMetrics.InProgress.ToString()" Percent="@RingPct(designerMetrics.InProgress, TotalDesignerPending(designerMetrics))" Color="#F0A500" />
             <StatRing Label="Culminados" Value="@designerMetrics.CompletedTotal.ToString()" Percent="@RingPct(designerMetrics.CompletedThisMonth, Math.Max(designerMetrics.CompletedTotal, 1))" Color="#81C784" SubLabel="@($"{designerMetrics.CompletedThisMonth} este mes")" />
-            <StatRing Label="Urgentes" Value="@designerMetrics.UrgentPending.ToString()" Percent="@RingPct(designerMetrics.UrgentPending, TotalDesignerPending(designerMetrics))" Color="#FF2D9A" />
         </div>
 
         @if (designerMetrics.AvgHoursToComplete.HasValue)
@@ -244,12 +221,11 @@ else if (isProduccion)
 
     <p class="dashboard-insight">Calculadora por <strong>metraje × S/ 15/m</strong> (impresión + planchado). Cliente directo se cotiza aparte en la web.</p>
 
-    <div class="stats-rings-grid">
+    <div class="stats-rings-grid stats-rings-compact">
         <StatRing Label="Por aceptar" Value="@toAcceptImp.ToString()" Percent="@RingPct(toAcceptImp, orders.Count)" Color="#FFD166" />
         <StatRing Label="En trabajo" Value="@inProgressImp.ToString()" Percent="@RingPct(inProgressImp, orders.Count)" Color="#F0A500" />
         <StatRing Label="Por recoger" Value="@readyImp.ToString()" Percent="@RingPct(readyImp, orders.Count)" Color="#81C784" />
         <StatRing Label="Historial" Value="@historyCount.ToString()" Percent="@RingPct(historyCount, historyCount + orders.Count)" Color="#00E5CC" />
-        <StatRing Label="Cobrado" Value="@($"S/ {totalChargedImp:N0}")" Percent="75" Color="#F0A500" SubLabel="historial" />
     </div>
 
     <section class="panel-section">
@@ -277,25 +253,23 @@ else
     private List<Order> orders = [];
     private List<Order> pendingAssignment = [];
     private List<Order> activeTracking = [];
-    private List<Order> urgentOrders = [];
     private List<DesignerLeaderboardEntry> designerLeaderboard = [];
     private SystemMetrics? metrics;
     private SystemMetrics? adminMetrics;
     private DesignerPersonalMetrics? designerMetrics;
-    private List<DonutChart.LegendItem> statusLegend = [];
     private int directRetailCount;
     private int mypeCount;
     private bool isSuperAdminSupport;
     private bool isAdmin;
     private bool isDesigner;
     private bool isProduccion;
+    private int activeCount;
     private int inProductionCount;
     private int readyPickupCount;
     private int toAcceptImp;
     private int inProgressImp;
     private int readyImp;
     private int historyCount;
-    private decimal totalChargedImp;
     private decimal totalBilled;
 
     protected override async Task OnInitializedAsync()
@@ -323,11 +297,7 @@ else
             designerLeaderboard = await MetricsService.GetDesignerLeaderboardAsync();
             directRetailCount = orders.Count(o => o.PricingTier == ClientPricingTier.DirectRetail);
             mypeCount = orders.Count(o => o.PricingTier == ClientPricingTier.MypeB2B);
-            statusLegend = adminMetrics.OrdersByStatus
-                .OrderByDescending(x => x.Value)
-                .Take(6)
-                .Select((item, i) => new DonutChart.LegendItem(item.Key, item.Value, ChartColor(i)))
-                .ToList();
+            activeCount = orders.Count(o => o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado);
             activeTracking = orders
                 .Where(o => o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
                 .OrderBy(o => o.ReceivedAt)
@@ -338,10 +308,6 @@ else
                             o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
                 .OrderBy(o => o.ReceivedAt)
                 .ThenBy(o => o.CreatedAt)
-                .ToList();
-            urgentOrders = orders
-                .Where(o => o.Priority == OrderPriority.Urgente &&
-                            o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
                 .ToList();
             inProductionCount = orders.Count(o => o.Status is OrderStatus.DisenoAprobado or OrderStatus.EnImpresion
                 or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion);
@@ -364,7 +330,6 @@ else
             inProgressImp = orders.Count(o => o.Status is OrderStatus.EnImpresion or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion);
             readyImp = orders.Count(o => o.Status == OrderStatus.ListoEntrega);
             historyCount = history.Count;
-            totalChargedImp = history.Where(o => o.ChargeAmount > 0).Sum(o => o.ChargeAmount);
             return;
         }
 
@@ -374,18 +339,6 @@ else
     private static int RingPct(int part, int total) =>
         total <= 0 ? 0 : Math.Clamp((int)Math.Round(part * 100.0 / total), 0, 100);
 
-    private static int HoursPct(double? hours) =>
-        hours.HasValue ? Math.Clamp((int)Math.Round(hours.Value / 72.0 * 100), 5, 100) : 0;
-
-    private static string FormatHours(double? hours) =>
-        hours.HasValue ? $"{hours.Value:F1}h" : "—";
-
     private static int TotalDesignerPending(DesignerPersonalMetrics m) =>
         Math.Max(1, m.PendingAcceptance + m.AcceptedNotStarted + m.InProgress);
-
-    private static string ChartColor(int i)
-    {
-        string[] colors = ["#F0A500", "#FFD166", "#00E5CC", "#FF2D9A", "#81C784", "#4FC3F7"];
-        return colors[i % colors.Length];
-    }
 }

@@ -408,7 +408,8 @@
                 Name = r.Name.Trim(),
                 Size = r.Size.Trim(),
                 Number = r.Number.Trim(),
-                Gender = RosterGenderHelper.Normalize(r.Gender)
+                Gender = RosterGenderHelper.Normalize(r.Gender),
+                KitType = RosterKitHelper.Normalize(r.KitType)
             })
             .ToList();
 

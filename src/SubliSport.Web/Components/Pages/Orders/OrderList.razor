@@ -10,7 +10,7 @@
         <h1 class="page-title">@(isDesigner ? "Mis diseños" : "Gestión de pedidos")</h1>
         @if (isAdmin)
         {
-            <p class="page-subtitle">@filteredOrders.Count pedido(s) · @unassignedCount sin diseñador</p>
+            <p class="page-subtitle">@filteredOrders.Count pedido(s)</p>
         }
         else if (isDesigner)
         {
@@ -21,47 +21,32 @@
 
 @if (isAdmin)
 {
-    <div class="filter-tabs">
+    <div class="filter-tabs filter-tabs-segmented">
         <button type="button" class="filter-tab @(filter == AdminFilter.All ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.All)">
-            Todos (@orders.Count)
+            Todos
+        </button>
+        <button type="button" class="filter-tab @(filter == AdminFilter.Active ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.Active)">
+            Activos@if (activeCount > 0) {<span class="filter-count">@activeCount</span>}
         </button>
         <button type="button" class="filter-tab @(filter == AdminFilter.Unassigned ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.Unassigned)">
-            Sin diseñador (@unassignedCount)
-        </button>
-        <button type="button" class="filter-tab @(filter == AdminFilter.Urgent ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.Urgent)">
-            Urgentes (@urgentCount)
-        </button>
-        <button type="button" class="filter-tab @(filter == AdminFilter.WebQuotes ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.WebQuotes)">
-            Cotizaciones web (@webQuotesCount)
-        </button>
-        <button type="button" class="filter-tab @(filter == AdminFilter.New ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.New)">
-            Recién creados (@newCount)
-        </button>
-        <button type="button" class="filter-tab @(filter == AdminFilter.InProduction ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.InProduction)">
-            En producción (@inProductionCount)
+            Sin diseñador@if (unassignedCount > 0) {<span class="filter-count filter-count-warn">@unassignedCount</span>}
         </button>
         <button type="button" class="filter-tab @(filter == AdminFilter.Delivered ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.Delivered)">
-            Entregados (@deliveredCount)
-        </button>
-        <button type="button" class="filter-tab @(filter == AdminFilter.WaitingClient ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.WaitingClient)">
-            Pendiente de aprobación (@waitingClientCount)
+            Entregados
         </button>
     </div>
 }
 else if (isDesigner)
 {
-    <div class="filter-tabs">
+    <div class="filter-tabs filter-tabs-segmented">
         <button type="button" class="filter-tab @(designerFilter == DesignerFilter.Pending ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.Pending)">
-            Pendientes (@pendingCount)
+            Pendientes@if (pendingCount > 0) {<span class="filter-count">@pendingCount</span>}
         </button>
         <button type="button" class="filter-tab @(designerFilter == DesignerFilter.InProgress ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.InProgress)">
-            En diseño (@inProgressCount)
+            En diseño@if (inProgressCount > 0) {<span class="filter-count">@inProgressCount</span>}
         </button>
         <button type="button" class="filter-tab @(designerFilter == DesignerFilter.Completed ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.Completed)">
-            Culminados (@completedCount)
-        </button>
-        <button type="button" class="filter-tab @(designerFilter == DesignerFilter.WaitingClient ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.WaitingClient)">
-            Pendiente de aprobación (@waitingClientCount)
+            Culminados
         </button>
     </div>
 }
@@ -166,25 +151,20 @@ else
     [Inject] private OrderService OrderService { get; set; } = default!;
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
-    private enum AdminFilter { All, Unassigned, Urgent, WebQuotes, New, InProduction, Delivered, WaitingClient }
-    private enum DesignerFilter { Pending, InProgress, Completed, WaitingClient }
+    private enum AdminFilter { All, Active, Unassigned, Delivered }
+    private enum DesignerFilter { Pending, InProgress, Completed }
 
     private List<Order> orders = [];
     private List<Order> filteredOrders = [];
-    private AdminFilter filter = AdminFilter.All;
+    private AdminFilter filter = AdminFilter.Active;
     private DesignerFilter designerFilter = DesignerFilter.Pending;
     private bool isAdmin;
     private bool isDesigner;
     private int unassignedCount;
-    private int urgentCount;
-    private int webQuotesCount;
-    private int newCount;
-    private int inProductionCount;
-    private int deliveredCount;
+    private int activeCount;
     private int pendingCount;
     private int inProgressCount;
     private int completedCount;
-    private int waitingClientCount;
 
     protected override async Task OnInitializedAsync()
     {
@@ -201,14 +181,7 @@ else
         {
             unassignedCount = orders.Count(o => o.AssignedDesignerId is null &&
                                                 o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado);
-            urgentCount = orders.Count(o => o.Priority == OrderPriority.Urgente &&
-                                            o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado);
-            webQuotesCount = orders.Count(o => LandingQuoteNotesHelper.IsLandingQuote(o.PricingNotes));
-            newCount = orders.Count(o => o.Status is OrderStatus.CotizacionRecibida or OrderStatus.EnRevision);
-            inProductionCount = orders.Count(o => o.Status is OrderStatus.DisenoAprobado or OrderStatus.EnImpresion
-                or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion or OrderStatus.ListoEntrega);
-            deliveredCount = orders.Count(o => o.Status == OrderStatus.Entregado);
-            waitingClientCount = orders.Count(DesignerOrderHelper.IsPendingClientApproval);
+            activeCount = orders.Count(o => o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado);
             ApplyAdminFilter();
         }
         else if (isDesigner)
@@ -220,10 +193,9 @@ else
 
     private void CountDesignerOrders()
     {
-        pendingCount = orders.Count(DesignerOrderHelper.IsPending);
+        pendingCount = orders.Count(o => DesignerOrderHelper.IsPending(o) || DesignerOrderHelper.IsPendingClientApproval(o));
         inProgressCount = orders.Count(o => o.Status == OrderStatus.EnDiseno || DesignerOrderHelper.CanStart(o));
         completedCount = orders.Count(DesignerOrderHelper.IsDesignPhaseComplete);
-        waitingClientCount = orders.Count(DesignerOrderHelper.IsPendingClientApproval);
     }
 
     private void SetAdminFilter(AdminFilter newFilter)
@@ -246,25 +218,11 @@ else
                 .Where(o => o.AssignedDesignerId is null &&
                             o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
                 .ToList(),
-            AdminFilter.Urgent => orders
-                .Where(o => o.Priority == OrderPriority.Urgente &&
-                            o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
-                .ToList(),
-            AdminFilter.WebQuotes => orders
-                .Where(o => LandingQuoteNotesHelper.IsLandingQuote(o.PricingNotes))
-                .ToList(),
-            AdminFilter.New => orders
-                .Where(o => o.Status is OrderStatus.CotizacionRecibida or OrderStatus.EnRevision)
-                .ToList(),
-            AdminFilter.InProduction => orders
-                .Where(o => o.Status is OrderStatus.DisenoAprobado or OrderStatus.EnImpresion
-                    or OrderStatus.EnPlanchado or OrderStatus.EnConfeccion or OrderStatus.ListoEntrega)
+            AdminFilter.Active => orders
+                .Where(o => o.Status is not OrderStatus.Entregado and not OrderStatus.Cancelado)
                 .ToList(),
             AdminFilter.Delivered => orders
                 .Where(o => o.Status == OrderStatus.Entregado)
-                .ToList(),
-            AdminFilter.WaitingClient => orders
-                .Where(DesignerOrderHelper.IsPendingClientApproval)
                 .ToList(),
             _ => orders
         };
@@ -283,8 +241,7 @@ else
                 .Where(o => o.Status == OrderStatus.EnDiseno || DesignerOrderHelper.CanStart(o))
                 .ToList(),
             DesignerFilter.Completed => orders.Where(DesignerOrderHelper.IsDesignPhaseComplete).ToList(),
-            DesignerFilter.WaitingClient => orders.Where(DesignerOrderHelper.IsPendingClientApproval).ToList(),
-            _ => orders.Where(DesignerOrderHelper.IsPending).ToList()
+            _ => orders.Where(o => DesignerOrderHelper.IsPending(o) || DesignerOrderHelper.IsPendingClientApproval(o)).ToList()
         };
 
         filteredOrders = filteredOrders
