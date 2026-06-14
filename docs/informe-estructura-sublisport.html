@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Informe Estructura — SubliSport García</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #1a1a1a; max-width: 210mm; margin: 0 auto; padding: 12mm; }
+  h1 { font-size: 22pt; color: #b8860b; border-bottom: 3px solid #f0a500; padding-bottom: 8px; margin: 0 0 6px; }
+  h2 { font-size: 13pt; color: #333; margin: 22px 0 8px; page-break-after: avoid; border-left: 4px solid #f0a500; padding-left: 10px; }
+  h3 { font-size: 11pt; margin: 14px 0 6px; color: #444; }
+  .meta { color: #666; font-size: 9.5pt; margin-bottom: 20px; }
+  .cover-box { background: #111; color: #fff; padding: 24px; border-radius: 8px; margin-bottom: 24px; }
+  .cover-box h1 { color: #ffd166; border: none; }
+  .cover-box p { color: #ccc; margin: 4px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 9.5pt; }
+  th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: #f5f0e6; font-weight: 600; }
+  tr:nth-child(even) td { background: #fafafa; }
+  code, .path { font-family: Consolas, monospace; font-size: 9pt; background: #f4f4f4; padding: 1px 4px; border-radius: 3px; }
+  ul { margin: 4px 0 10px 18px; padding: 0; }
+  li { margin-bottom: 3px; }
+  .diagram { background: #f8f8f8; border: 1px solid #e0e0e0; padding: 12px; font-family: Consolas, monospace; font-size: 8.5pt; white-space: pre; line-height: 1.35; margin: 10px 0; }
+  .note { background: #fff8e6; border-left: 4px solid #f0a500; padding: 10px 12px; margin: 12px 0; font-size: 9.5pt; }
+  .page-break { page-break-before: always; }
+  .toc a { color: #b8860b; text-decoration: none; }
+  .badge { display: inline-block; background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 8.5pt; margin: 1px; }
+</style>
+</head>
+<body>
+
+<div class="cover-box">
+  <h1>SUBLISPORT GARCÍA</h1>
+  <p><strong>Informe completo de estructura del sistema</strong></p>
+  <p>Documento técnico para auditoría, mejoras y trabajo con IA (Claude / Cursor)</p>
+  <p>Generado: 9 de junio de 2026 · Repositorio: github.com/ANTHONY109823/SubliSport-Garcia</p>
+  <p>Producción: sublisport-garcia-production.up.railway.app</p>
+</div>
+
+<h2>Índice</h2>
+<ol class="toc">
+  <li><a href="#resumen">Resumen ejecutivo</a></li>
+  <li><a href="#stack">Stack tecnológico</a></li>
+  <li><a href="#arquitectura">Arquitectura en capas</a></li>
+  <li><a href="#estructura">Estructura de carpetas</a></li>
+  <li><a href="#roles">Roles y permisos</a></li>
+  <li><a href="#rutas">Rutas del panel (Blazor)</a></li>
+  <li><a href="#api">API REST pública</a></li>
+  <li><a href="#landing">Sitio público (landing)</a></li>
+  <li><a href="#pedido">Modelo de pedido y flujo</a></li>
+  <li><a href="#estados">Estados del pedido</a></li>
+  <li><a href="#cotizacion">Motor de cotización web</a></li>
+  <li><a href="#lista">Lista de jugadores (roster)</a></li>
+  <li><a href="#bd">Base de datos</a></li>
+  <li><a href="#servicios">Servicios y helpers</a></li>
+  <li><a href="#componentes">Componentes Blazor compartidos</a></li>
+  <li><a href="#deploy">Despliegue (Railway / Docker)</a></li>
+  <li><a href="#mejoras">Áreas de mejora sugeridas</a></li>
+</ol>
+
+<h2 id="resumen">1. Resumen ejecutivo</h2>
+<p>SubliSport García es un <strong>sistema de gestión interno</strong> para una empresa de confección deportiva sublimada. Combina:</p>
+<ul>
+  <li><strong>Panel administrativo</strong> — Blazor Server (.NET 10) con login por roles.</li>
+  <li><strong>Sitio público estático</strong> — <code>index.html</code> (landing) y <code>cotizar.html</code> (formulario de cotización).</li>
+  <li><strong>API REST</strong> — Endpoints mínimos para cotizaciones web y configuración.</li>
+  <li><strong>PostgreSQL</strong> — Persistencia en Railway.</li>
+</ul>
+<p>Usuarios principales: <strong>Wilber (Admin)</strong>, <strong>diseñadores</strong>, <strong>Juanita (Producción)</strong>, clientes vía web.</p>
+
+<h2 id="stack">2. Stack tecnológico</h2>
+<table>
+  <tr><th>Capa</th><th>Tecnología</th></tr>
+  <tr><td>Backend / UI admin</td><td>ASP.NET Core 10, Blazor Server (InteractiveServer)</td></tr>
+  <tr><td>Autenticación</td><td>ASP.NET Core Identity (cookies, roles)</td></tr>
+  <tr><td>ORM</td><td>Entity Framework Core + PostgreSQL (Npgsql)</td></tr>
+  <tr><td>Frontend público</td><td>HTML/CSS/JS vanilla (sin framework)</td></tr>
+  <tr><td>Configuración dinámica</td><td>JSON en tablas (Landing, Pricing, Production, PanelUi)</td></tr>
+  <tr><td>Contenedor</td><td>Docker (.NET 10 SDK build → aspnet runtime)</td></tr>
+  <tr><td>Hosting</td><td>Railway (healthcheck /health, puerto PORT=8080)</td></tr>
+</table>
+
+<h2 id="arquitectura">3. Arquitectura en capas</h2>
+<div class="diagram">┌─────────────────────────────────────────────────────────────┐
+│  CLIENTE WEB          │  ADMIN / DISEÑO / PRODUCCIÓN          │
+│  index.html           │  Blazor Server (/dashboard, /pedidos) │
+│  cotizar.html         │  AdminLayout + páginas Razor          │
+│  landing-config.js    │                                       │
+└───────────┬───────────┴──────────────────┬────────────────────┘
+            │ POST /api/landing-quote       │ Cookies + Identity
+            │ GET  /api/landing-config      │
+            ▼                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    SubliSport.Web                            │
+│  Program.cs · LandingEndpoints · AccountEndpoints            │
+│  OrderService · MetricsService · *ConfigurationService       │
+│  Helpers (26) · Components/Shared (16)                       │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+            ┌───────────────┴───────────────┐
+            ▼                               ▼
+┌───────────────────────┐     ┌───────────────────────────────┐
+│  SubliSport.Domain    │     │  SubliSport.Infrastructure     │
+│  Entities · Enums     │     │  AppDbContext · Migrations     │
+│  Landing DTOs         │     │  DatabaseInitializer           │
+└───────────────────────┘     └───────────────┬───────────────┘
+                                              ▼
+                                    PostgreSQL (Railway)</div>
+
+<h2 id="estructura">4. Estructura de carpetas</h2>
+<table>
+  <tr><th>Ruta</th><th>Contenido</th></tr>
+  <tr><td><code>/</code></td><td>Landing raíz: index.html, cotizar.html, landing-config.js, panel-config.js, assets/</td></tr>
+  <tr><td><code>src/SubliSport.Domain/</code></td><td>Entidades, enums, DTOs landing, modelos pricing (22 archivos)</td></tr>
+  <tr><td><code>src/SubliSport.Infrastructure/</code></td><td>DbContext, migraciones EF Core, seed DB</td></tr>
+  <tr><td><code>src/SubliSport.Web/</code></td><td>App Blazor, servicios, helpers, wwwroot (copia landing servida en prod)</td></tr>
+  <tr><td><code>src/SubliSport.Web/Components/Pages/</code></td><td>Páginas por rol: Dashboard, Orders, Production, Admin, Login</td></tr>
+  <tr><td><code>src/SubliSport.Web/Components/Shared/</code></td><td>Componentes reutilizables (roster, proforma, diseñador, etc.)</td></tr>
+  <tr><td><code>src/SubliSport.Web/wwwroot/</code></td><td>Estáticos servidos por Railway: cotizar.html, landing-config.js, admin.css, uploads/</td></tr>
+  <tr><td><code>docs/</code></td><td>Documentación (GUIA-RAILWAY.md, este informe)</td></tr>
+  <tr><td><code>Dockerfile</code>, <code>railway.toml</code>, <code>start.sh</code></td><td>Build y arranque en producción</td></tr>
+</table>
+<div class="note"><strong>Importante:</strong> Los archivos en la raíz (<code>cotizar.html</code>, <code>landing-config.js</code>) deben mantenerse sincronizados con <code>src/SubliSport.Web/wwwroot/</code>. Railway sirve desde wwwroot.</div>
+
+<h2 id="roles" class="page-break">5. Roles y permisos</h2>
+<table>
+  <tr><th>Rol</th><th>Constante</th><th>Acceso principal</th></tr>
+  <tr><td>SuperAdmin</td><td>AppRoles.SuperAdmin</td><td>Soporte: usuarios, config precios/WhatsApp/landing/panel. Modo impersonación.</td></tr>
+  <tr><td>Admin</td><td>AppRoles.Admin</td><td>Dashboard, pedidos, nuevo pedido, diseñadores, producción, asignación.</td></tr>
+  <tr><td>Designer</td><td>AppRoles.Designer</td><td>Mis diseños, aceptar/iniciar diseño, aprobación cliente.</td></tr>
+  <tr><td>Production</td><td>AppRoles.Production</td><td>Cola impresión/planchado/confección, historial, cobros.</td></tr>
+</table>
+<p>Políticas en Program.cs: SuperAdminOnly, Administration, DesignTeam, ProductionTeam.</p>
+
+<h2 id="rutas">6. Rutas del panel (Blazor)</h2>
+<table>
+  <tr><th>Ruta</th><th>Página</th><th>Roles</th></tr>
+  <tr><td>/login</td><td>Login.razor</td><td>Anónimo</td></tr>
+  <tr><td>/dashboard</td><td>Dashboard.razor</td><td>Todos (vista según rol)</td></tr>
+  <tr><td>/pedidos</td><td>OrderList.razor</td><td>Admin, Designer</td></tr>
+  <tr><td>/pedidos/nuevo</td><td>CreateOrder.razor</td><td>Admin</td></tr>
+  <tr><td>/pedidos/{id}</td><td>OrderDetail.razor</td><td>Admin, Designer</td></tr>
+  <tr><td>/pedidos/{id}/proforma</td><td>QuoteProformaPrint.razor</td><td>Admin</td></tr>
+  <tr><td>/pedidos/disenadores</td><td>DesignerStats.razor</td><td>Admin</td></tr>
+  <tr><td>/produccion</td><td>ProductionQueue.razor</td><td>Admin, Production</td></tr>
+  <tr><td>/produccion/{id}</td><td>ProductionOrderDetail.razor</td><td>Admin, Production</td></tr>
+  <tr><td>/produccion/historial</td><td>ProductionHistory.razor</td><td>Production</td></tr>
+  <tr><td>/produccion/{id}/ficha-confeccion</td><td>ConfectionPrintSheet.razor</td><td>Producción (PDF imprimible)</td></tr>
+  <tr><td>/usuarios</td><td>Users.razor</td><td>SuperAdmin</td></tr>
+  <tr><td>/configuracion/precios</td><td>PricingSettings.razor</td><td>SuperAdmin</td></tr>
+  <tr><td>/configuracion/whatsapp</td><td>WhatsAppSettings.razor</td><td>SuperAdmin</td></tr>
+  <tr><td>/configuracion/landing</td><td>LandingSettings.razor</td><td>SuperAdmin</td></tr>
+  <tr><td>/configuracion/panel</td><td>PanelUiSettings.razor</td><td>SuperAdmin</td></tr>
+</table>
+
+<h2 id="api">7. API REST y endpoints</h2>
+<table>
+  <tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr>
+  <tr><td>GET</td><td>/health</td><td>Healthcheck Railway</td></tr>
+  <tr><td>GET</td><td>/</td><td>Redirect → /index.html</td></tr>
+  <tr><td>GET</td><td>/api/landing-config</td><td>Config cotizar (teléfonos, telas, prendas, CORS público)</td></tr>
+  <tr><td>POST</td><td>/api/landing-quote</td><td>Recibe cotización web → crea Order + guarda fotos</td></tr>
+  <tr><td>POST</td><td>/account/login</td><td>Login form POST</td></tr>
+  <tr><td>POST</td><td>/account/logout</td><td>Cerrar sesión</td></tr>
+  <tr><td>POST</td><td>/account/impersonate</td><td>SuperAdmin entra como otro usuario</td></tr>
+  <tr><td>POST</td><td>/produccion/pedidos/{id}/aceptar</td><td>Aceptar pedido en producción</td></tr>
+</table>
+
+<h2 id="landing">8. Sitio público (landing)</h2>
+<h3>index.html</h3>
+<p>Landing marketing: hero, servicios, galería, contacto. Tema oscuro dorado (#F0A500). Enlaza a cotizar.html y login del panel.</p>
+<h3>cotizar.html + landing-config.js</h3>
+<ul>
+  <li>Selector tipo cliente: Directo retail vs Servicio MYPE B2B.</li>
+  <li>Tipo prenda: Conjunto, Camiseta, Mixto (chips).</li>
+  <li>Tela, bordado (logo/marca/short círculos), cantidad, fecha entrega.</li>
+  <li><strong>Lista jugadores:</strong> nombre, talla, número, género, prenda (conjunto/camiseta).</li>
+  <li>Import Excel/CSV, hasta 3 fotos referencia (base64 comprimido).</li>
+  <li>Envío: POST a <code>/api/landing-quote</code> + opción WhatsApp con texto generado.</li>
+</ul>
+<p>Config cargada desde <code>/api/landing-config</code> o fallback en DEFAULTS del JS.</p>
+
+<h2 id="pedido" class="page-break">9. Modelo de pedido (Order)</h2>
+<p>Entidad central en <code>SubliSport.Domain/Entities/Order.cs</code>. Campos clave:</p>
+<table>
+  <tr><th>Campo</th><th>Uso</th></tr>
+  <tr><td>OrderNumber</td><td>Identificador único visible</td></tr>
+  <tr><td>ClientName, ClientPhone, ClientEmail</td><td>Datos cliente</td></tr>
+  <tr><td>GarmentType, MixedGarmentDetails (JSON)</td><td>Prenda global o líneas mixtas</td></tr>
+  <tr><td>PricingTier</td><td>DirectRetail | MypeB2B</td></tr>
+  <tr><td>Sport</td><td>Fijo "Fútbol" en flujo actual</td></tr>
+  <tr><td>Quantity, SizeRange</td><td>Cantidad y resumen tallas</td></tr>
+  <tr><td>ConfectionRosterDetails (JSON)</td><td>Lista jugadores: nombre, talla, número, gender, kitType</td></tr>
+  <tr><td>Status, Priority</td><td>Flujo operativo y urgencia</td></tr>
+  <tr><td>AssignedDesignerId</td><td>Diseñador asignado</td></tr>
+  <tr><td>FabricTypeName, FabricMeters, costos calculados</td><td>Producción y pricing</td></tr>
+  <tr><td>CalculatedTotal, ChargeAmount, PricingNotes</td><td>Cotización y proforma (incl. flag cotización web)</td></tr>
+  <tr><td>StatusHistory</td><td>Historial de cambios de estado</td></tr>
+</table>
+
+<h2 id="estados">10. Estados del pedido (OrderStatus)</h2>
+<table>
+  <tr><th>#</th><th>Estado</th><th>Fase</th></tr>
+  <tr><td>0</td><td>CotizacionRecibida</td><td>Entrada (web o manual)</td></tr>
+  <tr><td>1</td><td>EnRevision</td><td>Admin revisa</td></tr>
+  <tr><td>2</td><td>AsignadoDiseno</td><td>Con diseñador, pendiente aceptar</td></tr>
+  <tr><td>3</td><td>EnDiseno</td><td>Diseño activo</td></tr>
+  <tr><td>4</td><td>DisenoAprobado</td><td>Pasa a producción</td></tr>
+  <tr><td>5-7</td><td>EnImpresion / EnPlanchado / EnConfeccion</td><td>Producción</td></tr>
+  <tr><td>8</td><td>ListoEntrega</td><td>Por recoger</td></tr>
+  <tr><td>9</td><td>Entregado</td><td>Cerrado</td></tr>
+  <tr><td>10</td><td>Cancelado</td><td>Anulado</td></tr>
+</table>
+
+<h2 id="cotizacion">11. Motor de cotización web</h2>
+<p>Archivos: <code>LandingQuoteCalculator.cs</code>, <code>LandingQuoteOrderAssembler.cs</code>, <code>LandingQuoteSubmit.cs</code></p>
+<ul>
+  <li>Tablas precio conjunto/camiseta por tier de talla y tela (dry_fit, etc.).</li>
+  <li>Bordados: logo, marca, short (unidades fijas por pieza).</li>
+  <li>Con roster: precio <strong>por fila</strong> según kitType (conjunto vs camiseta).</li>
+  <li>Genera: AdminSuggestionText, ClientProformaDraft, ClientRequestText (WhatsApp).</li>
+  <li>OrderAssembler persiste pedido y serializa roster a ConfectionRosterDetails.</li>
+</ul>
+
+<h2 id="lista">12. Lista de jugadores (roster)</h2>
+<table>
+  <tr><th>Campo JSON</th><th>Valores</th><th>UI</th></tr>
+  <tr><td>name, size, number</td><td>Texto</td><td>Admin + cotizar + CSV</td></tr>
+  <tr><td>gender</td><td>Varon | Femenino</td><td>PDF corte: VARON / CORTE PRINCESA</td></tr>
+  <tr><td>kitType</td><td>conjunto | camiseta</td><td>Conjunto completo / Camiseta sola</td></tr>
+</table>
+<p>Helpers: RosterGenderHelper, RosterKitHelper, RosterCsvImportHelper, ConfectionRosterHelper.</p>
+<p>Plantilla CSV: <code>wwwroot/templates/plantilla-lista-sublisport.csv</code></p>
+
+<h2 id="bd">13. Base de datos (PostgreSQL)</h2>
+<table>
+  <tr><th>Tabla</th><th>Descripción</th></tr>
+  <tr><td>Orders</td><td>Pedidos</td></tr>
+  <tr><td>OrderStatusHistories</td><td>Auditoría estados</td></tr>
+  <tr><td>AspNetUsers / Roles</td><td>Identity</td></tr>
+  <tr><td>PricingConfigurations</td><td>JSON tarifas calculadora admin</td></tr>
+  <tr><td>ProductionConfigurations</td><td>JSON reglas producción</td></tr>
+  <tr><td>LandingConfigurations</td><td>JSON config página cotizar</td></tr>
+  <tr><td>PanelUiConfigurations</td><td>JSON etiquetas UI panel</td></tr>
+</table>
+<p>Migraciones en <code>Infrastructure/Data/Migrations/</code> (desde InitialCreate jun 2026).</p>
+
+<h2 id="servicios" class="page-break">14. Servicios (13) y Helpers (26)</h2>
+<h3>Servicios principales</h3>
+<ul>
+  <li><strong>OrderService</strong> — CRUD pedidos, transiciones estado, asignación diseñador, proforma landing.</li>
+  <li><strong>MetricsService</strong> — Dashboard admin/diseñador, leaderboard.</li>
+  <li><strong>LandingConfigurationService</strong> — Config JSON cotizar.</li>
+  <li><strong>PricingConfigurationService / PricingCalculatorService</strong> — Tarifas MYPE y calculadora metraje.</li>
+  <li><strong>ProductionConfigurationService</strong> — Reglas producción.</li>
+  <li><strong>QuoteReferenceImageService</strong> — Guarda fotos en wwwroot/uploads/quotes/.</li>
+  <li><strong>UserManagementService / AuthService</strong> — Usuarios e impersonación.</li>
+</ul>
+<h3>Helpers destacados</h3>
+<ul>
+  <li>DesignerOrderHelper, ProduccionOrderHelper — Lógica por rol.</li>
+  <li>OrderJourneyHelper, OrderDisplayHelper, OrderStatusHelper — UI y timeline.</li>
+  <li>LandingQuoteNotesHelper — Detecta cotizaciones web en PricingNotes.</li>
+  <li>ProformaDocumentBuilder, OrderProformaBuilder — Documentos imprimibles.</li>
+  <li>WhatsAppHelper — Links wa.me con mensajes.</li>
+  <li>GarmentTypeHelper, MixedGarmentHelper — Prendas mixtas.</li>
+</ul>
+
+<h2 id="componentes">15. Componentes Blazor compartidos</h2>
+<table>
+  <tr><th>Componente</th><th>Función</th></tr>
+  <tr><td>AdminQuoteRosterEditor</td><td>Lista jugadores admin + import CSV</td></tr>
+  <tr><td>AdminQuotePhotoSlots</td><td>Fotos referencia en registrar pedido</td></tr>
+  <tr><td>DesignerPickerCards</td><td>Selector diseñador con métricas carga</td></tr>
+  <tr><td>ClientTypeSelector / ServiceTypeSelector</td><td>Directo vs MYPE</td></tr>
+  <tr><td>OrderPricingCalculator</td><td>Calculadora metraje producción</td></tr>
+  <tr><td>ProductionOptionsPanel</td><td>Lista confeccionista en detalle producción</td></tr>
+  <tr><td>OrderTimeline</td><td>Historial visual del pedido</td></tr>
+  <tr><td>ProformaInvoice</td><td>Vista proforma cliente</td></tr>
+  <tr><td>StatRing / DonutChart</td><td>Métricas dashboard</td></tr>
+</table>
+
+<h2 id="deploy">16. Despliegue</h2>
+<ul>
+  <li><strong>GitHub:</strong> ANTHONY109823/SubliSport-Garcia (rama main).</li>
+  <li><strong>Railway:</strong> Auto-deploy desde main, Dockerfile multi-stage, start.sh ejecuta migraciones.</li>
+  <li><strong>Variables:</strong> DATABASE_URL (PostgreSQL), PORT, ASPNETCORE_ENVIRONMENT.</li>
+  <li><strong>Estáticos:</strong> wwwroot servido por Kestrel; landing accesible en /index.html y /cotizar.html.</li>
+  <li><strong>CORS LandingPublic:</strong> github.io, railway.app, localhost.</li>
+</ul>
+
+<h2 id="mejoras">17. Áreas de mejora sugeridas (para Claude/Cursor)</h2>
+<table>
+  <tr><th>Área</th><th>Observación</th><th>Prioridad</th></tr>
+  <tr><td>Duplicación landing</td><td>Raíz y wwwroot deben sincronizarse manualmente</td><td>Alta</td></tr>
+  <tr><td>Tests</td><td>Sin tests automatizados visibles</td><td>Alta</td></tr>
+  <tr><td>API documentada</td><td>Sin OpenAPI/Swagger</td><td>Media</td></tr>
+  <tr><td>Blazor Server</td><td>Escalabilidad limitada (SignalR); considerar WASM o híbrido a futuro</td><td>Media</td></tr>
+  <tr><td>Uploads</td><td>Fotos en disco local; en Railway puede perderse al redeploy</td><td>Alta</td></tr>
+  <tr><td>PricingNotes</td><td>Campo multipropósito (proforma + flag web); podría normalizarse</td><td>Media</td></tr>
+  <tr><td>Selects nativos cotizar</td><td>Dependen de color-scheme del OS; considerar custom dropdown</td><td>Baja</td></tr>
+  <tr><td>Notificaciones</td><td>Sin email/push al recibir cotización web</td><td>Media</td></tr>
+  <tr><td>Mobile admin</td><td>Tablas anchas; mejorar responsive</td><td>Media</td></tr>
+  <tr><td>i18n</td><td>Solo español; hardcoded strings</td><td>Baja</td></tr>
+</table>
+
+<h2>18. Flujo típico end-to-end</h2>
+<div class="diagram">Cliente → cotizar.html → POST /api/landing-quote
+    → LandingQuoteCalculator + OrderService.CreateManualOrder
+    → Order (CotizacionRecibida) + fotos en uploads/
+
+Admin → /pedidos/nuevo o revisa web → asigna diseñador
+    → Designer acepta → EnDiseno → aprobación cliente
+    → DisenoAprobado → Producción (impresión/planchado/confección)
+    → ListoEntrega → Entregado
+
+PDF confección: /produccion/{id}/ficha-confeccion (roster + corte + prenda)</div>
+
+<p style="margin-top:30px; font-size:9pt; color:#888; text-align:center;">
+  SubliSport García · Informe generado para uso interno y mejora con asistentes IA · Junio 2026
+</p>
+
+</body>
+</html>
