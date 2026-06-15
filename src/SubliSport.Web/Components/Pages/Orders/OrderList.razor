@@ -26,10 +26,18 @@
             Todos
         </button>
         <button type="button" class="filter-tab @(filter == AdminFilter.Active ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.Active)">
-            Activos@if (activeCount > 0) {<span class="filter-count">@activeCount</span>}
+            Activos
+            @if (activeCount > 0)
+            {
+                <span class="filter-count">@activeCount</span>
+            }
         </button>
         <button type="button" class="filter-tab @(filter == AdminFilter.Unassigned ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.Unassigned)">
-            Sin diseñador@if (unassignedCount > 0) {<span class="filter-count filter-count-warn">@unassignedCount</span>}
+            Sin diseñador
+            @if (unassignedCount > 0)
+            {
+                <span class="filter-count filter-count-warn">@unassignedCount</span>
+            }
         </button>
         <button type="button" class="filter-tab @(filter == AdminFilter.Delivered ? "active" : "")" @onclick="() => SetAdminFilter(AdminFilter.Delivered)">
             Entregados
@@ -40,10 +48,18 @@ else if (isDesigner)
 {
     <div class="filter-tabs filter-tabs-segmented">
         <button type="button" class="filter-tab @(designerFilter == DesignerFilter.Pending ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.Pending)">
-            Pendientes@if (pendingCount > 0) {<span class="filter-count">@pendingCount</span>}
+            Pendientes
+            @if (pendingCount > 0)
+            {
+                <span class="filter-count">@pendingCount</span>
+            }
         </button>
         <button type="button" class="filter-tab @(designerFilter == DesignerFilter.InProgress ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.InProgress)">
-            En diseño@if (inProgressCount > 0) {<span class="filter-count">@inProgressCount</span>}
+            En diseño
+            @if (inProgressCount > 0)
+            {
+                <span class="filter-count">@inProgressCount</span>
+            }
         </button>
         <button type="button" class="filter-tab @(designerFilter == DesignerFilter.Completed ? "active" : "")" @onclick="() => SetDesignerFilter(DesignerFilter.Completed)">
             Culminados

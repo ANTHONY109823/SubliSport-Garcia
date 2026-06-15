@@ -3,14 +3,14 @@
 @if (Metrics is not null)
 {
     <div class="stats-rings-grid">
-        <StatRing Label="Total pedidos" Value="@Metrics.TotalOrders.ToString()" Percent="100" Color="#F0A500" />
+        <StatRing Label="Total pedidos" Value="@Metrics.TotalOrders.ToString()" Percent="100" Color="#52B788" />
         <StatRing Label="Urgentes" Value="@Metrics.UrgentOrders.ToString()" Percent="@Pct(Metrics.UrgentOrders, Metrics.TotalOrders)" Color="#FF2D9A" />
         <StatRing Label="En diseño" Value="@Metrics.PendingDesign.ToString()" Percent="@Pct(Metrics.PendingDesign, Metrics.TotalOrders)" Color="#FFD166" />
-        <StatRing Label="En producción" Value="@Metrics.InProduction.ToString()" Percent="@Pct(Metrics.InProduction, Metrics.TotalOrders)" Color="#F0A500" />
-        <StatRing Label="Entregados" Value="@Metrics.Delivered.ToString()" Percent="@Pct(Metrics.Delivered, Metrics.TotalOrders)" Color="#81C784" />
+        <StatRing Label="En producción" Value="@Metrics.InProduction.ToString()" Percent="@Pct(Metrics.InProduction, Metrics.TotalOrders)" Color="#52B788" />
+        <StatRing Label="Entregados" Value="@Metrics.Delivered.ToString()" Percent="@Pct(Metrics.Delivered, Metrics.TotalOrders)" Color="#74CFA3" />
         @if (ShowUserCounts)
         {
-            <StatRing Label="Usuarios activos" Value="@($"{Metrics.ActiveUsers}/{Metrics.TotalUsers}")" Percent="@Pct(Metrics.ActiveUsers, Math.Max(Metrics.TotalUsers, 1))" Color="#00E5CC" />
+            <StatRing Label="Usuarios activos" Value="@($"{Metrics.ActiveUsers}/{Metrics.TotalUsers}")" Percent="@Pct(Metrics.ActiveUsers, Math.Max(Metrics.TotalUsers, 1))" Color="#0891B2" />
         }
     </div>
 
@@ -28,8 +28,8 @@
         <section class="panel-section">
             <h2>Tiempos promedio</h2>
             <div class="stats-rings-grid" style="margin-bottom:0">
-                <StatRing Label="Diseño" Value="@FormatHours(Metrics.AvgDesignHours)" Percent="@HoursPct(Metrics.AvgDesignHours)" Color="#F0A500" SubLabel="asignado → aprobado" />
-                <StatRing Label="Producción" Value="@FormatHours(Metrics.AvgProductionHours)" Percent="@HoursPct(Metrics.AvgProductionHours)" Color="#00E5CC" SubLabel="impresión → entrega" />
+                <StatRing Label="Diseño" Value="@FormatHours(Metrics.AvgDesignHours)" Percent="@HoursPct(Metrics.AvgDesignHours)" Color="#52B788" SubLabel="asignado → aprobado" />
+                <StatRing Label="Producción" Value="@FormatHours(Metrics.AvgProductionHours)" Percent="@HoursPct(Metrics.AvgProductionHours)" Color="#0891B2" SubLabel="impresión → entrega" />
             </div>
         </section>
     </div>
@@ -87,7 +87,7 @@
     private List<DonutChart.LegendItem> statusLegend = [];
     private List<DonutChart.LegendItem> teamLegend = [];
 
-    private static readonly string[] ChartColors = ["#F0A500", "#FFD166", "#00E5CC", "#FF2D9A", "#81C784", "#4FC3F7", "#888888"];
+    private static readonly string[] ChartColors = ["#52B788", "#FFD166", "#0891B2", "#FF2D9A", "#74CFA3", "#4FC3F7", "#888888"];
 
     protected override void OnParametersSet()
     {

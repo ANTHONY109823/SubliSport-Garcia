@@ -35,10 +35,10 @@ else if (isAdmin)
     }
 
     <div class="stats-rings-grid stats-rings-compact">
-        <StatRing Label="Activos" Value="@activeCount.ToString()" Percent="@RingPct(activeCount, orders.Count)" Color="#F0A500" />
+        <StatRing Label="Activos" Value="@activeCount.ToString()" Percent="@RingPct(activeCount, orders.Count)" Color="#52B788" />
         <StatRing Label="Sin diseñador" Value="@pendingAssignment.Count.ToString()" Percent="@RingPct(pendingAssignment.Count, orders.Count)" Color="#FFD166" />
-        <StatRing Label="En producción" Value="@inProductionCount.ToString()" Percent="@RingPct(inProductionCount, orders.Count)" Color="#00E5CC" />
-        <StatRing Label="Por recoger" Value="@readyPickupCount.ToString()" Percent="@RingPct(readyPickupCount, orders.Count)" Color="#81C784" />
+        <StatRing Label="En producción" Value="@inProductionCount.ToString()" Percent="@RingPct(inProductionCount, orders.Count)" Color="#0891B2" />
+        <StatRing Label="Por recoger" Value="@readyPickupCount.ToString()" Percent="@RingPct(readyPickupCount, orders.Count)" Color="#74CFA3" />
     </div>
 
     @if (pendingAssignment.Count > 0)
@@ -141,8 +141,8 @@ else if (isDesigner)
     {
         <div class="stats-rings-grid stats-rings-compact">
             <StatRing Label="Por aceptar" Value="@designerMetrics.PendingAcceptance.ToString()" Percent="@RingPct(designerMetrics.PendingAcceptance, TotalDesignerPending(designerMetrics))" Color="#FFD166" />
-            <StatRing Label="En diseño" Value="@designerMetrics.InProgress.ToString()" Percent="@RingPct(designerMetrics.InProgress, TotalDesignerPending(designerMetrics))" Color="#F0A500" />
-            <StatRing Label="Culminados" Value="@designerMetrics.CompletedTotal.ToString()" Percent="@RingPct(designerMetrics.CompletedThisMonth, Math.Max(designerMetrics.CompletedTotal, 1))" Color="#81C784" SubLabel="@($"{designerMetrics.CompletedThisMonth} este mes")" />
+            <StatRing Label="En diseño" Value="@designerMetrics.InProgress.ToString()" Percent="@RingPct(designerMetrics.InProgress, TotalDesignerPending(designerMetrics))" Color="#52B788" />
+            <StatRing Label="Culminados" Value="@designerMetrics.CompletedTotal.ToString()" Percent="@RingPct(designerMetrics.CompletedThisMonth, Math.Max(designerMetrics.CompletedTotal, 1))" Color="#74CFA3" SubLabel="@($"{designerMetrics.CompletedThisMonth} este mes")" />
         </div>
 
         @if (designerMetrics.AvgHoursToComplete.HasValue)
@@ -223,9 +223,9 @@ else if (isProduccion)
 
     <div class="stats-rings-grid stats-rings-compact">
         <StatRing Label="Por aceptar" Value="@toAcceptImp.ToString()" Percent="@RingPct(toAcceptImp, orders.Count)" Color="#FFD166" />
-        <StatRing Label="En trabajo" Value="@inProgressImp.ToString()" Percent="@RingPct(inProgressImp, orders.Count)" Color="#F0A500" />
-        <StatRing Label="Por recoger" Value="@readyImp.ToString()" Percent="@RingPct(readyImp, orders.Count)" Color="#81C784" />
-        <StatRing Label="Historial" Value="@historyCount.ToString()" Percent="@RingPct(historyCount, historyCount + orders.Count)" Color="#00E5CC" />
+        <StatRing Label="En trabajo" Value="@inProgressImp.ToString()" Percent="@RingPct(inProgressImp, orders.Count)" Color="#52B788" />
+        <StatRing Label="Por recoger" Value="@readyImp.ToString()" Percent="@RingPct(readyImp, orders.Count)" Color="#74CFA3" />
+        <StatRing Label="Historial" Value="@historyCount.ToString()" Percent="@RingPct(historyCount, historyCount + orders.Count)" Color="#0891B2" />
     </div>
 
     <section class="panel-section">
