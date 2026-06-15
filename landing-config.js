@@ -336,6 +336,7 @@
         var idx = parseInt(tr.getAttribute('data-idx'), 10);
         var field = input.getAttribute('data-field');
         if (!isNaN(idx) && rosterRows[idx]) rosterRows[idx][field] = input.value;
+        updateRosterCountHint();
       });
     });
 
@@ -354,14 +355,26 @@
         if (rosterRows.length > 1) {
           rosterRows.splice(idx, 1);
           renderRoster();
+          updateRosterCountHint();
         }
       });
     });
+    updateRosterCountHint();
+  }
+
+  function updateRosterCountHint() {
+    var count = getRosterFromDom().length;
+    var hint = $('qtySyncHint');
+    var badge = $('rosterCountBadge');
+    if (!hint || !badge) return;
+    badge.textContent = count;
+    hint.style.display = count > 0 ? 'flex' : 'none';
   }
 
   function addRosterRow() {
     rosterRows.push({ name: '', size: '', number: '', gender: 'Varon', kit: 'conjunto' });
     renderRoster();
+    updateRosterCountHint();
   }
 
   function getRosterFromDom() {
@@ -535,9 +548,12 @@
           }
           rosterRows = parsed.length ? parsed : [{ name: '', size: '', number: '', gender: 'Varon', kit: 'conjunto' }];
           renderRoster();
+          updateRosterCountHint();
+          var qty = $('quantity');
+          if (qty && !qty.value) qty.value = parsed.length;
           if (zone) zone.classList.add('has-file');
           if (label) label.textContent = file.name + ' · ' + parsed.length + ' filas cargadas';
-          setStatus(parsed.length + ' jugadores importados desde Excel.', 'ok');
+          setStatus(parsed.length + ' jugadores importados — cantidad actualizada a ' + parsed.length + '.', 'ok');
         } catch (err) {
           setStatus('No se pudo leer el archivo. Verifique el formato.', 'err');
         }
@@ -748,10 +764,21 @@
     var btnAdd = $('btnAddRoster');
     var btnMixed = $('btnAddMixedLine');
     var btnTemplate = $('btnDownloadTemplate');
+    var btnSync = $('btnSyncQty');
     if (btn) btn.addEventListener('click', sendQuote);
     if (btnAdd) btnAdd.addEventListener('click', addRosterRow);
     if (btnMixed) btnMixed.addEventListener('click', addMixedLine);
     if (btnTemplate) btnTemplate.addEventListener('click', downloadRosterTemplate);
+    if (btnSync) btnSync.addEventListener('click', function () {
+      var count = getRosterFromDom().length;
+      if (!count) return;
+      var qty = $('quantity');
+      if (qty) {
+        qty.value = count;
+        qty.dispatchEvent(new Event('input'));
+        setStatus('Cantidad actualizada a ' + count + ' (total de jugadores en lista).', 'ok');
+      }
+    });
   }
 
   function applyConfig(data) {
